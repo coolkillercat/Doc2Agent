@@ -1,0 +1,30 @@
+import requests
+from urllib.parse import quote
+                
+def get_conan_recipe_upload_urls(package_name=None, package_version=None, package_username=None, package_channel=None):
+    api_url = f"/api/v4/packages/conan/v1/conans/{package_name}/{package_version}/{package_username}/{package_channel}/upload_urls"
+    payload = {'package_name': package_name, 'package_version': package_version, 'package_username': package_username, 'package_channel': package_channel, }
+    assert package_name is not None, 'Missing required parameter: package_name'
+    assert package_version is not None, 'Missing required parameter: package_version'
+    assert package_username is not None, 'Missing required parameter: package_username'
+    assert package_channel is not None, 'Missing required parameter: package_channel'
+    
+    response = requests.post(url=api_url, json=payload, timeout=50, verify=False)
+    return response
+    # print(response.json())
+
+if __name__ == '__main__':
+    r = get_conan_recipe_upload_urls(package_name='''conan-package''', package_version='''1.0.0''', package_username='''user123''', package_channel='''stable''')
+    r_json = None
+    try:
+        r_json = r.json()
+    except:
+        pass
+    import json
+    result_dict = dict()
+    result_dict['status_code'] = r.status_code
+    result_dict['text'] = r.text
+    result_dict['json'] = r_json
+    result_dict['content'] = r.content.decode("utf-8")
+    print(json.dumps(result_dict, indent=4))
+

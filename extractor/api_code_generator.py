@@ -1,4 +1,4 @@
-from api_json_extractor import Extractor
+from extractor.api_json_extractor import Extractor
 import json
 import os
 import re
