@@ -1,9 +1,17 @@
+from dotenv import load_dotenv
+import os
 from langchain_openai import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.pydantic_v1 import BaseModel, Field, validator
+from pydantic import BaseModel, Field, validator
 from typing import Optional, Any, Union, List
 from bs4 import BeautifulSoup
 
+current_dir = os.path.dirname(os.path.abspath(__file__))
+root_dir = os.path.abspath(os.path.join(current_dir, ".."))
+env_path = os.path.join(root_dir, ".env")
+
+print("TRYING TO LOAD:", env_path)  # Debug log
+load_dotenv(dotenv_path=env_path)
 
 class Parameters(BaseModel):
     name: str = Field(description="Name of the parameter")
@@ -40,7 +48,18 @@ def html_file_parser(file_path):
 
 class Extractor():
     def __init__(self):
-        self.llm = ChatOpenAI(model='gpt-4o', temperature=0)
+        api_key = os.getenv("OPENAI_API_KEY")
+        print("LOADED API KEY:", api_key)  # Debug line
+
+        if not api_key:
+            raise ValueError("OPENAI_API_KEY not set in environment or .env file")
+
+        self.llm = ChatOpenAI(
+            model="gpt-4o",
+            temperature=0,
+            api_key=api_key
+        )
+    print("LOADED API KEY:", os.getenv("OPENAI_API_KEY"))
 
     def extract_api_json(self, file_path, file_parser=html_file_parser):
         # Gets the text content from the HTML file
