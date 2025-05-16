@@ -4,6 +4,8 @@ import subprocess
 import sys
 import ast
 from pathlib import Path
+import re
+from typing import List, Set, Optional
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -72,8 +74,22 @@ def main():
         api_json = json.load(open(os.path.join(apidocs_dir, tool_folder, api_txt[0])))
         
         for tool in tools:
+
+            print(f"Validating tool: {tool}")
+
             tool_path = os.path.join(apidocs_dir, tool_folder, tool)
             code = open(tool_path, "r").read()
+            function_name = extract_function_names(code)
+
+            api_description = api_json
+            for endpoint in api_json["endpoints"]:
+                api_name = endpoint["name"].lower()
+                api_name = re.sub(r'\W', '_', api_name)
+                if function_name == api_name:
+                    api_description = endpoint["description"]
+                    print(f"API description: {api_description}")
+                    break
+
             try:
                 result = subprocess.run(
                     ["python", tool_path], capture_output=True, text=True, check=True
@@ -83,7 +99,7 @@ def main():
                     gpt_answer = gpt_evaluate(
                         gpt,
                         gpt_prompt,
-                        api_description=api_json,
+                        api_description=api_description,
                         api_response=output,
                         code=code,
                     )
@@ -107,10 +123,16 @@ def main():
                 tool_hard_error += 1
                 need_refinement.append(tool_path)
                 print(f"Tool {tool_path} cannot be executed.")
+            
+            print("---------------------------\n")
 
     print(
         f"Tool success: {tool_success}, Tool code error: {tool_code_error}, Tool server error: {tool_server_error}, Tool hard error: {tool_hard_error}"
     )
+
+    with open("main/need_refinement.txt", "w") as f:
+        for tool in need_refinement:
+            f.write(tool + "\n")
 
     # build the response dictionary
     print("Building response dictionary...")
@@ -118,8 +140,9 @@ def main():
     # build the response keys
     response_keys, response_keys_emb = encode_keys(embedding_model, response_dict)
     
-
     # Refine the tools
+    refine_success = 0
+    refine_fail = 0
     print("Refining tools...")
     for tool_folder in os.listdir(apidocs_dir):
         # get the python tool scripts
@@ -134,6 +157,17 @@ def main():
             if tool_path not in need_refinement:
                 continue
             code = open(tool_path, "r").read()
+            function_name = extract_function_names(code)
+            
+            api_description = api_json
+            for endpoint in api_json["endpoints"]:
+                api_name = endpoint["name"].lower()
+                api_name = re.sub(r'\W', '_', api_name)
+                if function_name == api_name:
+                    api_description = endpoint["description"]
+                    print(f"API description: {api_description}")
+                    break
+    
             try:
                 result = subprocess.run(
                     ["python", tool_path], capture_output=True, text=True, check=True
@@ -147,13 +181,13 @@ def main():
                     param_examples = {}
                     for param in params:
                         # Search the knowledge base for the most relevant keys to the query.
-                        example = search_kb(param, param_keys, param_keys_emb, parameter_dict, description_keys, description_to_param_dict, description_keys_emb, embedding_model)
+                        example = search_kb(param, param_keys, param_keys_emb, parameter_dict, response_keys, response_keys_emb, response_dict, description_keys, description_to_param_dict, description_keys_emb, embedding_model)
                         param_examples[param] = example
                     
                     print(param_examples)
 
                     # Fix the code using Claude
-                    new_code = fix_code(claude, code, error_message, api_json, param_examples)
+                    new_code = fix_code(claude, code, error_message, api_description, param_examples)
                     with open(tool_path, "w") as f:
                         f.write(new_code)
                     print(f"Refined: {tool}")
@@ -165,65 +199,97 @@ def main():
                 param_examples = {}
                 for param in params:
                     # Search the knowledge base for the most relevant keys to the query.
-                    example = search_kb(param, param_keys, param_keys_emb, parameter_dict, description_keys, description_to_param_dict, description_keys_emb, embedding_model)
+                    example = search_kb(param, param_keys, param_keys_emb, parameter_dict, response_keys, response_keys_emb, response_dict, description_keys, description_to_param_dict, description_keys_emb, embedding_model)
                     param_examples[param] = example
                 
                 print(param_examples)
 
                 # Fix the code using Claude
-                new_code = fix_code(claude, code, error_message, api_json, param_examples)
+                new_code = fix_code(claude, code, error_message, api_description, param_examples)
                 with open(tool_path, "w") as f:
                     f.write(new_code)
                 print(f"Refined: {tool}")
-    
-
-    # Validation starts again
-    print("Validating tools again...")
-    tool_success = 0
-    tool_code_error = 0
-    tool_server_error = 0
-    tool_hard_error = 0
-
-    # run the tools
-    for tool_folder in os.listdir(apidocs_dir):
-        # get the python tool scripts
-        files = os.listdir(os.path.join(apidocs_dir, tool_folder))
-        tools = [x for x in files if x.endswith(".py")]
-        # get the api json file
-        api_txt = [x for x in files if x.endswith(".txt")]
-        api_json = json.load(open(os.path.join(apidocs_dir, tool_folder, api_txt[0])))
-        
-        for tool in tools:
-            tool_path = os.path.join(apidocs_dir, tool_folder, tool)
-            code = open(tool_path, "r").read()
-            try:
-                result = subprocess.run(
-                    ["python", tool_path], capture_output=True, text=True, check=True
-                )
-                if result.stdout:
-                    output = result.stdout
-                    gpt_answer = gpt_evaluate(
-                        gpt,
-                        gpt_prompt,
-                        api_description=api_json,
-                        api_response=output,
-                        code=code,
+            finally:
+                try:
+                    result = subprocess.run(
+                        ["python", tool_path], capture_output=True, text=True, check=True
                     )
-                    if gpt_answer == "code_error":
-                        tool_code_error += 1
-                        print(f"Tool {tool_path} returned a code error.")
-                    elif gpt_answer == "server_error":
-                        tool_server_error += 1
-                        print(f"Tool {tool_path} returned a server error.")
-                    elif gpt_answer == "information":
-                        tool_success += 1
-                        print(f"Tool {tool_path} executed successfully.")
-                    else:
-                        print(f"Tool {tool_path} gpt answer: {gpt_answer}")
-            # except subprocess.CalledProcessError as e:
-            except Exception as e:
-                tool_hard_error += 1
-                print(f"Tool {tool_path} cannot be executed.")
+                    if result.stdout:
+                        output = result.stdout
+                        gpt_answer = gpt_evaluate(
+                            gpt,
+                            gpt_prompt,
+                            api_description=api_description,
+                            api_response=output,
+                            code=code,
+                        )
+                    if gpt_answer == "information":
+                        refine_success += 1
+                        print(f"Refined tool {tool_path} executed successfully.")
+                    elif gpt_answer == "code_error":
+                        refine_fail += 1
+                        print(f"Refined tool {tool_path} returned a code error.")
+                except subprocess.CalledProcessError as e:
+                    refine_fail += 1
+                    print(f"Refined tool {tool_path} cannot be executed.")
+                finally:
+                    print("---------------------------\n")
+
+    print(f"Refine success: {refine_success}, Refine fail: {refine_fail}, NumToolsNeedRefinement: {len(need_refinement)}")
+
+
+    # # Validation starts again
+    # print("Validating tools again...")
+    # tool_success = 0
+    # tool_code_error = 0
+    # tool_server_error = 0
+    # tool_hard_error = 0
+
+    # # run the tools
+    # for tool_folder in os.listdir(apidocs_dir):
+    #     # get the python tool scripts
+    #     files = os.listdir(os.path.join(apidocs_dir, tool_folder))
+    #     tools = [x for x in files if x.endswith(".py")]
+    #     # get the api json file
+    #     api_txt = [x for x in files if x.endswith(".txt")]
+    #     api_json = json.load(open(os.path.join(apidocs_dir, tool_folder, api_txt[0])))
+        
+    #     for tool in tools:
+    #         tool_path = os.path.join(apidocs_dir, tool_folder, tool)
+    #         code = open(tool_path, "r").read()
+    #         try:
+    #             result = subprocess.run(
+    #                 ["python", tool_path], capture_output=True, text=True, check=True
+    #             )
+    #             if result.stdout:
+    #                 output = result.stdout
+    #                 gpt_answer = gpt_evaluate(
+    #                     gpt,
+    #                     gpt_prompt,
+    #                     api_description=api_json,
+    #                     api_response=output,
+    #                     code=code,
+    #                 )
+    #                 if gpt_answer == "code_error":
+    #                     tool_code_error += 1
+    #                     print(f"Tool {tool_path} returned a code error.")
+    #                 elif gpt_answer == "server_error":
+    #                     tool_server_error += 1
+    #                     print(f"Tool {tool_path} returned a server error.")
+    #                 elif gpt_answer == "information":
+    #                     tool_success += 1
+    #                     print(f"Tool {tool_path} executed successfully.")
+    #                 else:
+    #                     print(f"Tool {tool_path} gpt answer: {gpt_answer}")
+    #         # except subprocess.CalledProcessError as e:
+    #         except Exception as e:
+    #             tool_hard_error += 1
+    #             print(f"Tool {tool_path} cannot be executed.")
+    
+    # print(
+    #     f"Tool success: {tool_success}, Tool code error: {tool_code_error}, Tool server error: {tool_server_error}, Tool hard error: {tool_hard_error}"
+    # )
+    
 
 
 def get_required_param_name(path: str | Path):
@@ -245,6 +311,32 @@ def get_required_param_name(path: str | Path):
     
     return params
 
+def extract_function_names(code_str):
+    """
+    Extracts function names from a given Python code string.
+    
+    Args:
+        code_str (str): A string containing Python code
+        
+    Returns:
+        list: A list of function names found in the code
+    """
+    function_names = []
+    
+    class FunctionVisitor(ast.NodeVisitor):
+        def visit_FunctionDef(self, node):
+            function_names.append(node.name)
+            self.generic_visit(node)  # Continue visiting child nodes
+            
+    try:
+        tree = ast.parse(code_str)
+        visitor = FunctionVisitor()
+        visitor.visit(tree)
+    except SyntaxError as e:
+        print(f"Syntax error in code: {e}")
+        return []
+    
+    return function_names[0]
 
 if __name__ == "__main__":
     main()
