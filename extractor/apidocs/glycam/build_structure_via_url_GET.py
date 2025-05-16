@@ -2,7 +2,7 @@ import requests
 from urllib.parse import quote
                 
 def build_structure_via_url(sequence=None):
-    api_url = f"glycam.org/url/condensed/{quote(sequence, safe='')}"
+    api_url = f"https://glycam.org/url/condensed/{quote(sequence, safe='')}"
     querystring = {'sequence': sequence, }
     assert sequence is not None, 'Missing required parameter: sequence'
     
@@ -27,4 +27,3 @@ if __name__ == '__main__':
     result_dict['json'] = r_json
     result_dict['content'] = r.content.decode("utf-8")
     print(json.dumps(result_dict, indent=4))
-
