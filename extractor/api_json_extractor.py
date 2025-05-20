@@ -49,7 +49,6 @@ def html_file_parser(file_path):
 class Extractor():
     def __init__(self):
         api_key = os.getenv("OPENAI_API_KEY")
-        print("LOADED API KEY:", api_key)  # Debug line
 
         if not api_key:
             raise ValueError("OPENAI_API_KEY not set in environment or .env file")
@@ -59,7 +58,6 @@ class Extractor():
             temperature=0,
             api_key=api_key
         )
-    print("LOADED API KEY:", os.getenv("OPENAI_API_KEY"))
 
     def extract_api_json(self, file_path, file_parser=html_file_parser):
         # Gets the text content from the HTML file

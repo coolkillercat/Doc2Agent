@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from pydantic import BaseModel
 import subprocess
 
@@ -21,7 +21,6 @@ async def process_api(request: APIRequest):
             "stdout": result.stdout,
             "stderr": result.stderr
         }
-
     except subprocess.CalledProcessError as e:
         return {
             "status": "error",
