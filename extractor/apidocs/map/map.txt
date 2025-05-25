@@ -1,0 +1,1003 @@
+{
+    "title": "Combined Map API Documentation",
+    "endpoints": [
+        {
+            "name": "Retrieving map data by bounding box",
+            "description": "Returns all nodes inside a given bounding box and any relations that reference them, all ways that reference at least one node inside the bounding box, and any relations that reference them.",
+            "method": "GET",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/map",
+            "headers": [],
+            "required_parameters": [
+                {
+                    "name": "bbox",
+                    "type": "string",
+                    "description": "Bounding box defined by left, bottom, right, and top coordinates.",
+                    "default": null,
+                    "example": "left,bottom,right,top"
+                }
+            ],
+            "optional_parameters": []
+        },
+        {
+            "name": "Create Changeset",
+            "description": "Creates a new changeset with metadata and optional tags.",
+            "method": "PUT",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/changeset/create",
+            "headers": [],
+            "required_parameters": [
+                {
+                    "name": "osm",
+                    "type": "XML",
+                    "description": "The body of the request must include one or more changeset elements enclosed in an osm element.",
+                    "default": null,
+                    "example": "<osm><changeset><tag k='comment' v='Example changeset'/></changeset></osm>"
+                }
+            ],
+            "optional_parameters": []
+        },
+        {
+            "name": "Create Changeset",
+            "description": "Creates a new changeset with specified tags.",
+            "method": "PUT",
+            "url": "missing",
+            "headers": [],
+            "required_parameters": [],
+            "optional_parameters": [
+                {
+                    "name": "tags",
+                    "type": "object",
+                    "description": "Editor-specific tags, including 'created_by' and 'comment'.",
+                    "default": null,
+                    "example": {
+                        "created_by": "ExampleEditor",
+                        "comment": "Added new roads"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Read Changeset",
+            "description": "Retrieves the changeset with the given id in OSM-XML format.",
+            "method": "GET",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/changeset/#id?include_discussion=true",
+            "headers": [],
+            "required_parameters": [
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "description": "The id of the changeset to retrieve.",
+                    "default": null,
+                    "example": 12345
+                }
+            ],
+            "optional_parameters": [
+                {
+                    "name": "include_discussion",
+                    "type": "boolean",
+                    "description": "Indicates whether the result should contain the changeset discussion.",
+                    "default": false,
+                    "example": true
+                }
+            ]
+        },
+        {
+            "name": "Update Changeset",
+            "description": "Updates tags on the changeset.",
+            "method": "PUT",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/changeset/#id",
+            "headers": [],
+            "required_parameters": [
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "description": "The id of the changeset to update.",
+                    "default": null,
+                    "example": 12345
+                }
+            ],
+            "optional_parameters": [
+                {
+                    "name": "tags",
+                    "type": "object",
+                    "description": "New tags for the changeset.",
+                    "default": null,
+                    "example": {
+                        "comment": "Updated road names"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Close Changeset",
+            "description": "Closes a changeset.",
+            "method": "PUT",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/changeset/#id/close",
+            "headers": [],
+            "required_parameters": [
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "description": "The id of the changeset to close.",
+                    "default": null,
+                    "example": 12345
+                }
+            ],
+            "optional_parameters": []
+        },
+        {
+            "name": "Download Changeset",
+            "description": "Returns the OsmChange document describing all changes associated with the changeset.",
+            "method": "GET",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/changeset/#id/download",
+            "headers": [],
+            "required_parameters": [
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "description": "The id of the changeset for which the OsmChange is requested.",
+                    "default": null,
+                    "example": 12345
+                }
+            ],
+            "optional_parameters": []
+        },
+        {
+            "name": "Query Changesets",
+            "description": "This API method is used for querying changesets by different criteria. The results will match all the specified requirements.",
+            "method": "GET",
+            "url": [
+                "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/changesets"
+            ],
+            "headers": [],
+            "required_parameters": [],
+            "optional_parameters": [
+                {
+                    "name": "bbox",
+                    "type": "string",
+                    "description": "Find changesets within the given bounding box (W,S,E,N).",
+                    "default": null,
+                    "example": "min_lon,min_lat,max_lon,max_lat"
+                },
+                {
+                    "name": "user",
+                    "type": "string",
+                    "description": "Find changesets by the user with the given user id or display name. Providing both is an error.",
+                    "default": null,
+                    "example": "#uid or display_name=#name"
+                },
+                {
+                    "name": "time",
+                    "type": "string",
+                    "description": "Find changesets closed after T1 or between T1 and T2.",
+                    "default": null,
+                    "example": "T1 or T1,T2"
+                },
+                {
+                    "name": "open",
+                    "type": "boolean",
+                    "description": "Only finds changesets that are still open.",
+                    "default": null,
+                    "example": "true"
+                },
+                {
+                    "name": "closed",
+                    "type": "boolean",
+                    "description": "Only finds changesets that are closed.",
+                    "default": null,
+                    "example": "true"
+                },
+                {
+                    "name": "changesets",
+                    "type": "string",
+                    "description": "Finds changesets with the specified ids.",
+                    "default": null,
+                    "example": "#cid{,#cid}"
+                },
+                {
+                    "name": "order",
+                    "type": "string",
+                    "description": "Sort order of the changesets. Default is newest first.",
+                    "default": "newest",
+                    "example": "newest or oldest"
+                },
+                {
+                    "name": "limit",
+                    "type": "integer",
+                    "description": "Specifies the maximum number of changesets returned. Default is 100.",
+                    "default": 100,
+                    "example": "50"
+                }
+            ]
+        },
+        {
+            "name": "Diff Upload",
+            "description": "Uploads files in the OsmChange format to the server. This operation is transactional.",
+            "method": "POST",
+            "url": [
+                "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/changeset/#id/upload"
+            ],
+            "headers": [],
+            "required_parameters": [
+                {
+                    "name": "id",
+                    "type": "string",
+                    "description": "The ID of the changeset this diff belongs to.",
+                    "default": null,
+                    "example": "12345"
+                },
+                {
+                    "name": "POST data",
+                    "type": "file",
+                    "description": "The OsmChange file data.",
+                    "default": null,
+                    "example": "osmchange.osc"
+                }
+            ],
+            "optional_parameters": []
+        },
+        {
+            "name": "Comment on Changeset",
+            "description": "Add a comment to a changeset. The changeset must be closed.",
+            "method": "POST",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/changeset/#id/comment",
+            "headers": [],
+            "required_parameters": [
+                {
+                    "name": "text",
+                    "type": "string",
+                    "description": "The comment text.",
+                    "default": null,
+                    "example": "This is a comment."
+                }
+            ],
+            "optional_parameters": []
+        },
+        {
+            "name": "Subscribe to Changeset",
+            "description": "Subscribe to the discussion of a changeset to receive notifications for new comments.",
+            "method": "POST",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/changeset/#id/subscribe",
+            "headers": [],
+            "required_parameters": [],
+            "optional_parameters": []
+        },
+        {
+            "name": "Unsubscribe from Changeset",
+            "description": "Unsubscribe from the discussion of a changeset to stop receiving notifications.",
+            "method": "POST",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/changeset/#id/unsubscribe",
+            "headers": [],
+            "required_parameters": [],
+            "optional_parameters": []
+        },
+        {
+            "name": "Hide Changeset Comment",
+            "description": "Sets visible flag on changeset comment to false.",
+            "method": "POST",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/changeset/comment/#comment_id/hide",
+            "headers": [],
+            "required_parameters": [],
+            "optional_parameters": []
+        },
+        {
+            "name": "Unhide Changeset Comment",
+            "description": "Sets visible flag on changeset comment to true.",
+            "method": "POST",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/changeset/comment/#comment_id/unhide",
+            "headers": [],
+            "required_parameters": [],
+            "optional_parameters": []
+        },
+        {
+            "name": "Create Element",
+            "description": "Creates a new element of the specified type (Node, Way, or Relation).",
+            "method": "PUT",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/[node|way|relation]/create",
+            "headers": [],
+            "required_parameters": [],
+            "optional_parameters": []
+        },
+        {
+            "name": "Read Element",
+            "description": "Returns the XML or JSON representation of the element.",
+            "method": "GET",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/[node|way|relation]/#id",
+            "headers": [],
+            "required_parameters": [],
+            "optional_parameters": []
+        },
+        {
+            "name": "Update Element",
+            "description": "Updates data from a preexisting element. A full representation of the element as it should be after the update has to be provided.",
+            "method": "PUT",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/[node|way|relation]/#id",
+            "headers": [],
+            "required_parameters": [
+                {
+                    "name": "element",
+                    "type": "XML",
+                    "description": "Full representation of the element including unchanged tags, way-node refs, and relation members.",
+                    "default": null,
+                    "example": "<node id='4326396331' version='2' lat='31.9016302' lon='-81.5990471' />"
+                },
+                {
+                    "name": "version",
+                    "type": "integer",
+                    "description": "Version number of the element, must match the current version in the database.",
+                    "default": null,
+                    "example": 2
+                },
+                {
+                    "name": "changeset",
+                    "type": "integer",
+                    "description": "ID of an open changeset.",
+                    "default": null,
+                    "example": 188021
+                }
+            ],
+            "optional_parameters": []
+        },
+        {
+            "name": "Delete Element",
+            "description": "Deletes an element. Expects a valid XML representation of the element to be deleted.",
+            "method": "DELETE",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/[node|way|relation]/#id",
+            "headers": [],
+            "required_parameters": [
+                {
+                    "name": "element",
+                    "type": "XML",
+                    "description": "XML representation of the element to be deleted, must match the ID in the URL.",
+                    "default": null,
+                    "example": "<node id='4326396331' version='2' lat='31.9016302' lon='-81.5990471' />"
+                },
+                {
+                    "name": "version",
+                    "type": "integer",
+                    "description": "Version number of the element, must match the version of the element you downloaded.",
+                    "default": null,
+                    "example": 2
+                },
+                {
+                    "name": "changeset",
+                    "type": "integer",
+                    "description": "ID of an open changeset owned by the current authenticated user.",
+                    "default": null,
+                    "example": 188021
+                }
+            ],
+            "optional_parameters": []
+        },
+        {
+            "name": "Get Element History",
+            "description": "Retrieves all old versions of an element.",
+            "method": "GET",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/[node|way|relation]/#id/history",
+            "headers": [],
+            "required_parameters": [
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "description": "ID of the element to retrieve history for.",
+                    "default": null,
+                    "example": 250066046
+                }
+            ],
+            "optional_parameters": []
+        },
+        {
+            "name": "Get Element Version",
+            "description": "Retrieves a specific version of the element.",
+            "method": "GET",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/[node|way|relation]/#id/#version",
+            "headers": [],
+            "required_parameters": [
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "description": "ID of the element.",
+                    "default": null,
+                    "example": 250066046
+                },
+                {
+                    "name": "version",
+                    "type": "integer",
+                    "description": "Specific version of the element to retrieve.",
+                    "default": null,
+                    "example": 1
+                }
+            ],
+            "optional_parameters": []
+        },
+        {
+            "name": "Multi Fetch",
+            "description": "Allows a user to fetch multiple elements at once.",
+            "method": "GET",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/[nodes|ways|relations]",
+            "headers": [],
+            "required_parameters": [
+                {
+                    "name": "[nodes|ways|relations]",
+                    "type": "string",
+                    "description": "Comma separated list of elements to fetch. Version numbers for each object may be optionally provided following a lowercase 'v' character.",
+                    "default": null,
+                    "example": "nodes=123,456,789"
+                }
+            ],
+            "optional_parameters": []
+        },
+        {
+            "name": "Relations for Element",
+            "description": "Returns a XML document containing all (not deleted) relations in which the given element is used.",
+            "method": "GET",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/[node|way|relation]/#id/relations",
+            "headers": [],
+            "required_parameters": [
+                {
+                    "name": "#id",
+                    "type": "string",
+                    "description": "The ID of the element",
+                    "default": null,
+                    "example": "123"
+                }
+            ],
+            "optional_parameters": []
+        },
+        {
+            "name": "Ways for Node",
+            "description": "Returns a XML document containing all the (not deleted) ways in which the given node is used.",
+            "method": "GET",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/node/#id/ways",
+            "headers": [],
+            "required_parameters": [
+                {
+                    "name": "#id",
+                    "type": "string",
+                    "description": "The ID of the node",
+                    "default": null,
+                    "example": "123"
+                }
+            ],
+            "optional_parameters": []
+        },
+        {
+            "name": "Full",
+            "description": "Retrieves a way or relation and all other elements referenced by it.",
+            "method": "GET",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/[way|relation]/#id/full",
+            "headers": [],
+            "required_parameters": [
+                {
+                    "name": "#id",
+                    "type": "string",
+                    "description": "The ID of the way or relation",
+                    "default": null,
+                    "example": "123"
+                }
+            ],
+            "optional_parameters": []
+        },
+        {
+            "name": "Redaction",
+            "description": "Hides contributions from users that did not accept the new CT/licence.",
+            "method": "POST",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/[node|way|relation]/#id/#version/redact?redaction=#redaction_id",
+            "headers": [],
+            "required_parameters": [
+                {
+                    "name": "#id",
+                    "type": "string",
+                    "description": "The ID of the element",
+                    "default": null,
+                    "example": "123"
+                },
+                {
+                    "name": "#version",
+                    "type": "string",
+                    "description": "The version of the element",
+                    "default": null,
+                    "example": "1"
+                },
+                {
+                    "name": "#redaction_id",
+                    "type": "string",
+                    "description": "The redaction ID",
+                    "default": null,
+                    "example": "456"
+                }
+            ],
+            "optional_parameters": []
+        },
+        {
+            "name": "Get GPS Points",
+            "description": "Retrieve the GPS track points that are inside a given bounding box.",
+            "method": "GET",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/trackpoints",
+            "headers": [],
+            "required_parameters": [
+                {
+                    "name": "bbox",
+                    "type": "string",
+                    "description": "Bounding box coordinates in the format 'left,bottom,right,top'.",
+                    "default": null,
+                    "example": "0,51.5,0.25,51.75"
+                }
+            ],
+            "optional_parameters": [
+                {
+                    "name": "page",
+                    "type": "integer",
+                    "description": "Specifies which group of 5,000 points, or 'page', to return.",
+                    "default": 0,
+                    "example": 0
+                }
+            ]
+        },
+        {
+            "name": "Create",
+            "description": "Upload a GPX file or archive of GPX files.",
+            "method": "POST",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/gpx/create",
+            "headers": [],
+            "required_parameters": [],
+            "optional_parameters": []
+        },
+        {
+            "name": "Create GPX",
+            "description": "Uploads a GPX file containing track points.",
+            "method": "POST",
+            "url": "missing",
+            "headers": [],
+            "required_parameters": [
+                {
+                    "name": "file",
+                    "type": "file",
+                    "description": "The GPX file containing the track points. Must contain trackpoints with a valid timestamp.",
+                    "default": null,
+                    "example": "track.gpx"
+                },
+                {
+                    "name": "description",
+                    "type": "string",
+                    "description": "The trace description. Cannot be empty.",
+                    "default": null,
+                    "example": "Morning run"
+                }
+            ],
+            "optional_parameters": [
+                {
+                    "name": "tags",
+                    "type": "string",
+                    "description": "A string containing tags for the trace. Can be empty.",
+                    "default": null,
+                    "example": "run, morning"
+                },
+                {
+                    "name": "public",
+                    "type": "integer",
+                    "description": "1 if the trace is public, 0 if not. Exists for backwards compatibility.",
+                    "default": null,
+                    "example": 1
+                },
+                {
+                    "name": "visibility",
+                    "type": "string",
+                    "description": "One of the following: private, public, trackable, identifiable.",
+                    "default": null,
+                    "example": "public"
+                }
+            ]
+        },
+        {
+            "name": "Update GPX Metadata",
+            "description": "Updates the metadata of a GPX file. Only usable by the owner account.",
+            "method": "PUT",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/gpx/#id",
+            "headers": [],
+            "required_parameters": [],
+            "optional_parameters": []
+        },
+        {
+            "name": "Delete GPX",
+            "description": "Deletes a GPX file. Only usable by the owner account.",
+            "method": "DELETE",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/gpx/#id",
+            "headers": [],
+            "required_parameters": [],
+            "optional_parameters": []
+        },
+        {
+            "name": "Download GPX Metadata",
+            "description": "Accesses the metadata about a GPX file.",
+            "method": "GET",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/gpx/#id/details",
+            "headers": [],
+            "required_parameters": [],
+            "optional_parameters": []
+        },
+        {
+            "name": "Download GPX Data",
+            "description": "Downloads the full GPX file.",
+            "method": "GET",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/gpx/#id/data",
+            "headers": [],
+            "required_parameters": [],
+            "optional_parameters": []
+        },
+        {
+            "name": "List User GPX Files",
+            "description": "Gets a list of GPX traces owned by the authenticated user.",
+            "method": "GET",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/user/gpx_files",
+            "headers": [],
+            "required_parameters": [],
+            "optional_parameters": []
+        },
+        {
+            "name": "Get User Details",
+            "description": "Gets the home location and display name of the user.",
+            "method": "GET",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/user/#id",
+            "headers": [],
+            "required_parameters": [],
+            "optional_parameters": []
+        },
+        {
+            "name": "Get Multiple Users Details",
+            "description": "Gets the details of a number of users.",
+            "method": "GET",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/users?users=#id1,#id2,...,#idn",
+            "headers": [],
+            "required_parameters": [],
+            "optional_parameters": []
+        },
+        {
+            "name": "Get User Details",
+            "description": "Retrieves details of the logged-in user.",
+            "method": "GET",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/user/details",
+            "headers": [],
+            "required_parameters": [],
+            "optional_parameters": []
+        },
+        {
+            "name": "Get User Details (JSON)",
+            "description": "Retrieves details of the logged-in user in JSON format.",
+            "method": "GET",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/user/details.json",
+            "headers": [],
+            "required_parameters": [],
+            "optional_parameters": []
+        },
+        {
+            "name": "Get User Preferences",
+            "description": "Retrieves the list of current preferences of the logged-in user.",
+            "method": "GET",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/user/preferences",
+            "headers": [],
+            "required_parameters": [],
+            "optional_parameters": []
+        },
+        {
+            "name": "Get User Preferences (JSON)",
+            "description": "Retrieves the list of current preferences of the logged-in user in JSON format.",
+            "method": "GET",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/user/preferences.json",
+            "headers": [],
+            "required_parameters": [],
+            "optional_parameters": []
+        },
+        {
+            "name": "Set User Preferences",
+            "description": "Uploads and replaces all existing preferences with a new set for the logged-in user.",
+            "method": "PUT",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/user/preferences",
+            "headers": [],
+            "required_parameters": [],
+            "optional_parameters": []
+        },
+        {
+            "name": "Get Single User Preference",
+            "description": "Retrieves the value of a single user preference.",
+            "method": "GET",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/user/preferences/[your_key]",
+            "headers": [],
+            "required_parameters": [
+                {
+                    "name": "your_key",
+                    "type": "string",
+                    "description": "The key of the preference to retrieve.",
+                    "default": null,
+                    "example": "theme"
+                }
+            ],
+            "optional_parameters": []
+        },
+        {
+            "name": "Set Single User Preference",
+            "description": "Sets the value of a single user preference.",
+            "method": "PUT",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/user/preferences/[your_key]",
+            "headers": [],
+            "required_parameters": [
+                {
+                    "name": "your_key",
+                    "type": "string",
+                    "description": "The key of the preference to set.",
+                    "default": null,
+                    "example": "theme"
+                }
+            ],
+            "optional_parameters": []
+        },
+        {
+            "name": "Delete Single User Preference",
+            "description": "Deletes a single user preference.",
+            "method": "DELETE",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/user/preferences/[your_key]",
+            "headers": [],
+            "required_parameters": [
+                {
+                    "name": "your_key",
+                    "type": "string",
+                    "description": "The key of the preference to delete.",
+                    "default": null,
+                    "example": "theme"
+                }
+            ],
+            "optional_parameters": []
+        },
+        {
+            "name": "Retrieve Notes by Bounding Box",
+            "description": "Returns existing notes in the specified bounding box.",
+            "method": "GET",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/notes?bbox=left,bottom,right,top",
+            "headers": [],
+            "required_parameters": [
+                {
+                    "name": "bbox",
+                    "type": "string",
+                    "description": "Coordinates for the area to retrieve the notes from.",
+                    "default": null,
+                    "example": "-0.65094,51.312159,0.374908,51.669148"
+                }
+            ],
+            "optional_parameters": [
+                {
+                    "name": "limit",
+                    "type": "integer",
+                    "description": "Specifies the number of entries to return.",
+                    "default": null,
+                    "example": 100
+                }
+            ]
+        },
+        {
+            "name": "Read Note",
+            "description": "Returns the existing note with the given ID.",
+            "method": "GET",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/notes/#id",
+            "headers": [],
+            "required_parameters": [
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "description": "The ID of the note",
+                    "default": null,
+                    "example": 100
+                }
+            ],
+            "optional_parameters": []
+        },
+        {
+            "name": "Create a New Note",
+            "description": "Creates a new note at the specified location with the given text.",
+            "method": "POST",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/notes",
+            "headers": [],
+            "required_parameters": [
+                {
+                    "name": "lat",
+                    "type": "float",
+                    "description": "Specifies the latitude of the note",
+                    "default": null,
+                    "example": 51.0
+                },
+                {
+                    "name": "lon",
+                    "type": "float",
+                    "description": "Specifies the longitude of the note",
+                    "default": null,
+                    "example": 0.1
+                },
+                {
+                    "name": "text",
+                    "type": "string",
+                    "description": "A text field with arbitrary text containing the note",
+                    "default": null,
+                    "example": "This is a note"
+                }
+            ],
+            "optional_parameters": []
+        },
+        {
+            "name": "Create a New Comment",
+            "description": "Add a new comment to an existing note with the given ID.",
+            "method": "POST",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/notes/#id/comment",
+            "headers": [],
+            "required_parameters": [
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "description": "The ID of the note to comment on",
+                    "default": null,
+                    "example": 16659
+                },
+                {
+                    "name": "text",
+                    "type": "string",
+                    "description": "The comment text",
+                    "default": null,
+                    "example": "This is a comment"
+                }
+            ],
+            "optional_parameters": []
+        },
+        {
+            "name": "Close Note",
+            "description": "Close a note as fixed.",
+            "method": "POST",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/notes/#id/close",
+            "headers": [],
+            "required_parameters": [
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "description": "The ID of the note to close",
+                    "default": null,
+                    "example": 16659
+                },
+                {
+                    "name": "text",
+                    "type": "string",
+                    "description": "Comment on closing the note",
+                    "default": null,
+                    "example": "Fixed the issue"
+                }
+            ],
+            "optional_parameters": []
+        },
+        {
+            "name": "Reopen Note",
+            "description": "Reopen a closed note.",
+            "method": "POST",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/notes/#id/reopen?text=Comment",
+            "headers": [],
+            "required_parameters": [
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "description": "The ID of the note to reopen",
+                    "default": null,
+                    "example": 12345
+                }
+            ],
+            "optional_parameters": []
+        },
+        {
+            "name": "Hide Note",
+            "description": "Hide (delete) a note.",
+            "method": "DELETE",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/notes/#id?text=Comment",
+            "headers": [],
+            "required_parameters": [
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "description": "The ID of the note to hide",
+                    "default": null,
+                    "example": 12345
+                }
+            ],
+            "optional_parameters": []
+        },
+        {
+            "name": "Search for Notes",
+            "description": "Returns notes that match the specified query.",
+            "method": "GET",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/notes/search",
+            "headers": [],
+            "required_parameters": [],
+            "optional_parameters": [
+                {
+                    "name": "q",
+                    "type": "string",
+                    "description": "Text search query, matching either note text or comments.",
+                    "default": null,
+                    "example": "business spam"
+                },
+                {
+                    "name": "limit",
+                    "type": "integer",
+                    "description": "Maximum number of results.",
+                    "default": 100,
+                    "example": 20
+                },
+                {
+                    "name": "closed",
+                    "type": "number",
+                    "description": "Maximum number of days a note has been closed for.",
+                    "default": 7,
+                    "example": 0
+                },
+                {
+                    "name": "display_name",
+                    "type": "string",
+                    "description": "Search for notes which the given user interacted with.",
+                    "default": null,
+                    "example": "JohnDoe"
+                },
+                {
+                    "name": "user",
+                    "type": "integer",
+                    "description": "Search based on user id instead of display name.",
+                    "default": null,
+                    "example": 123
+                },
+                {
+                    "name": "bbox",
+                    "type": "string",
+                    "description": "Search area.",
+                    "default": null,
+                    "example": "-1,-1,1,1"
+                },
+                {
+                    "name": "from",
+                    "type": "string",
+                    "description": "Beginning date range for created_at or updated_at.",
+                    "default": null,
+                    "example": "2023-01-01"
+                },
+                {
+                    "name": "to",
+                    "type": "string",
+                    "description": "End date range for created_at or updated_at.",
+                    "default": null,
+                    "example": "2023-12-31"
+                },
+                {
+                    "name": "sort",
+                    "type": "string",
+                    "description": "Sort results by creation or update date.",
+                    "default": "updated_at",
+                    "example": "created_at"
+                },
+                {
+                    "name": "order",
+                    "type": "string",
+                    "description": "Sorting order.",
+                    "default": "newest",
+                    "example": "oldest"
+                }
+            ]
+        },
+        {
+            "name": "RSS Feed",
+            "description": "Gets an RSS feed for notes within an area.",
+            "method": "GET",
+            "url": "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000/api/0.6/notes/feed",
+            "headers": [],
+            "required_parameters": [],
+            "optional_parameters": [
+                {
+                    "name": "bbox",
+                    "type": "string",
+                    "description": "Coordinates for the area to retrieve the notes from.",
+                    "default": null,
+                    "example": "-1,-1,1,1"
+                }
+            ]
+        }
+    ]
+}

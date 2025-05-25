@@ -1,0 +1,312 @@
+{
+    "title": "OSRM HTTP Router API Documentation",
+    "endpoints": [
+        {
+            "name": "General Request",
+            "description": "All OSRM HTTP requests use a common structure.",
+            "method": "GET",
+            "url": "http://router.project-osrm.org/{service}/v1/test/{coordinates}[.{format}]?option=value&option=value",
+            "headers": [],
+            "required_parameters": [
+                {
+                    "name": "profile",
+                    "type": "string",
+                    "description": "Mode of transportation.",
+                    "default": null,
+                    "example": "5000"
+                },
+                {
+                    "name": "service",
+                    "type": "string",
+                    "description": "Service type such as route, nearest, table, match, trip, tile.",
+                    "default": null,
+                    "example": "route"
+                },
+                {
+                    "name": "coordinates",
+                    "type": "string",
+                    "description": "String of format {longitude},{latitude};{longitude},{latitude}[;{longitude},{latitude} ...] or polyline({polyline}) or polyline6({polyline6}).",
+                    "default": null,
+                    "example": "13.388860,52.517037;13.397634,52.529407"
+                }
+            ],
+            "optional_parameters": [
+                {
+                    "name": "format",
+                    "type": "string",
+                    "description": "Response format, either json or flatbuffers.",
+                    "default": null,
+                    "example": "json"
+                },
+                {
+                    "name": "option",
+                    "type": "string",
+                    "description": "Additional options for the request.",
+                    "default": null,
+                    "example": "overview=false"
+                }
+            ]
+        },
+        {
+            "name": "Nearest Service",
+            "description": "Snaps a coordinate to the street network and returns the nearest n matches.",
+            "method": "GET",
+            "url": "http://router.project-osrm.org/nearest/v1/test/{coordinates}.json?number={number}",
+            "headers": [],
+            "required_parameters": [
+                {
+                    "name": "coordinates",
+                    "type": "string",
+                    "description": "A single {longitude},{latitude} entry.",
+                    "default": null,
+                    "example": "13.388860,52.517037"
+                }
+            ],
+            "optional_parameters": [
+                {
+                    "name": "number",
+                    "type": "integer",
+                    "description": "Number of nearest segments that should be returned.",
+                    "default": null,
+                    "example": "3"
+                }
+            ]
+        },
+        {
+            "name": "Route Service",
+            "description": "Finds the fastest route between coordinates in the supplied order.",
+            "method": "GET",
+            "url": "http://router.project-osrm.org/route/v1/test/{coordinates}?alternatives={true|false|number}&steps={true|false}&geometries={polyline|polyline6|geojson}&overview={full|simplified|false}&annotations={true|false}",
+            "headers": [],
+            "required_parameters": [
+                {
+                    "name": "coordinates",
+                    "type": "string",
+                    "description": "String of format {longitude},{latitude};{longitude},{latitude}[;{longitude},{latitude} ...].",
+                    "default": null,
+                    "example": "13.388860,52.517037;13.397634,52.529407;13.428555,52.523219"
+                }
+            ],
+            "optional_parameters": [
+                {
+                    "name": "alternatives",
+                    "type": "string",
+                    "description": "Search for alternative routes.",
+                    "default": null,
+                    "example": "true"
+                },
+                {
+                    "name": "steps",
+                    "type": "boolean",
+                    "description": "Returned route steps for each route leg.",
+                    "default": null,
+                    "example": "false"
+                },
+                {
+                    "name": "geometries",
+                    "type": "string",
+                    "description": "Returned route geometry format.",
+                    "default": null,
+                    "example": "geojson"
+                },
+                {
+                    "name": "overview",
+                    "type": "string",
+                    "description": "Add overview geometry either full, simplified, or not at all.",
+                    "default": null,
+                    "example": "simplified"
+                },
+                {
+                    "name": "annotations",
+                    "type": "boolean",
+                    "description": "Returns additional metadata for each coordinate along the route geometry.",
+                    "default": null,
+                    "example": "true"
+                }
+            ]
+        },
+        {
+            "name": "Table Service",
+            "description": "Computes the duration of the fastest route between all pairs of supplied coordinates.",
+            "method": "GET",
+            "url": "http://router.project-osrm.org/table/v1/test/{coordinates}?{sources}=[{elem}...];&{destinations}=[{elem}...]&annotations={duration|distance|duration,distance}",
+            "headers": [],
+            "required_parameters": [
+                {
+                    "name": "coordinates",
+                    "type": "string",
+                    "description": "String of format {longitude},{latitude};{longitude},{latitude}[;{longitude},{latitude} ...].",
+                    "default": null,
+                    "example": "13.388860,52.517037;13.397634,52.529407;13.428555,52.523219"
+                }
+            ],
+            "optional_parameters": [
+                {
+                    "name": "sources",
+                    "type": "string",
+                    "description": "Use location with given index as source.",
+                    "default": null,
+                    "example": "0;5;7"
+                },
+                {
+                    "name": "destinations",
+                    "type": "string",
+                    "description": "Use location with given index as destination.",
+                    "default": null,
+                    "example": "5;1;4;2;3;6"
+                },
+                {
+                    "name": "annotations",
+                    "type": "string",
+                    "description": "Return the requested table or tables in response.",
+                    "default": null,
+                    "example": "duration,distance"
+                }
+            ]
+        },
+        {
+            "name": "Match Service",
+            "description": "Map matching matches/snaps given GPS points to the road network in the most plausible way.",
+            "method": "GET",
+            "url": "http://router.project-osrm.org/match/v1/test/{coordinates}?steps={true|false}&geometries={polyline|polyline6|geojson}&overview={simplified|full|false}&annotations={true|false}",
+            "headers": [],
+            "required_parameters": [
+                {
+                    "name": "coordinates",
+                    "type": "string",
+                    "description": "String of format {longitude},{latitude};{longitude},{latitude}[;{longitude},{latitude} ...].",
+                    "default": null,
+                    "example": "13.388860,52.517037;13.397634,52.529407;13.428555,52.523219"
+                }
+            ],
+            "optional_parameters": [
+                {
+                    "name": "steps",
+                    "type": "boolean",
+                    "description": "Returned route steps for each route.",
+                    "default": null,
+                    "example": "false"
+                },
+                {
+                    "name": "geometries",
+                    "type": "string",
+                    "description": "Returned route geometry format.",
+                    "default": null,
+                    "example": "geojson"
+                },
+                {
+                    "name": "overview",
+                    "type": "string",
+                    "description": "Add overview geometry either full, simplified, or not at all.",
+                    "default": null,
+                    "example": "simplified"
+                },
+                {
+                    "name": "annotations",
+                    "type": "boolean",
+                    "description": "Returns additional metadata for each coordinate along the route geometry.",
+                    "default": null,
+                    "example": "true"
+                }
+            ]
+        },
+        {
+            "name": "Trip Service",
+            "description": "Solves the Traveling Salesman Problem using a greedy heuristic for 10 or more waypoints and uses brute force for less than 10 waypoints.",
+            "method": "GET",
+            "url": "http://router.project-osrm.org/trip/v1/test/{coordinates}?roundtrip={true|false}&source{any|first}&destination{any|last}&steps={true|false}&geometries={polyline|polyline6|geojson}&overview={simplified|full|false}&annotations={true|false}",
+            "headers": [],
+            "required_parameters": [
+                {
+                    "name": "coordinates",
+                    "type": "string",
+                    "description": "String of format {longitude},{latitude};{longitude},{latitude}[;{longitude},{latitude} ...].",
+                    "default": null,
+                    "example": "13.388860,52.517037;13.397634,52.529407;13.428555,52.523219"
+                }
+            ],
+            "optional_parameters": [
+                {
+                    "name": "roundtrip",
+                    "type": "boolean",
+                    "description": "Returned route is a roundtrip.",
+                    "default": null,
+                    "example": "true"
+                },
+                {
+                    "name": "source",
+                    "type": "string",
+                    "description": "Returned route starts at any or first coordinate.",
+                    "default": null,
+                    "example": "first"
+                },
+                {
+                    "name": "destination",
+                    "type": "string",
+                    "description": "Returned route ends at any or last coordinate.",
+                    "default": null,
+                    "example": "last"
+                },
+                {
+                    "name": "steps",
+                    "type": "boolean",
+                    "description": "Returned route instructions for each trip.",
+                    "default": null,
+                    "example": "false"
+                },
+                {
+                    "name": "geometries",
+                    "type": "string",
+                    "description": "Returned route geometry format.",
+                    "default": null,
+                    "example": "geojson"
+                },
+                {
+                    "name": "overview",
+                    "type": "string",
+                    "description": "Add overview geometry either full, simplified, or not at all.",
+                    "default": null,
+                    "example": "simplified"
+                },
+                {
+                    "name": "annotations",
+                    "type": "boolean",
+                    "description": "Returns additional metadata for each coordinate along the route geometry.",
+                    "default": null,
+                    "example": "true"
+                }
+            ]
+        },
+        {
+            "name": "Tile Service",
+            "description": "Generates Mapbox Vector Tiles that can be viewed with a vector-tile capable slippy-map viewer.",
+            "method": "GET",
+            "url": "http://router.project-osrm.org/tile/v1/test/tile({x},{y},{zoom}).mvt",
+            "headers": [],
+            "required_parameters": [
+                {
+                    "name": "x",
+                    "type": "integer",
+                    "description": "Tile x coordinate.",
+                    "default": null,
+                    "example": "1310"
+                },
+                {
+                    "name": "y",
+                    "type": "integer",
+                    "description": "Tile y coordinate.",
+                    "default": null,
+                    "example": "3166"
+                },
+                {
+                    "name": "zoom",
+                    "type": "integer",
+                    "description": "Zoom level.",
+                    "default": null,
+                    "example": "13"
+                }
+            ],
+            "optional_parameters": []
+        }
+    ]
+}
