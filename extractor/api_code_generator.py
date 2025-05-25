@@ -337,20 +337,24 @@ if __name__ == "__main__":
     api_folders = [f for f in os.listdir(folder_path) if os.path.isdir(os.path.join(folder_path, f))]
     for api_folder in api_folders:
         api_path = os.path.join(folder_path, api_folder)
-        api_html = [f for f in os.listdir(api_path) if f.endswith('.html')][0]
+        api_html = [f for f in os.listdir(api_path) if f.endswith('.html')]
+        if api_html:
+            api_html = api_html[0]
         target_path = os.path.join(api_path, api_folder + ".txt")
         config_path = os.path.join(api_path, ".config")
         config = None
-        if os.path.exists(config_path) and not overwrite:
+        if os.path.exists(config_path):
             with open(config_path, 'r') as config_file:
                 config = config_file.read()
                 config = json.loads(config)
-        if os.path.exists(target_path):
-            with open(target_path, 'r', encoding='utf-8') as api_file: # load in utf-8
-                api_form = api_file.read()
-        else:
+        
+        # If overwrite is True or target file doesn't exist, extract from HTML
+        if overwrite or not os.path.exists(target_path):
             html_file = os.path.join(api_path, api_html)
             api_form = extractor.extract_api_json(html_file)
+        else:
+            with open(target_path, 'r', encoding='utf-8') as api_file: # load in utf-8
+                api_form = api_file.read()
         
         with open(os.path.join(api_path, api_folder + ".txt"), 'w', encoding='utf-8') as api_file:
             api_file.write(api_form)

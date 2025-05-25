@@ -30,6 +30,8 @@ from utils.validation_and_refinement.kb_searcher import search_kb
 
 
 def main():
+    from dotenv import load_dotenv
+    load_dotenv()
     # Define the path to the API docs
     apidocs_dir = os.path.join("extractor", "apidocs")
 
@@ -65,6 +67,45 @@ def main():
     # Validation starts
     need_refinement = []
     print("Validating tools...")
+    # Set up logging
+    import logging
+    logging.basicConfig(
+        filename='validation.log',
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s'
+    )
+    logger = logging.getLogger(__name__)
+    
+    # Load existing metadata if available
+    metadata_table = {'tools': []}
+    if os.path.exists('tool_validation_metadata.json'):
+        try:
+            with open('tool_validation_metadata.json', 'r') as f:
+                metadata_table = json.load(f)
+            logger.info(f"Loaded existing metadata with {len(metadata_table['tools'])} tools")
+            print(f"Loaded existing metadata with {len(metadata_table['tools'])} tools")
+            
+            # Count existing stats
+            for tool in metadata_table['tools']:
+                if tool['status'] == 'information':
+                    tool_success += 1
+                elif tool['status'] == 'code_error':
+                    tool_code_error += 1
+                    need_refinement.append(tool['path'])
+                elif tool['status'] == 'server_error':
+                    tool_server_error += 1
+                elif tool['status'] == 'hard_error':
+                    tool_hard_error += 1
+                    need_refinement.append(tool['path'])
+        except Exception as e:
+            logger.error(f"Error loading metadata: {str(e)}")
+            print(f"Error loading metadata: {str(e)}")
+    
+    SAVE_INTERVAL = 10  # Save every 10 tools processed
+    
+    # Keep track of validated tools to avoid duplicates
+    validated_tools = {tool['path'] for tool in metadata_table['tools']}
+    
     for tool_folder in os.listdir(apidocs_dir):
         # get the python tool scripts
         files = os.listdir(os.path.join(apidocs_dir, tool_folder))
@@ -74,10 +115,17 @@ def main():
         api_json = json.load(open(os.path.join(apidocs_dir, tool_folder, api_txt[0])))
         
         for tool in tools:
+            tool_path = os.path.join(apidocs_dir, tool_folder, tool)
+            
+            # Skip if already validated
+            if tool_path in validated_tools:
+                logger.info(f"Skipping already validated tool: {tool}")
+                print(f"Skipping already validated tool: {tool}")
+                continue
 
+            logger.info(f"Validating tool: {tool}")
             print(f"Validating tool: {tool}")
 
-            tool_path = os.path.join(apidocs_dir, tool_folder, tool)
             code = open(tool_path, "r").read()
             function_name = extract_function_names(code)
 
@@ -87,8 +135,17 @@ def main():
                 api_name = re.sub(r'\W', '_', api_name)
                 if function_name == api_name:
                     api_description = endpoint["description"]
+                    logger.info(f"API description: {api_description}")
                     print(f"API description: {api_description}")
                     break
+
+            tool_metadata = {
+                'path': tool_path,
+                'function_name': function_name,
+                'api_description': api_description,
+                'status': None,
+                'error_type': None
+            }
 
             try:
                 result = subprocess.run(
@@ -103,12 +160,18 @@ def main():
                         api_response=output,
                         code=code,
                     )
+                    tool_metadata['status'] = gpt_answer
+                    
                     if gpt_answer == "code_error":
                         tool_code_error += 1
                         need_refinement.append(tool_path)
+                        tool_metadata['error_type'] = 'code_error'
+                        logger.error(f"Tool {tool_path} returned a code error.")
                         print(f"Tool {tool_path} returned a code error.")
                     elif gpt_answer == "server_error":
                         tool_server_error += 1
+                        tool_metadata['error_type'] = 'server_error'
+                        logger.error(f"Tool {tool_path} returned a server error.")
                         print(f"Tool {tool_path} returned a server error.")
                     elif gpt_answer == "information":
                         tool_success += 1
@@ -116,23 +179,43 @@ def main():
                         # save in file
                         with open(tool_path[:-3] + '_response.json', "w") as f:
                             json.dump(output_json, f)
+                        logger.info(f"Tool {tool_path} executed successfully.")
                         print(f"Tool {tool_path} executed successfully.")
                     else:
+                        logger.warning(f"Tool {tool_path} gpt answer: {gpt_answer}")
                         print(f"Tool {tool_path} gpt answer: {gpt_answer}")
             except subprocess.CalledProcessError as e:
                 tool_hard_error += 1
                 need_refinement.append(tool_path)
+                tool_metadata['status'] = 'hard_error'
+                tool_metadata['error_type'] = str(e)
+                logger.error(f"Tool {tool_path} cannot be executed. Error: {str(e)}")
                 print(f"Tool {tool_path} cannot be executed.")
             
+            # Add tool metadata to table
+            metadata_table['tools'].append(tool_metadata)
+            
+            # Save metadata table periodically
+            if len(metadata_table['tools']) % SAVE_INTERVAL == 0:
+                with open('tool_validation_metadata.json', 'w') as f:
+                    json.dump(metadata_table, f, indent=2)
+                logger.info(f"Saved metadata table with {len(metadata_table['tools'])} tools")
+            
+            logger.info("---------------------------")
             print("---------------------------\n")
 
-    print(
-        f"Tool success: {tool_success}, Tool code error: {tool_code_error}, Tool server error: {tool_server_error}, Tool hard error: {tool_hard_error}"
-    )
+    # Save final metadata table
+    with open('tool_validation_metadata.json', 'w') as f:
+        json.dump(metadata_table, f, indent=2)
+    
+    summary = f"Tool success: {tool_success}, Tool code error: {tool_code_error}, Tool server error: {tool_server_error}, Tool hard error: {tool_hard_error}"
+    logger.info(summary)
+    print(summary)
 
     with open("main/need_refinement.txt", "w") as f:
         for tool in need_refinement:
             f.write(tool + "\n")
+
 
     # build the response dictionary
     print("Building response dictionary...")
@@ -144,6 +227,29 @@ def main():
     refine_success = 0
     refine_fail = 0
     print("Refining tools...")
+    import time
+    # Load existing refinement metadata if available
+    refinement_metadata = {'tools': []}
+    if os.path.exists('tool_refinement_metadata.json'):
+        try:
+            with open('tool_refinement_metadata.json', 'r') as f:
+                refinement_metadata = json.load(f)
+            logger.info(f"Loaded existing refinement metadata with {len(refinement_metadata['tools'])} tools")
+            print(f"Loaded existing refinement metadata with {len(refinement_metadata['tools'])} tools")
+            
+            # Count existing refinement stats
+            for tool in refinement_metadata['tools']:
+                if tool['status'] == 'success':
+                    refine_success += 1
+                elif tool['status'] == 'fail':
+                    refine_fail += 1
+        except Exception as e:
+            logger.error(f"Error loading refinement metadata: {str(e)}")
+            print(f"Error loading refinement metadata: {str(e)}")
+    
+    # Keep track of refined tools to avoid duplicates
+    refined_tools = {tool['path'] for tool in refinement_metadata['tools']}
+    
     for tool_folder in os.listdir(apidocs_dir):
         # get the python tool scripts
         files = os.listdir(os.path.join(apidocs_dir, tool_folder))
@@ -156,6 +262,13 @@ def main():
             tool_path = os.path.join(apidocs_dir, tool_folder, tool)
             if tool_path not in need_refinement:
                 continue
+                
+            # Skip if already refined
+            if tool_path in refined_tools:
+                logger.info(f"Skipping already refined tool: {tool}")
+                print(f"Skipping already refined tool: {tool}")
+                continue
+                
             code = open(tool_path, "r").read()
             function_name = extract_function_names(code)
             
@@ -167,6 +280,14 @@ def main():
                     api_description = endpoint["description"]
                     print(f"API description: {api_description}")
                     break
+    
+            tool_refinement_metadata = {
+                'path': tool_path,
+                'function_name': function_name,
+                'api_description': api_description,
+                'status': None,
+                'error_type': None
+            }
     
             try:
                 result = subprocess.run(
@@ -187,7 +308,16 @@ def main():
                     print(param_examples)
 
                     # Fix the code using Claude
-                    new_code = fix_code(claude, code, error_message, api_description, param_examples)
+                    for _ in range(3):
+                        try:
+                            new_code = fix_code(claude, code, error_message, api_description, param_examples)
+                            break
+                        except:
+                            time.sleep(60) # prevent overflow
+                            new_code = ''
+                    if not new_code: # failed 3 times
+                        print("skip")
+                        continue
                     with open(tool_path, "w") as f:
                         f.write(new_code)
                     print(f"Refined: {tool}")
@@ -195,7 +325,10 @@ def main():
                 error_message = e.stderr.strip()
 
                 # Get the required parameters from the code
-                params = get_required_param_name(tool_path)
+                try:
+                    params = get_required_param_name(tool_path)
+                except:
+                    continue
                 param_examples = {}
                 for param in params:
                     # Search the knowledge base for the most relevant keys to the query.
@@ -205,8 +338,16 @@ def main():
                 print(param_examples)
 
                 # Fix the code using Claude
-                new_code = fix_code(claude, code, error_message, api_description, param_examples)
-                with open(tool_path, "w") as f:
+                import time
+                for _ in range(3):
+                    try:
+                        new_code = fix_code(claude, code, error_message, api_description, param_examples)
+                        break
+                    except:
+                        new_code = ''
+                        time.sleep(60)
+                        continue
+                with open(tool_path, "w", encoding='UTF-8') as f:
                     f.write(new_code)
                 print(f"Refined: {tool}")
             finally:
@@ -223,17 +364,37 @@ def main():
                             api_response=output,
                             code=code,
                         )
+                    if not gpt_answer:
+                        continue
                     if gpt_answer == "information":
                         refine_success += 1
+                        tool_refinement_metadata['status'] = 'success'
                         print(f"Refined tool {tool_path} executed successfully.")
                     elif gpt_answer == "code_error":
                         refine_fail += 1
+                        tool_refinement_metadata['status'] = 'fail'
+                        tool_refinement_metadata['error_type'] = 'code_error'
                         print(f"Refined tool {tool_path} returned a code error.")
                 except subprocess.CalledProcessError as e:
                     refine_fail += 1
+                    tool_refinement_metadata['status'] = 'fail'
+                    tool_refinement_metadata['error_type'] = str(e)
                     print(f"Refined tool {tool_path} cannot be executed.")
                 finally:
+                    # Add tool refinement metadata to table
+                    refinement_metadata['tools'].append(tool_refinement_metadata)
+                    
+                    # Save refinement metadata periodically
+                    if len(refinement_metadata['tools']) % SAVE_INTERVAL == 0:
+                        with open('tool_refinement_metadata.json', 'w') as f:
+                            json.dump(refinement_metadata, f, indent=2)
+                        logger.info(f"Saved refinement metadata table with {len(refinement_metadata['tools'])} tools")
+                    
                     print("---------------------------\n")
+
+    # Save final refinement metadata table
+    with open('tool_refinement_metadata.json', 'w') as f:
+        json.dump(refinement_metadata, f, indent=2)
 
     print(f"Refine success: {refine_success}, Refine fail: {refine_fail}, NumToolsNeedRefinement: {len(need_refinement)}")
 
@@ -336,7 +497,9 @@ def extract_function_names(code_str):
         print(f"Syntax error in code: {e}")
         return []
     
-    return function_names[0]
+    if function_names:
+        return function_names[0]
+    return []
 
 if __name__ == "__main__":
     main()
