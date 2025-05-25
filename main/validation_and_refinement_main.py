@@ -5,7 +5,8 @@ import sys
 import ast
 from pathlib import Path
 import re
-from typing import List, Set, Optional
+from markdown import markdown
+
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -33,7 +34,7 @@ def main():
     from dotenv import load_dotenv
     load_dotenv()
     # Define the path to the API docs
-    apidocs_dir = os.path.join("extractor", "apidocs")
+    apidocs_dir = os.path.join("extractor", "apidocs", "map_other_md")
 
     print("Building knowledge bases...")
     # Build the parameter dictionary
@@ -66,6 +67,8 @@ def main():
 
     # Validation starts
     need_refinement = []
+    successful_tools = []
+    # successful_tools_dir = "webarena_tools_toRyan/gitlab"
     print("Validating tools...")
     # Set up logging
     import logging
@@ -107,6 +110,9 @@ def main():
     validated_tools = {tool['path'] for tool in metadata_table['tools']}
     
     for tool_folder in os.listdir(apidocs_dir):
+        # if tool_folder != "":
+        #     continue
+
         # get the python tool scripts
         files = os.listdir(os.path.join(apidocs_dir, tool_folder))
         tools = [x for x in files if x.endswith(".py")]
@@ -176,11 +182,16 @@ def main():
                     elif gpt_answer == "information":
                         tool_success += 1
                         output_json = json.loads(output)
+                        successful_tools.append(tool_path)
                         # save in file
                         with open(tool_path[:-3] + '_response.json', "w") as f:
                             json.dump(output_json, f)
                         logger.info(f"Tool {tool_path} executed successfully.")
                         print(f"Tool {tool_path} executed successfully.")
+                        # copy the successful tools to a new folder
+                        # with open(successful_tools_dir + '/' + tool, "w") as f:
+                        #     f.write(code)
+                        
                     else:
                         logger.warning(f"Tool {tool_path} gpt answer: {gpt_answer}")
                         print(f"Tool {tool_path} gpt answer: {gpt_answer}")
@@ -256,7 +267,8 @@ def main():
         tools = [x for x in files if x.endswith(".py")]
         # get the api json file
         api_txt = [x for x in files if x.endswith(".txt")]
-        api_json = json.load(open(os.path.join(apidocs_dir, tool_folder, api_txt[0])))
+        api_json = json.load(open(os.path.join(apidocs_dir, tool_folder, api_txt[0]))) 
+        md_text = open(os.path.join(apidocs_dir, tool_folder, api_txt[0][:-3] + "md"), encoding="utf-8").read()
         
         for tool in tools:
             tool_path = os.path.join(apidocs_dir, tool_folder, tool)
@@ -272,7 +284,7 @@ def main():
             code = open(tool_path, "r").read()
             function_name = extract_function_names(code)
             
-            api_description = api_json
+            api_description = None
             for endpoint in api_json["endpoints"]:
                 api_name = endpoint["name"].lower()
                 api_name = re.sub(r'\W', '_', api_name)
@@ -295,7 +307,7 @@ def main():
                 )
                 if result.stdout:
                     output = result.stdout
-                    error_message = result.stdout.strip()
+                    error_message = result.stdout.strip() if len(result.stdout) < 500 else result.stdout[:500]
 
                     # Get the required parameters from the code
                     params = get_required_param_name(tool_path)
@@ -322,7 +334,7 @@ def main():
                         f.write(new_code)
                     print(f"Refined: {tool}")
             except subprocess.CalledProcessError as e:
-                error_message = e.stderr.strip()
+                error_message = e.stderr.strip() if len(e.stderr) < 500 else e.stderr[:500]
 
                 # Get the required parameters from the code
                 try:
@@ -356,7 +368,7 @@ def main():
                         ["python", tool_path], capture_output=True, text=True, check=True
                     )
                     if result.stdout:
-                        output = result.stdout
+                        output = result.stdout if len(result.stdout) < 500 else result.stdout[:500]
                         gpt_answer = gpt_evaluate(
                             gpt,
                             gpt_prompt,
@@ -369,7 +381,11 @@ def main():
                     if gpt_answer == "information":
                         refine_success += 1
                         tool_refinement_metadata['status'] = 'success'
+                        successful_tools.append(tool_path)
                         print(f"Refined tool {tool_path} executed successfully.")
+                        # copy the successful tools to a new folder
+                        # with open(successful_tools_dir + '/' + tool, "w") as f:
+                        #     f.write(code)
                     elif gpt_answer == "code_error":
                         refine_fail += 1
                         tool_refinement_metadata['status'] = 'fail'
@@ -398,64 +414,20 @@ def main():
 
     print(f"Refine success: {refine_success}, Refine fail: {refine_fail}, NumToolsNeedRefinement: {len(need_refinement)}")
 
-
-    # # Validation starts again
-    # print("Validating tools again...")
-    # tool_success = 0
-    # tool_code_error = 0
-    # tool_server_error = 0
-    # tool_hard_error = 0
-
-    # # run the tools
-    # for tool_folder in os.listdir(apidocs_dir):
-    #     # get the python tool scripts
-    #     files = os.listdir(os.path.join(apidocs_dir, tool_folder))
-    #     tools = [x for x in files if x.endswith(".py")]
-    #     # get the api json file
-    #     api_txt = [x for x in files if x.endswith(".txt")]
-    #     api_json = json.load(open(os.path.join(apidocs_dir, tool_folder, api_txt[0])))
-        
-    #     for tool in tools:
-    #         tool_path = os.path.join(apidocs_dir, tool_folder, tool)
-    #         code = open(tool_path, "r").read()
-    #         try:
-    #             result = subprocess.run(
-    #                 ["python", tool_path], capture_output=True, text=True, check=True
-    #             )
-    #             if result.stdout:
-    #                 output = result.stdout
-    #                 gpt_answer = gpt_evaluate(
-    #                     gpt,
-    #                     gpt_prompt,
-    #                     api_description=api_json,
-    #                     api_response=output,
-    #                     code=code,
-    #                 )
-    #                 if gpt_answer == "code_error":
-    #                     tool_code_error += 1
-    #                     print(f"Tool {tool_path} returned a code error.")
-    #                 elif gpt_answer == "server_error":
-    #                     tool_server_error += 1
-    #                     print(f"Tool {tool_path} returned a server error.")
-    #                 elif gpt_answer == "information":
-    #                     tool_success += 1
-    #                     print(f"Tool {tool_path} executed successfully.")
-    #                 else:
-    #                     print(f"Tool {tool_path} gpt answer: {gpt_answer}")
-    #         # except subprocess.CalledProcessError as e:
-    #         except Exception as e:
-    #             tool_hard_error += 1
-    #             print(f"Tool {tool_path} cannot be executed.")
-    
-    # print(
-    #     f"Tool success: {tool_success}, Tool code error: {tool_code_error}, Tool server error: {tool_server_error}, Tool hard error: {tool_hard_error}"
-    # )
-    
-
+    # copy the successful tools to a new folder
+    successful_tools_dir = "webarena_tools_toRyan"
+    for tool in successful_tools:
+        tool_name = os.path.basename(tool)
+        new_tool_path = os.path.join(successful_tools_dir, tool_name)
+        with open(new_tool_path, "w") as f:
+            f.write(open(tool, "r").read())
 
 def get_required_param_name(path: str | Path):
     source = Path(path).read_text(encoding="utf-8")
-    tree = ast.parse(source, filename=str(path))
+    try:
+        tree = ast.parse(source, filename=str(path))
+    except Exception as e:
+        return []
 
     src_lines = source.splitlines()
     out = []
@@ -466,7 +438,7 @@ def get_required_param_name(path: str | Path):
             out.append((node.lineno, line_text))
 
     params = []
-    for lineno, text in out:
+    for _, text in out:
         param = text.strip().split(" ")[1].strip()
         params.append(param)
     
@@ -497,9 +469,21 @@ def extract_function_names(code_str):
         print(f"Syntax error in code: {e}")
         return []
     
-    if function_names:
-        return function_names[0]
-    return []
+    if not function_names:
+        print("No function names found in the code.")
+        return []
+    
+    # return function_names[1]
+    return function_names[0]
+
+def find_api_in_md(md, api_endpoint):
+    chunk = md.split(api_endpoint)
+    if len(chunk) < 2:
+        return md
+    
+
+
+
 
 if __name__ == "__main__":
     main()

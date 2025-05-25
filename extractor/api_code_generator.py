@@ -347,8 +347,6 @@ if __name__ == "__main__":
             with open(config_path, 'r') as config_file:
                 config = config_file.read()
                 config = json.loads(config)
-        
-        # If overwrite is True or target file doesn't exist, extract from HTML
         if overwrite or not os.path.exists(target_path):
             html_file = os.path.join(api_path, api_html)
             api_form = extractor.extract_api_json(html_file)

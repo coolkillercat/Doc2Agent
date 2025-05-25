@@ -60,35 +60,41 @@ def search_kb(query, param_keys, param_keys_emb, parameter_dict, response_keys, 
     hits_description = [hit for hit in hits_description if hit['score'] > threshold]
     hits_response = [hit for hit in hits_response if hit['score'] > threshold]
 
-    if not hits_param and not hits_description and not hits_response:
-        return None
-    elif not hits_param and not hits_response:
-        return parameter_dict['['+description_to_param_dict[description_keys[hits_description[0]['corpus_id']]]+']']
-    elif not hits_description and not hits_response:
-        return parameter_dict[param_keys[hits_param[0]['corpus_id']]]
-    elif not hits_param and not hits_description:
-        return response_dict[response_keys[hits_response[0]['corpus_id']]]
+    try:
 
-    if not hits_description:
-        if hits_param[0]['score'] > hits_response[0]['score']:
-            return parameter_dict[param_keys[hits_param[0]['corpus_id']]]
-        else:
-            return response_dict[response_keys[hits_response[0]['corpus_id']]]
-    elif not hits_param:
-        if hits_description[0]['score'] > hits_response[0]['score']:
+        if not hits_param and not hits_description and not hits_response:
+            return None
+        elif not hits_param and not hits_response:
             return parameter_dict['['+description_to_param_dict[description_keys[hits_description[0]['corpus_id']]]+']']
-        else:
-            return response_dict[response_keys[hits_response[0]['corpus_id']]]
-    elif not hits_response:
-        if hits_param[0]['score'] > hits_description[0]['score']:
+        elif not hits_description and not hits_response:
             return parameter_dict[param_keys[hits_param[0]['corpus_id']]]
-        else:
+        elif not hits_param and not hits_description:
             return response_dict[response_keys[hits_response[0]['corpus_id']]]
 
-    # Return the one with the highest score
-    if hits_param[0]['score'] > hits_description[0]['score'] and hits_param[0]['score'] > hits_response[0]['score']:
-        return parameter_dict[param_keys[hits_param[0]['corpus_id']]]
-    elif hits_description[0]['score'] > hits_param[0]['score'] and hits_description[0]['score'] > hits_response[0]['score']:
-        return parameter_dict['['+description_to_param_dict[description_keys[hits_description[0]['corpus_id']]]+']']
-    elif hits_response[0]['score'] > hits_param[0]['score'] and hits_response[0]['score'] > hits_description[0]['score']:
-        return response_dict[response_keys[hits_response[0]['corpus_id']]]
+        if not hits_description:
+            if hits_param[0]['score'] > hits_response[0]['score']:
+                return parameter_dict[param_keys[hits_param[0]['corpus_id']]]
+            else:
+                return response_dict[response_keys[hits_response[0]['corpus_id']]]
+        elif not hits_param:
+            if hits_description[0]['score'] > hits_response[0]['score']:
+                return parameter_dict['['+description_to_param_dict[description_keys[hits_description[0]['corpus_id']]]+']']
+            else:
+                return response_dict[response_keys[hits_response[0]['corpus_id']]]
+        elif not hits_response:
+            if hits_param[0]['score'] > hits_description[0]['score']:
+                return parameter_dict[param_keys[hits_param[0]['corpus_id']]]
+            else:
+                return response_dict[response_keys[hits_response[0]['corpus_id']]]
+
+        # Return the one with the highest score
+        if hits_param[0]['score'] > hits_description[0]['score'] and hits_param[0]['score'] > hits_response[0]['score']:
+            return parameter_dict[param_keys[hits_param[0]['corpus_id']]]
+        elif hits_description[0]['score'] > hits_param[0]['score'] and hits_description[0]['score'] > hits_response[0]['score']:
+            return parameter_dict['['+description_to_param_dict[description_keys[hits_description[0]['corpus_id']]]+']']
+        elif hits_response[0]['score'] > hits_param[0]['score'] and hits_response[0]['score'] > hits_description[0]['score']:
+            return response_dict[response_keys[hits_response[0]['corpus_id']]]
+        
+    except Exception as e:
+        print(f"Error in search_kb: {e}")
+        return None
