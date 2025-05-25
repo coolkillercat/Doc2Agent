@@ -341,16 +341,16 @@ if __name__ == "__main__":
         target_path = os.path.join(api_path, api_folder + ".txt")
         config_path = os.path.join(api_path, ".config")
         config = None
-        if os.path.exists(config_path) and not overwrite:
+        if os.path.exists(config_path):
             with open(config_path, 'r') as config_file:
                 config = config_file.read()
                 config = json.loads(config)
-        if os.path.exists(target_path):
-            with open(target_path, 'r', encoding='utf-8') as api_file: # load in utf-8
-                api_form = api_file.read()
-        else:
+        if overwrite or not os.path.exists(target_path):
             html_file = os.path.join(api_path, api_html)
             api_form = extractor.extract_api_json(html_file)
+        else:
+            with open(target_path, 'r', encoding='utf-8') as api_file: # load in utf-8
+                api_form = api_file.read()
         
         with open(os.path.join(api_path, api_folder + ".txt"), 'w', encoding='utf-8') as api_file:
             api_file.write(api_form)

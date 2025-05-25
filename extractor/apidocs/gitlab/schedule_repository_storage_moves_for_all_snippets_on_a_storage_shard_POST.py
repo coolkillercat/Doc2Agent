@@ -1,0 +1,33 @@
+import requests, json
+from urllib.parse import quote
+
+
+def schedule_repository_storage_moves_for_all_snippets_on_a_storage_shard(source_storage_name=None, destination_storage_name=None):
+    api_url = f"http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:8023/api/v4/snippet_repository_storage_moves"
+    payload = {'source_storage_name': source_storage_name, 'destination_storage_name': destination_storage_name, }
+    headers = {
+        "Authorization": "Bearer " + "glpat-XzuH4hDT8YsJtYY3HMcE",
+        "PRIVATE-TOKEN": "glpat-XzuH4hDT8YsJtYY3HMcE",
+        "Private-Token": "glpat-XzuH4hDT8YsJtYY3HMcE",
+    }
+    assert source_storage_name is not None, 'Missing required parameter: source_storage_name'
+    
+    response = requests.post(url=api_url, headers=headers, json=payload, timeout=50, verify=False)
+    return response
+    # print(response.json())
+
+if __name__ == '__main__':
+    r = schedule_repository_storage_moves_for_all_snippets_on_a_storage_shard(source_storage_name='''default''', destination_storage_name='''storage2''')
+    r_json = None
+    try:
+        r_json = r.json()
+    except:
+        pass
+    import json
+    result_dict = dict()
+    result_dict['status_code'] = r.status_code
+    result_dict['text'] = r.text
+    result_dict['json'] = r_json
+    result_dict['content'] = r.content.decode("utf-8")
+    print(json.dumps(result_dict, indent=4))
+

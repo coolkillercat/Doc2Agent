@@ -1,6 +1,7 @@
 from langchain_openai import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.pydantic_v1 import BaseModel, Field, validator
+# from langchain_core.pydantic_v1 import BaseModel, Field, validator
+from pydantic import BaseModel, Field, validator
 from typing import Optional, Any, Union, List
 from bs4 import BeautifulSoup
 
@@ -10,6 +11,7 @@ class Parameters(BaseModel):
     type: Optional[str] = Field(description="Type of the parameter")
     description: Optional[str] = Field(description="Description of the parameter. If the parameter is categorical, please list all possible values.")
     default: Optional[Any] = Field(
+        None,
         description="Default value of the parameter")
     example: Optional[Any] = Field(
         description="Example value of the parameter")
@@ -90,7 +92,8 @@ class Extractor():
         chain = prompt | self.llm.with_structured_output(
             Api_json, method="json_mode")
         result = chain.invoke({"text": text_content})
-        json = result.json(indent=4)
+        # json = result.json(indent=4)
+        json = result.model_dump_json(indent=4)
         return json
 
 if __name__=="__main__":
