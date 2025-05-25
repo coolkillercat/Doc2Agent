@@ -10,12 +10,12 @@ from langchain_core.prompts import ChatPromptTemplate
 
 
 # Define the model for classification output
-class Classification(BaseModel):
+class Classifications(BaseModel):
     """Classification output model."""
     response_type: str = Field(..., enum=['information', 'code_error', 'server_error'])
 
 
-def initialize_gpt_evaluator(temperature=0, model="gpt-4o"):
+def initialize_gpt_evaluator(temperature=0, model="gpt-4o-mini"):
     """
     Initialize the GPT evaluator.
     
@@ -35,7 +35,7 @@ You will be given:
 2. An API response.
 3. A Python code snippet that calls the API.
 
-Your task is to decide if the following API response is an useful information as the API description suggests, an error caused by the code (code_error), or an error caused by the server side (server error).
+Your task is to decide if the following API response is useful information as the API description suggests, an error caused by the code (code_error), or an error caused by the server side (server error).
 
 API Description:
 {description}
@@ -50,7 +50,7 @@ Code:
     
     # Initialize LLM
 
-    llm = ChatOpenAI(temperature=temperature, model=model).with_structured_output(Classification)
+    llm = ChatOpenAI(temperature=temperature, model=model).with_structured_output(Classifications)
     return llm, tagging_prompt
 
 
@@ -80,5 +80,4 @@ def gpt_evaluate(llm, prompt_template, api_description, api_response, code):
     
     # Get the response from GPT
     gpt_response = llm.invoke(prompt)
-    
     return gpt_response.response_type
