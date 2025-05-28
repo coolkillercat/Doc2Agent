@@ -7,8 +7,10 @@ def reverse_geocoding(lat=None, lon=None, format='xml', json_callback='unset', a
     querystring = {'lat': lat, 'lon': lon, 'format': format, 'json_callback': json_callback, 'addressdetails': addressdetails, 'extratags': extratags, 'namedetails': namedetails, 'accept_language': accept_language, 'zoom': zoom, 'layer': layer, 'polygon_geojson': polygon_geojson, 'polygon_threshold': polygon_threshold, 'email': email, 'debug': debug, }
     assert lat is not None, 'Missing required parameter: lat'
     assert lon is not None, 'Missing required parameter: lon'
-    
-    response = requests.get(url=api_url, params=querystring, timeout=50, verify=False)
+    headers = {
+        'User-Agent': 'Nominatim-API-Client/1.0',
+    }
+    response = requests.get(url=api_url, params=querystring, headers=headers, timeout=50, verify=False)
     if response.status_code != 200:
         response2 = requests.get(url=api_url, timeout=50) # in case API can't handle redundant params
         response = response2

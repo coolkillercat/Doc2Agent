@@ -5,8 +5,10 @@ from urllib.parse import quote
 def search(q=None, amenity=None, street=None, city=None, county=None, state=None, country=None, postalcode=None, format='jsonv2', json_callback=None, limit=10, addressdetails=None, extratags=None, namedetails=None, accept_language='browser language', countrycodes=None, layer=None, featureType=None, exclude_place_ids=None, viewbox=None, bounded=None, polygon_geojson=None, polygon_kml=None, polygon_svg=None, polygon_text=None, polygon_threshold=None, email=None, dedupe=1, debug=None):
     api_url = f"https://nominatim.openstreetmap.org/search?{params}"
     querystring = {'q': q, 'amenity': amenity, 'street': street, 'city': city, 'county': county, 'state': state, 'country': country, 'postalcode': postalcode, 'format': format, 'json_callback': json_callback, 'limit': limit, 'addressdetails': addressdetails, 'extratags': extratags, 'namedetails': namedetails, 'accept_language': accept_language, 'countrycodes': countrycodes, 'layer': layer, 'featureType': featureType, 'exclude_place_ids': exclude_place_ids, 'viewbox': viewbox, 'bounded': bounded, 'polygon_geojson': polygon_geojson, 'polygon_kml': polygon_kml, 'polygon_svg': polygon_svg, 'polygon_text': polygon_text, 'polygon_threshold': polygon_threshold, 'email': email, 'dedupe': dedupe, 'debug': debug, }
-    
-    response = requests.get(url=api_url, params=querystring, timeout=50, verify=False)
+    headers = {
+        'User-Agent': 'Nominatim-API-Client/1.0',
+    }
+    response = requests.get(url=api_url, params=querystring, headers=headers, timeout=50, verify=False)
     if response.status_code != 200:
         response2 = requests.get(url=api_url, timeout=50) # in case API can't handle redundant params
         response = response2
