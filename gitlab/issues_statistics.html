@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>issues_statistics API Documentation</title>
+</head>
+<body>
+<hr />
+<p>stage: Plan
+group: Project Management
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments</p>
+<hr />
+<h1>Issues statistics API</h1>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> GitLab.com, Self-managed, GitLab Dedicated</p>
+<p>Every API call to the <a href="../user/project/issues/index.md">issues</a> statistics API must be authenticated.</p>
+<p>If a user is not a member of a project and the project is private, a <code>GET</code>
+request on that project results in a <code>404</code> status code.</p>
+<h2>Get issues statistics</h2>
+<p>Gets issues count statistics on all issues the authenticated user has access to. By default it
+returns only issues created by the current user. To get all issues,
+use parameter <code>scope=all</code>.</p>
+<p><code>plaintext
+GET /issues_statistics
+GET /issues_statistics?labels=foo
+GET /issues_statistics?labels=foo,bar
+GET /issues_statistics?labels=foo,bar&amp;state=opened
+GET /issues_statistics?milestone=1.0.0
+GET /issues_statistics?milestone=1.0.0&amp;state=opened
+GET /issues_statistics?iids[]=42&amp;iids[]=43
+GET /issues_statistics?author_id=5
+GET /issues_statistics?assignee_id=5
+GET /issues_statistics?my_reaction_emoji=star
+GET /issues_statistics?search=foo&amp;in=title
+GET /issues_statistics?confidential=true</code></p>
+<p>| Attribute           | Type             | Required   | Description                                                                                                                                         |
+| ------------------- | ---------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| <code>labels</code>            | string           | no         | Comma-separated list of label names, issues must have all labels to be returned. <code>None</code> lists all issues with no labels. <code>Any</code> lists all issues with at least one label. |
+| <code>milestone</code>         | string           | no         | The milestone title. <code>None</code> lists all issues with no milestone. <code>Any</code> lists all issues that have an assigned milestone.                             |
+| <code>scope</code>             | string           | no         | Return issues for the given scope: <code>created_by_me</code>, <code>assigned_to_me</code> or <code>all</code>. Defaults to <code>created_by_me</code> |
+| <code>author_id</code>         | integer          | no         | Return issues created by the given user <code>id</code>. Mutually exclusive with <code>author_username</code>. Combine with <code>scope=all</code> or <code>scope=assigned_to_me</code>. |
+| <code>author_username</code>   | string           | no         | Return issues created by the given <code>username</code>. Similar to <code>author_id</code> and mutually exclusive with <code>author_id</code>. |
+| <code>assignee_id</code>       | integer          | no         | Return issues assigned to the given user <code>id</code>. Mutually exclusive with <code>assignee_username</code>. <code>None</code> returns unassigned issues. <code>Any</code> returns issues with an assignee. |
+| <code>assignee_username</code> | string array     | no         | Return issues assigned to the given <code>username</code>. Similar to <code>assignee_id</code> and mutually exclusive with <code>assignee_id</code>. In GitLab CE <code>assignee_username</code> array should only contain a single value or an invalid parameter error is returned otherwise. |
+| <code>epic_id</code>           | integer      | no         | Return issues associated with the given epic ID. <code>None</code> returns issues that are not associated with an epic. <code>Any</code> returns issues that are associated with an epic. Premium and Ultimate only. |
+| <code>my_reaction_emoji</code> | string           | no         | Return issues reacted by the authenticated user by the given <code>emoji</code>. <code>None</code> returns issues not given a reaction. <code>Any</code> returns issues given at least one reaction. |
+| <code>iids[]</code>            | integer array    | no         | Return only the issues having the given <code>iid</code>                                                                                                       |
+| <code>search</code>            | string           | no         | Search issues against their <code>title</code> and <code>description</code>                                                                                               |
+| <code>in</code>                | string           | no         | Modify the scope of the <code>search</code> attribute. <code>title</code>, <code>description</code>, or a string joining them with comma. Default is <code>title,description</code>             |
+| <code>created_after</code>     | datetime         | no         | Return issues created on or after the given time. Expected in ISO 8601 format (<code>2019-03-15T08:00:00Z</code>) |
+| <code>created_before</code>    | datetime         | no         | Return issues created on or before the given time. Expected in ISO 8601 format (<code>2019-03-15T08:00:00Z</code>) |
+| <code>updated_after</code>     | datetime         | no         | Return issues updated on or after the given time. Expected in ISO 8601 format (<code>2019-03-15T08:00:00Z</code>) |
+| <code>updated_before</code>    | datetime         | no         | Return issues updated on or before the given time. Expected in ISO 8601 format (<code>2019-03-15T08:00:00Z</code>) |
+| <code>confidential</code>      | boolean          | no         | Filter confidential or public issues.                                                                                                               |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/issues_statistics"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "statistics": {
+    "counts": {
+      "all": 20,
+      "closed": 5,
+      "opened": 15
+    }
+  }
+}</code></p>
+<h2>Get group issues statistics</h2>
+<p>Gets issues count statistics for given group.</p>
+<p><code>plaintext
+GET /groups/:id/issues_statistics
+GET /groups/:id/issues_statistics?labels=foo
+GET /groups/:id/issues_statistics?labels=foo,bar
+GET /groups/:id/issues_statistics?labels=foo,bar&amp;state=opened
+GET /groups/:id/issues_statistics?milestone=1.0.0
+GET /groups/:id/issues_statistics?milestone=1.0.0&amp;state=opened
+GET /groups/:id/issues_statistics?iids[]=42&amp;iids[]=43
+GET /groups/:id/issues_statistics?search=issue+title+or+description
+GET /groups/:id/issues_statistics?author_id=5
+GET /groups/:id/issues_statistics?assignee_id=5
+GET /groups/:id/issues_statistics?my_reaction_emoji=star
+GET /groups/:id/issues_statistics?confidential=true</code></p>
+<p>| Attribute           | Type             | Required   | Description                                                                                                                   |
+| ------------------- | ---------------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| <code>id</code>                | integer/string   | yes        | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the group</a> owned by the authenticated user                 |
+| <code>labels</code>            | string           | no         | Comma-separated list of label names, issues must have all labels to be returned. <code>None</code> lists all issues with no labels. <code>Any</code> lists all issues with at least one label. |
+| <code>iids[]</code>            | integer array    | no         | Return only the issues having the given <code>iid</code>                                                                                 |
+| <code>milestone</code>         | string           | no         | The milestone title. <code>None</code> lists all issues with no milestone. <code>Any</code> lists all issues that have an assigned milestone.       |
+| <code>scope</code>             | string           | no         | Return issues for the given scope: <code>created_by_me</code>, <code>assigned_to_me</code> or <code>all</code>. |
+| <code>author_id</code>         | integer          | no         | Return issues created by the given user <code>id</code>. Mutually exclusive with <code>author_username</code>. Combine with <code>scope=all</code> or <code>scope=assigned_to_me</code>. |
+| <code>author_username</code>   | string           | no         | Return issues created by the given <code>username</code>. Similar to <code>author_id</code> and mutually exclusive with <code>author_id</code>. |
+| <code>assignee_id</code>       | integer          | no         | Return issues assigned to the given user <code>id</code>. Mutually exclusive with <code>assignee_username</code>. <code>None</code> returns unassigned issues. <code>Any</code> returns issues with an assignee. |
+| <code>assignee_username</code> | string array     | no         | Return issues assigned to the given <code>username</code>. Similar to <code>assignee_id</code> and mutually exclusive with <code>assignee_id</code>. In GitLab CE <code>assignee_username</code> array should only contain a single value or an invalid parameter error is returned otherwise. |
+| <code>my_reaction_emoji</code> | string           | no         | Return issues reacted by the authenticated user by the given <code>emoji</code>. <code>None</code> returns issues not given a reaction. <code>Any</code> returns issues given at least one reaction. |
+| <code>search</code>            | string           | no         | Search group issues against their <code>title</code> and <code>description</code>                                                                   |
+| <code>created_after</code>     | datetime         | no         | Return issues created on or after the given time. Expected in ISO 8601 format (<code>2019-03-15T08:00:00Z</code>) |
+| <code>created_before</code>    | datetime         | no         | Return issues created on or before the given time. Expected in ISO 8601 format (<code>2019-03-15T08:00:00Z</code>) |
+| <code>updated_after</code>     | datetime         | no         | Return issues updated on or after the given time. Expected in ISO 8601 format (<code>2019-03-15T08:00:00Z</code>) |
+| <code>updated_before</code>    | datetime         | no         | Return issues updated on or before the given time. Expected in ISO 8601 format (<code>2019-03-15T08:00:00Z</code>) |
+| <code>confidential</code>      | boolean          | no         | Filter confidential or public issues.                                                                                         |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/groups/4/issues_statistics"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "statistics": {
+    "counts": {
+      "all": 20,
+      "closed": 5,
+      "opened": 15
+    }
+  }
+}</code></p>
+<h2>Get project issues statistics</h2>
+<p>Gets issues count statistics for given project.</p>
+<p><code>plaintext
+GET /projects/:id/issues_statistics
+GET /projects/:id/issues_statistics?labels=foo
+GET /projects/:id/issues_statistics?labels=foo,bar
+GET /projects/:id/issues_statistics?labels=foo,bar&amp;state=opened
+GET /projects/:id/issues_statistics?milestone=1.0.0
+GET /projects/:id/issues_statistics?milestone=1.0.0&amp;state=opened
+GET /projects/:id/issues_statistics?iids[]=42&amp;iids[]=43
+GET /projects/:id/issues_statistics?search=issue+title+or+description
+GET /projects/:id/issues_statistics?author_id=5
+GET /projects/:id/issues_statistics?assignee_id=5
+GET /projects/:id/issues_statistics?my_reaction_emoji=star
+GET /projects/:id/issues_statistics?confidential=true</code></p>
+<p>| Attribute           | Type             | Required   | Description                                                                                                                   |
+| ------------------- | ---------------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| <code>id</code>                | integer/string   | yes        | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user               |
+| <code>iids[]</code>            | integer array    | no         | Return only the milestone having the given <code>iid</code>                                                                              |
+| <code>labels</code>            | string           | no         | Comma-separated list of label names, issues must have all labels to be returned. <code>None</code> lists all issues with no labels. <code>Any</code> lists all issues with at least one label. |
+| <code>milestone</code>         | string           | no         | The milestone title. <code>None</code> lists all issues with no milestone. <code>Any</code> lists all issues that have an assigned milestone.       |
+| <code>scope</code>             | string           | no         | Return issues for the given scope: <code>created_by_me</code>, <code>assigned_to_me</code> or <code>all</code>. |
+| <code>author_id</code>         | integer          | no         | Return issues created by the given user <code>id</code>. Mutually exclusive with <code>author_username</code>. Combine with <code>scope=all</code> or <code>scope=assigned_to_me</code>. |
+| <code>author_username</code>   | string           | no         | Return issues created by the given <code>username</code>. Similar to <code>author_id</code> and mutually exclusive with <code>author_id</code>. |
+| <code>assignee_id</code>       | integer          | no         | Return issues assigned to the given user <code>id</code>. Mutually exclusive with <code>assignee_username</code>. <code>None</code> returns unassigned issues. <code>Any</code> returns issues with an assignee. |
+| <code>assignee_username</code> | string array     | no         | Return issues assigned to the given <code>username</code>. Similar to <code>assignee_id</code> and mutually exclusive with <code>assignee_id</code>. In GitLab CE <code>assignee_username</code> array should only contain a single value or an invalid parameter error is returned otherwise. |
+| <code>my_reaction_emoji</code> | string           | no         | Return issues reacted by the authenticated user by the given <code>emoji</code>. <code>None</code> returns issues not given a reaction. <code>Any</code> returns issues given at least one reaction. |
+| <code>search</code>            | string           | no         | Search project issues against their <code>title</code> and <code>description</code>                                                                 |
+| <code>created_after</code>     | datetime         | no         | Return issues created on or after the given time. Expected in ISO 8601 format (<code>2019-03-15T08:00:00Z</code>) |
+| <code>created_before</code>    | datetime         | no         | Return issues created on or before the given time. Expected in ISO 8601 format (<code>2019-03-15T08:00:00Z</code>) |
+| <code>updated_after</code>     | datetime         | no         | Return issues updated on or after the given time. Expected in ISO 8601 format (<code>2019-03-15T08:00:00Z</code>) |
+| <code>updated_before</code>    | datetime         | no         | Return issues updated on or before the given time. Expected in ISO 8601 format (<code>2019-03-15T08:00:00Z</code>) |
+| <code>confidential</code>      | boolean          | no         | Filter confidential or public issues.                                                                                         |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/4/issues_statistics"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "statistics": {
+    "counts": {
+      "all": 20,
+      "closed": 5,
+      "opened": 15
+    }
+  }
+}</code></p>
+</body>
+</html>

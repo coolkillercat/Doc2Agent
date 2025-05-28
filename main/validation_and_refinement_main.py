@@ -7,6 +7,7 @@ from pathlib import Path
 import re
 from markdown import markdown
 
+from typing import List, Set, Optional
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -30,58 +31,97 @@ from utils.validation_and_refinement.fix_code import (
 from utils.validation_and_refinement.kb_searcher import search_kb
 
 
-def main():
-    from dotenv import load_dotenv
-    load_dotenv()
-    # Define the path to the API docs
-    apidocs_dir = os.path.join("extractor", "apidocs", "map_other_md")
-
-    print("Building knowledge bases...")
-    # Build the parameter dictionary
-    parameter_dict = build_parameter_dict(apidocs_dir)
-
-    # Build the description dictionaries
-    description_to_param_dict, param_to_description_dict = build_description_dicts(apidocs_dir)
-
-    print("Initializing embedding model...")
-    # Initialize the embedding model
-    embedding_model = initialize_model()
-    
-    # Encode the keys
-    param_keys, param_keys_emb = encode_keys(embedding_model, parameter_dict)
-    description_keys, description_keys_emb = encode_keys(embedding_model, description_to_param_dict)
-
-    # Initialize the GPT evaluator
-    print("Initializing GPT evaluator...")
-    gpt, gpt_prompt = initialize_gpt_evaluator()
-
-    # Initialize the Claude code fixer
-    print("Initializing Claude API client...")
-    claude = initialize_claude()
-
-    # Document the success and error counts
-    tool_success = 0
-    tool_code_error = 0
-    tool_server_error = 0
-    tool_hard_error = 0
-
-    # Validation starts
-    need_refinement = []
-    successful_tools = []
-    # successful_tools_dir = "webarena_tools_toRyan/gitlab"
-    print("Validating tools...")
-    # Set up logging
+def setup_logging():
+    """Set up logging configuration"""
     import logging
     logging.basicConfig(
         filename='validation.log',
         level=logging.INFO,
         format='%(asctime)s - %(levelname)s - %(message)s'
     )
-    logger = logging.getLogger(__name__)
+    return logging.getLogger(__name__)
+
+
+def initialize_knowledge_bases(apidocs_dir):
+    """Initialize knowledge bases and embedding models"""
+    print("Building knowledge bases...")
+    parameter_dict = build_parameter_dict(apidocs_dir)
+    description_to_param_dict, param_to_description_dict = build_description_dicts(apidocs_dir)
     
-    # Load existing metadata if available
+    print("Initializing embedding model...")
+    embedding_model = initialize_model()
+    
+    param_keys, param_keys_emb = encode_keys(embedding_model, parameter_dict)
+    description_keys, description_keys_emb = encode_keys(embedding_model, description_to_param_dict)
+    
+    return {
+        'parameter_dict': parameter_dict,
+        'description_to_param_dict': description_to_param_dict,
+        'param_to_description_dict': param_to_description_dict,
+        'embedding_model': embedding_model,
+        'param_keys': param_keys,
+        'param_keys_emb': param_keys_emb,
+        'description_keys': description_keys,
+        'description_keys_emb': description_keys_emb
+    }
+
+
+def initialize_ai_models():
+    """Initialize GPT evaluator and Claude fixer"""
+    print("Initializing GPT evaluator...")
+    gpt, gpt_prompt = initialize_gpt_evaluator()
+    
+    print("Initializing Claude API client...")
+    claude = initialize_claude()
+    
+    return gpt, gpt_prompt, claude
+
+
+def load_api_data(apidocs_dir, tool_folder):
+    """Load API data for a specific tool folder"""
+    files = os.listdir(os.path.join(apidocs_dir, tool_folder))
+    tools = [x for x in files if x.endswith(".py")]
+    api_txt = [x for x in files if x.endswith(".txt")]
+    api_json = json.load(open(os.path.join(apidocs_dir, tool_folder, api_txt[0])))
+    return tools, api_json
+
+
+def get_api_description(api_json, function_name):
+    """Get API description for a specific function"""
+    for endpoint in api_json["endpoints"]:
+        api_name = endpoint["name"].lower()
+        api_name = re.sub(r'\W', '_', api_name)
+        if function_name == api_name:
+            return endpoint["description"]
+    return api_json
+
+
+def validation(apidocs_dir="extractor/apidocs/", use_existing_metadata=True):
+    """Validate all tools in the API docs directory
+    
+    Args:
+        apidocs_dir (str): Path to the API docs directory
+        use_existing_metadata (bool): If True, load and continue from existing metadata.
+                                    If False, start fresh and overwrite existing metadata.
+    """
+    logger = setup_logging()
+    
+    # Initialize knowledge bases and models
+    kb_data = initialize_knowledge_bases(apidocs_dir)
+    gpt, gpt_prompt, claude = initialize_ai_models()
+    
+    # Document the success and error counts
+    tool_success = 0
+    tool_code_error = 0
+    tool_server_error = 0
+    tool_hard_error = 0
+    
+    need_refinement = []
+    successful_tools = []
+    
+    # Load existing metadata if available and requested
     metadata_table = {'tools': []}
-    if os.path.exists('tool_validation_metadata.json'):
+    if use_existing_metadata and os.path.exists('tool_validation_metadata.json'):
         try:
             with open('tool_validation_metadata.json', 'r') as f:
                 metadata_table = json.load(f)
@@ -103,28 +143,22 @@ def main():
         except Exception as e:
             logger.error(f"Error loading metadata: {str(e)}")
             print(f"Error loading metadata: {str(e)}")
+    elif not use_existing_metadata:
+        logger.info("Starting fresh validation - existing metadata will be overwritten")
+        print("Starting fresh validation - existing metadata will be overwritten")
     
-    SAVE_INTERVAL = 10  # Save every 10 tools processed
+    SAVE_INTERVAL = 10
+    validated_tools = {tool['path'] for tool in metadata_table['tools']} if use_existing_metadata else set()
     
-    # Keep track of validated tools to avoid duplicates
-    validated_tools = {tool['path'] for tool in metadata_table['tools']}
-    
+    print("Validating tools...")
     for tool_folder in os.listdir(apidocs_dir):
-        # if tool_folder != "":
-        #     continue
-
-        # get the python tool scripts
-        files = os.listdir(os.path.join(apidocs_dir, tool_folder))
-        tools = [x for x in files if x.endswith(".py")]
-        # get the api json file
-        api_txt = [x for x in files if x.endswith(".txt")]
-        api_json = json.load(open(os.path.join(apidocs_dir, tool_folder, api_txt[0])))
+        tools, api_json = load_api_data(apidocs_dir, tool_folder)
         
         for tool in tools:
             tool_path = os.path.join(apidocs_dir, tool_folder, tool)
             
-            # Skip if already validated
-            if tool_path in validated_tools:
+            # Skip if already validated and using existing metadata
+            if use_existing_metadata and tool_path in validated_tools:
                 logger.info(f"Skipping already validated tool: {tool}")
                 print(f"Skipping already validated tool: {tool}")
                 continue
@@ -134,16 +168,10 @@ def main():
 
             code = open(tool_path, "r").read()
             function_name = extract_function_names(code)
-
-            api_description = api_json
-            for endpoint in api_json["endpoints"]:
-                api_name = endpoint["name"].lower()
-                api_name = re.sub(r'\W', '_', api_name)
-                if function_name == api_name:
-                    api_description = endpoint["description"]
-                    logger.info(f"API description: {api_description}")
-                    print(f"API description: {api_description}")
-                    break
+            api_description = get_api_description(api_json, function_name)
+            
+            logger.info(f"API description: {api_description}")
+            print(f"API description: {api_description}")
 
             tool_metadata = {
                 'path': tool_path,
@@ -188,10 +216,6 @@ def main():
                             json.dump(output_json, f)
                         logger.info(f"Tool {tool_path} executed successfully.")
                         print(f"Tool {tool_path} executed successfully.")
-                        # copy the successful tools to a new folder
-                        # with open(successful_tools_dir + '/' + tool, "w") as f:
-                        #     f.write(code)
-                        
                     else:
                         logger.warning(f"Tool {tool_path} gpt answer: {gpt_answer}")
                         print(f"Tool {tool_path} gpt answer: {gpt_answer}")
@@ -226,22 +250,54 @@ def main():
     with open("main/need_refinement.txt", "w") as f:
         for tool in need_refinement:
             f.write(tool + "\n")
+    
+    return {
+        'tool_success': tool_success,
+        'tool_code_error': tool_code_error,
+        'tool_server_error': tool_server_error,
+        'tool_hard_error': tool_hard_error,
+        'need_refinement': need_refinement,
+        'successful_tools': successful_tools
+    }
 
 
-    # build the response dictionary
+def refinement(apidocs_dir="extractor/apidocs/", need_refinement=None, use_existing_metadata=True):
+    """Refine tools that need improvement
+    
+    Args:
+        apidocs_dir (str): Path to the API docs directory
+        need_refinement (list): List of tool paths that need refinement. If None, loads from file.
+        use_existing_metadata (bool): If True, load and continue from existing metadata.
+                                    If False, start fresh and overwrite existing metadata.
+    """
+    logger = setup_logging()
+    
+    # Initialize knowledge bases and models
+    kb_data = initialize_knowledge_bases(apidocs_dir)
+    gpt, gpt_prompt, claude = initialize_ai_models()
+    
+    # Build response dictionary for refinement
     print("Building response dictionary...")
     response_dict = build_response_dict(apidocs_dir)
-    # build the response keys
-    response_keys, response_keys_emb = encode_keys(embedding_model, response_dict)
+    response_keys, response_keys_emb = encode_keys(kb_data['embedding_model'], response_dict)
     
-    # Refine the tools
+    # Load need_refinement list if not provided
+    if need_refinement is None:
+        need_refinement = []
+        if os.path.exists("main/need_refinement.txt"):
+            with open("main/need_refinement.txt", "r") as f:
+                need_refinement = [line.strip() for line in f.readlines()]
+    
     refine_success = 0
     refine_fail = 0
+    successful_tools = []
+    
     print("Refining tools...")
     import time
-    # Load existing refinement metadata if available
+    
+    # Load existing refinement metadata if available and requested
     refinement_metadata = {'tools': []}
-    if os.path.exists('tool_refinement_metadata.json'):
+    if use_existing_metadata and os.path.exists('tool_refinement_metadata.json'):
         try:
             with open('tool_refinement_metadata.json', 'r') as f:
                 refinement_metadata = json.load(f)
@@ -257,41 +313,31 @@ def main():
         except Exception as e:
             logger.error(f"Error loading refinement metadata: {str(e)}")
             print(f"Error loading refinement metadata: {str(e)}")
+    elif not use_existing_metadata:
+        logger.info("Starting fresh refinement - existing metadata will be overwritten")
+        print("Starting fresh refinement - existing metadata will be overwritten")
     
-    # Keep track of refined tools to avoid duplicates
-    refined_tools = {tool['path'] for tool in refinement_metadata['tools']}
+    SAVE_INTERVAL = 10
+    refined_tools = {tool['path'] for tool in refinement_metadata['tools']} if use_existing_metadata else set()
     
     for tool_folder in os.listdir(apidocs_dir):
-        # get the python tool scripts
-        files = os.listdir(os.path.join(apidocs_dir, tool_folder))
-        tools = [x for x in files if x.endswith(".py")]
-        # get the api json file
-        api_txt = [x for x in files if x.endswith(".txt")]
-        api_json = json.load(open(os.path.join(apidocs_dir, tool_folder, api_txt[0]))) 
-        md_text = open(os.path.join(apidocs_dir, tool_folder, api_txt[0][:-3] + "md"), encoding="utf-8").read()
+        tools, api_json = load_api_data(apidocs_dir, tool_folder)
         
         for tool in tools:
             tool_path = os.path.join(apidocs_dir, tool_folder, tool)
             if tool_path not in need_refinement:
                 continue
                 
-            # Skip if already refined
-            if tool_path in refined_tools:
+            # Skip if already refined and using existing metadata
+            if use_existing_metadata and tool_path in refined_tools:
                 logger.info(f"Skipping already refined tool: {tool}")
                 print(f"Skipping already refined tool: {tool}")
                 continue
                 
             code = open(tool_path, "r").read()
             function_name = extract_function_names(code)
-            
-            api_description = None
-            for endpoint in api_json["endpoints"]:
-                api_name = endpoint["name"].lower()
-                api_name = re.sub(r'\W', '_', api_name)
-                if function_name == api_name:
-                    api_description = endpoint["description"]
-                    print(f"API description: {api_description}")
-                    break
+            api_description = get_api_description(api_json, function_name)
+            print(f"API description: {api_description}")
     
             tool_refinement_metadata = {
                 'path': tool_path,
@@ -313,8 +359,11 @@ def main():
                     params = get_required_param_name(tool_path)
                     param_examples = {}
                     for param in params:
-                        # Search the knowledge base for the most relevant keys to the query.
-                        example = search_kb(param, param_keys, param_keys_emb, parameter_dict, response_keys, response_keys_emb, response_dict, description_keys, description_to_param_dict, description_keys_emb, embedding_model)
+                        example = search_kb(param, kb_data['param_keys'], kb_data['param_keys_emb'], 
+                                          kb_data['parameter_dict'], response_keys, response_keys_emb, 
+                                          response_dict, kb_data['description_keys'], 
+                                          kb_data['description_to_param_dict'], kb_data['description_keys_emb'], 
+                                          kb_data['embedding_model'])
                         param_examples[param] = example
                     
                     print(param_examples)
@@ -343,14 +392,16 @@ def main():
                     continue
                 param_examples = {}
                 for param in params:
-                    # Search the knowledge base for the most relevant keys to the query.
-                    example = search_kb(param, param_keys, param_keys_emb, parameter_dict, response_keys, response_keys_emb, response_dict, description_keys, description_to_param_dict, description_keys_emb, embedding_model)
+                    example = search_kb(param, kb_data['param_keys'], kb_data['param_keys_emb'], 
+                                      kb_data['parameter_dict'], response_keys, response_keys_emb, 
+                                      response_dict, kb_data['description_keys'], 
+                                      kb_data['description_to_param_dict'], kb_data['description_keys_emb'], 
+                                      kb_data['embedding_model'])
                     param_examples[param] = example
                 
                 print(param_examples)
 
                 # Fix the code using Claude
-                import time
                 for _ in range(3):
                     try:
                         new_code = fix_code(claude, code, error_message, api_description, param_examples)
@@ -383,9 +434,6 @@ def main():
                         tool_refinement_metadata['status'] = 'success'
                         successful_tools.append(tool_path)
                         print(f"Refined tool {tool_path} executed successfully.")
-                        # copy the successful tools to a new folder
-                        # with open(successful_tools_dir + '/' + tool, "w") as f:
-                        #     f.write(code)
                     elif gpt_answer == "code_error":
                         refine_fail += 1
                         tool_refinement_metadata['status'] = 'fail'
@@ -413,14 +461,47 @@ def main():
         json.dump(refinement_metadata, f, indent=2)
 
     print(f"Refine success: {refine_success}, Refine fail: {refine_fail}, NumToolsNeedRefinement: {len(need_refinement)}")
+    
+    return {
+        'refine_success': refine_success,
+        'refine_fail': refine_fail,
+        'successful_tools': successful_tools
+    }
 
-    # copy the successful tools to a new folder
-    successful_tools_dir = "webarena_tools_toRyan"
+
+def copy_successful_tools(successful_tools, output_dir="webarena_tools_toRyan"):
+    """Copy successful tools to output directory"""
+    os.makedirs(output_dir, exist_ok=True)
     for tool in successful_tools:
         tool_name = os.path.basename(tool)
-        new_tool_path = os.path.join(successful_tools_dir, tool_name)
+        new_tool_path = os.path.join(output_dir, tool_name)
         with open(new_tool_path, "w") as f:
             f.write(open(tool, "r").read())
+
+
+def main(use_existing_metadata=True):
+    """Main function to run validation and refinement pipeline
+    
+    Args:
+        use_existing_metadata (bool): If True, load and continue from existing metadata.
+                                    If False, start fresh and overwrite existing metadata.
+    """
+    from dotenv import load_dotenv
+    load_dotenv()
+    
+    # Define the path to the API docs
+    apidocs_dir = os.path.join("extractor", "apidocs")
+    
+    # Run validation
+    validation_results = validation(apidocs_dir, use_existing_metadata=use_existing_metadata)
+    
+    # Run refinement
+    refinement_results = refinement(apidocs_dir, validation_results['need_refinement'], use_existing_metadata=use_existing_metadata)
+    
+    # Copy all successful tools to output directory
+    all_successful_tools = list(set(validation_results['successful_tools'] + refinement_results['successful_tools']))
+    copy_successful_tools(all_successful_tools)
+
 
 def get_required_param_name(path: str | Path):
     source = Path(path).read_text(encoding="utf-8")
@@ -480,10 +561,6 @@ def find_api_in_md(md, api_endpoint):
     chunk = md.split(api_endpoint)
     if len(chunk) < 2:
         return md
-    
-
-
-
 
 if __name__ == "__main__":
     main()

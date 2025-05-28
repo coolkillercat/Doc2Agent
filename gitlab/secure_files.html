@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>secure_files API Documentation</title>
+</head>
+<body>
+<hr />
+<p>stage: Verify
+group: Pipeline Security
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments</p>
+<hr />
+<h1>Project-level Secure Files API</h1>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> GitLab.com, Self-managed, GitLab Dedicated</p>
+<blockquote>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/issues/350748">Generally available</a> in GitLab 15.7. Feature flag <code>ci_secure_files</code> removed.</li>
+</ul>
+</blockquote>
+<p>This feature is part of <a href="../ci/mobile_devops.md">Mobile DevOps</a> developed by <a href="https://handbook.gitlab.com/handbook/engineering/development/incubation/">GitLab Incubation Engineering</a>.
+The feature is still in development, but you can:</p>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/feedback/-/issues/new?issuable_template=feature_request">Request a feature</a>.</li>
+<li><a href="https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/feedback/-/issues/new?issuable_template=report_bug">Report a bug</a>.</li>
+<li><a href="https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/feedback/-/issues/new?issuable_template=general_feedback">Share feedback</a>.</li>
+</ul>
+<p>You can securely store up to 100 files for use in CI/CD pipelines as secure files. These files are stored securely outside of your project's repository and are not version controlled. It is safe to store sensitive information in these files. Secure files support both plain text and binary file types but must be 5 MB or less.</p>
+<h2>List project secure files</h2>
+<p>Get list of secure files in a project.</p>
+<p><code>plaintext
+GET /projects/:project_id/secure_files</code></p>
+<p>Supported attributes:</p>
+<p>| Attribute    | Type           | Required | Description |
+|--------------|----------------|----------|-------------|
+| <code>project_id</code> | integer/string | Yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>. |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/1/secure_files"</code></p>
+<p>Example response:</p>
+<p><code>json
+[
+    {
+        "id": 1,
+        "name": "myfile.jks",
+        "checksum": "16630b189ab34b2e3504f4758e1054d2e478deda510b2b08cc0ef38d12e80aac",
+        "checksum_algorithm": "sha256",
+        "created_at": "2022-02-22T22:22:22.222Z",
+        "expires_at": null,
+        "metadata": null
+    },
+    {
+        "id": 2,
+        "name": "myfile.cer",
+        "checksum": "16630b189ab34b2e3504f4758e1054d2e478deda510b2b08cc0ef38d12e80aa2",
+        "checksum_algorithm": "sha256",
+        "created_at": "2022-02-22T22:22:22.222Z",
+        "expires_at": "2023-09-21T14:55:59.000Z",
+        "metadata": {
+            "id":"75949910542696343243264405377658443914",
+            "issuer": {
+                "C":"US",
+                "O":"Apple Inc.",
+                "CN":"Apple Worldwide Developer Relations Certification Authority",
+                "OU":"G3"
+            },
+            "subject": {
+                "C":"US",
+                "O":"Organization Name",
+                "CN":"Apple Distribution: Organization Name (ABC123XYZ)",
+                "OU":"ABC123XYZ",
+                "UID":"ABC123XYZ"
+            },
+            "expires_at":"2023-09-21T14:55:59.000Z"
+        }
+    }
+]</code></p>
+<h2>Show secure file details</h2>
+<p>Get the details of a specific secure file in a project.</p>
+<p><code>plaintext
+GET /projects/:project_id/secure_files/:id</code></p>
+<p>Supported attributes:</p>
+<p>| Attribute    | Type           | Required | Description |
+|--------------|----------------|----------|-------------|
+| <code>id</code>         | integer        | Yes      | The ID of a secure file. |
+| <code>project_id</code> | integer/string | Yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>. |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/1/secure_files/1"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+    "id": 1,
+    "name": "myfile.jks",
+    "checksum": "16630b189ab34b2e3504f4758e1054d2e478deda510b2b08cc0ef38d12e80aac",
+    "checksum_algorithm": "sha256",
+    "created_at": "2022-02-22T22:22:22.222Z",
+    "expires_at": null,
+    "metadata": null
+}</code></p>
+<h2>Create secure file</h2>
+<p>Create a new secure file.</p>
+<p><code>plaintext
+POST /projects/:project_id/secure_files</code></p>
+<p>Supported attributes:</p>
+<p>| Attribute       | Type           | Required | Description |
+|-----------------|----------------|----------|-------------|
+| <code>file</code>          | file           | Yes      | The file being uploaded (5 MB limit). |
+| <code>name</code>          | string         | Yes      | The name of the file being uploaded. The filename must be unique in the project. |
+| <code>project_id</code>    | integer/string | Yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>. |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+     "https://gitlab.example.com/api/v4/projects/1/secure_files"  --form "name=myfile.jks" --form "file=@/path/to/file/myfile.jks"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+    "id": 1,
+    "name": "myfile.jks",
+    "checksum": "16630b189ab34b2e3504f4758e1054d2e478deda510b2b08cc0ef38d12e80aac",
+    "checksum_algorithm": "sha256",
+    "created_at": "2022-02-22T22:22:22.222Z",
+    "expires_at": null,
+    "metadata": null
+}</code></p>
+<h2>Download secure file</h2>
+<p>Download the contents of a project's secure file.</p>
+<p><code>plaintext
+GET /projects/:project_id/secure_files/:id/download</code></p>
+<p>Supported attributes:</p>
+<p>| Attribute    | Type           | Required | Description |
+|--------------|----------------|----------|-------------|
+| <code>id</code>         | integer        | Yes      | The ID of a secure file. |
+| <code>project_id</code> | integer/string | Yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>. |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --request GET --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" https://gitlab.example.com/api/v4/projects/1/secure_files/1/download --output myfile.jks</code></p>
+<h2>Remove secure file</h2>
+<p>Remove a project's secure file.</p>
+<p><code>plaintext
+DELETE /projects/:project_id/secure_files/:id</code></p>
+<p>Supported attributes:</p>
+<p>| Attribute    | Type           | Required | Description |
+|--------------|----------------|----------|-------------|
+| <code>id</code>         | integer        | Yes      | The ID of a secure file. |
+| <code>project_id</code> | integer/string | Yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>. |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --request DELETE --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/1/secure_files/1"</code></p>
+</body>
+</html>

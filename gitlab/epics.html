@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>epics API Documentation</title>
+</head>
+<body>
+<hr />
+<p>stage: Plan
+group: Product Planning
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments</p>
+<hr />
+<h1>Epics API (deprecated)</h1>
+<p>DETAILS:
+<strong>Tier:</strong> Premium, Ultimate
+<strong>Offering:</strong> GitLab.com, Self-managed, GitLab Dedicated</p>
+<p>WARNING:
+The Epics REST API was <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/460668">deprecated</a> in GitLab 17.0
+and is planned for removal in v5 of the API. Use the <a href="../architecture/blueprints/work_items/index.md">Work Items API</a> instead.
+This change is a breaking change.</p>
+<p>Every API call to epic must be authenticated.</p>
+<p>If a user is not a member of a private group, a <code>GET</code> request on that group results in a <code>404</code> status code.</p>
+<p>If epics feature is not available a <code>403</code> status code is returned.</p>
+<h2>Epic issues API</h2>
+<p>The <a href="epic_issues.md">epic issues API</a> allows you to interact with issues associated with an epic.</p>
+<h2>Milestone dates integration</h2>
+<p>Because start date and due date can be dynamically sourced from related issue milestones,
+additional fields are shown when user has edit permission. These include two boolean
+fields <code>start_date_is_fixed</code> and <code>due_date_is_fixed</code>, and four date fields <code>start_date_fixed</code>,
+<code>start_date_from_inherited_source</code>, <code>due_date_fixed</code> and <code>due_date_from_inherited_source</code>.</p>
+<ul>
+<li><code>end_date</code> has been deprecated in favor of <code>due_date</code>.</li>
+<li><code>start_date_from_milestones</code> has been deprecated in favor of <code>start_date_from_inherited_source</code></li>
+<li><code>due_date_from_milestones</code> has been deprecated in favor of <code>due_date_from_inherited_source</code></li>
+</ul>
+<h2>Epics pagination</h2>
+<p>By default, <code>GET</code> requests return 20 results at a time because the API results
+are paginated.</p>
+<p>Read more on <a href="rest/index.md#pagination">pagination</a>.</p>
+<p>WARNING:
+In <a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/20354">GitLab 12.6</a> and later,
+the <code>reference</code> attribute in responses is deprecated in favor of <code>references</code>.</p>
+<p>NOTE:
+<code>references.relative</code> is relative to the group that the epic is being requested from. When an epic
+is fetched from its origin group, the <code>relative</code> format is the same as the <code>short</code> format.
+When an epic is requested across groups, the <code>relative</code> format is expected to be the same as the <code>full</code> format.</p>
+<h2>List epics for a group</h2>
+<p>Gets all epics of the requested group and its subgroups.</p>
+<p><code>plaintext
+GET /groups/:id/epics
+GET /groups/:id/epics?author_id=5
+GET /groups/:id/epics?labels=bug,reproduced
+GET /groups/:id/epics?state=opened</code></p>
+<p>| Attribute           | Type             | Required   | Description                                                                                                                 |
+| ------------------- | ---------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------- |
+| <code>id</code>                | integer/string   | yes        | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the group</a> owned by the authenticated user               |
+| <code>author_id</code>         | integer          | no         | Return epics created by the given user <code>id</code>                                                                                 |
+| <code>author_username</code>   | string           | no         | Return epics created by the user with the given <code>username</code>. |
+| <code>labels</code>            | string           | no         | Return epics matching a comma-separated list of labels names. Label names from the epic group or a parent group can be used |
+| <code>with_labels_details</code> | boolean        | no         | If <code>true</code>, response returns more details for each label in labels field: <code>:name</code>, <code>:color</code>, <code>:description</code>, <code>:description_html</code>, <code>:text_color</code>. Default is <code>false</code>. |
+| <code>order_by</code>          | string           | no         | Return epics ordered by <code>created_at</code>, <code>updated_at</code>, or <code>title</code> fields. Default is <code>created_at</code>                              |
+| <code>sort</code>              | string           | no         | Return epics sorted in <code>asc</code> or <code>desc</code> order. Default is <code>desc</code>                                                             |
+| <code>search</code>            | string           | no         | Search epics against their <code>title</code> and <code>description</code>                                                                        |
+| <code>state</code>             | string           | no         | Search epics against their <code>state</code>, possible filters: <code>opened</code>, <code>closed</code> and <code>all</code>, default: <code>all</code>                          |
+| <code>created_after</code>     | datetime         | no         | Return epics created on or after the given time. Expected in ISO 8601 format (<code>2019-03-15T08:00:00Z</code>) |
+| <code>created_before</code>    | datetime         | no         | Return epics created on or before the given time. Expected in ISO 8601 format (<code>2019-03-15T08:00:00Z</code>) |
+| <code>updated_after</code>     | datetime         | no         | Return epics updated on or after the given time. Expected in ISO 8601 format (<code>2019-03-15T08:00:00Z</code>) |
+| <code>updated_before</code>    | datetime         | no         | Return epics updated on or before the given time. Expected in ISO 8601 format (<code>2019-03-15T08:00:00Z</code>) |
+| <code>include_ancestor_groups</code> | boolean    | no         | Include epics from the requested group's ancestors. Default is <code>false</code>                                                      |
+| <code>include_descendant_groups</code> | boolean  | no         | Include epics from the requested group's descendants. Default is <code>true</code>                                                     |
+| <code>my_reaction_emoji</code> | string           | no         | Return epics reacted by the authenticated user by the given emoji. <code>None</code> returns epics not given a reaction. <code>Any</code> returns epics given at least one reaction. |
+| <code>not</code> | Hash | no | Return epics that do not match the parameters supplied. Accepts: <code>author_id</code>, <code>author_username</code> and <code>labels</code>. |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/groups/1/epics"</code></p>
+<p>Example response:</p>
+<p><code>json
+[
+  {
+  "id": 29,
+  "iid": 4,
+  "group_id": 7,
+  "parent_id": 23,
+  "parent_iid": 3,
+  "title": "Accusamus iste et ullam ratione voluptatem omnis debitis dolor est.",
+  "description": "Molestias dolorem eos vitae expedita impedit necessitatibus quo voluptatum.",
+  "state": "opened",
+  "confidential": "false",
+  "web_url": "http://gitlab.example.com/groups/test/-/epics/4",
+  "reference": "&amp;4",
+  "references": {
+    "short": "&amp;4",
+    "relative": "&amp;4",
+    "full": "test&amp;4"
+  },
+  "author": {
+    "id": 10,
+    "name": "Lu Mayer",
+    "username": "kam",
+    "state": "active",
+    "avatar_url": "http://www.gravatar.com/avatar/018729e129a6f31c80a6327a30196823?s=80&amp;d=identicon",
+    "web_url": "http://gitlab.example.com/kam"
+  },
+  "start_date": null,
+  "start_date_is_fixed": false,
+  "start_date_fixed": null,
+  "start_date_from_milestones": null,       //deprecated in favor of start_date_from_inherited_source
+  "start_date_from_inherited_source": null,
+  "end_date": "2018-07-31",                 //deprecated in favor of due_date
+  "due_date": "2018-07-31",
+  "due_date_is_fixed": false,
+  "due_date_fixed": null,
+  "due_date_from_milestones": "2018-07-31", //deprecated in favor of start_date_from_inherited_source
+  "due_date_from_inherited_source": "2018-07-31",
+  "created_at": "2018-07-17T13:36:22.770Z",
+  "updated_at": "2018-07-18T12:22:05.239Z",
+  "closed_at": "2018-08-18T12:22:05.239Z",
+  "labels": [],
+  "upvotes": 4,
+  "downvotes": 0,
+  "color": "#1068bf",
+  "_links":{
+      "self": "http://gitlab.example.com/api/v4/groups/7/epics/4",
+      "epic_issues": "http://gitlab.example.com/api/v4/groups/7/epics/4/issues",
+      "group":"http://gitlab.example.com/api/v4/groups/7",
+      "parent":"http://gitlab.example.com/api/v4/groups/7/epics/3"
+  }
+  },
+  {
+  "id": 50,
+  "iid": 35,
+  "group_id": 17,
+  "parent_id": 19,
+  "parent_iid": 1,
+  "title": "Accusamus iste et ullam ratione voluptatem omnis debitis dolor est.",
+  "description": "Molestias dolorem eos vitae expedita impedit necessitatibus quo voluptatum.",
+  "state": "opened",
+  "web_url": "http://gitlab.example.com/groups/test/sample/-/epics/35",
+  "reference": "&amp;4",
+  "references": {
+    "short": "&amp;4",
+    "relative": "sample&amp;4",
+    "full": "test/sample&amp;4"
+  },
+  "author": {
+    "id": 10,
+    "name": "Lu Mayer",
+    "username": "kam",
+    "state": "active",
+    "avatar_url": "http://www.gravatar.com/avatar/018729e129a6f31c80a6327a30196823?s=80&amp;d=identicon",
+    "web_url": "http://gitlab.example.com/kam"
+  },
+  "start_date": null,
+  "start_date_is_fixed": false,
+  "start_date_fixed": null,
+  "start_date_from_milestones": null,       //deprecated in favor of start_date_from_inherited_source
+  "start_date_from_inherited_source": null,
+  "end_date": "2018-07-31",                 //deprecated in favor of due_date
+  "due_date": "2018-07-31",
+  "due_date_is_fixed": false,
+  "due_date_fixed": null,
+  "due_date_from_milestones": "2018-07-31", //deprecated in favor of start_date_from_inherited_source
+  "due_date_from_inherited_source": "2018-07-31",
+  "created_at": "2018-07-17T13:36:22.770Z",
+  "updated_at": "2018-07-18T12:22:05.239Z",
+  "closed_at": "2018-08-18T12:22:05.239Z",
+  "imported": false,
+  "imported_from": "none",
+  "labels": [],
+  "upvotes": 4,
+  "downvotes": 0,
+  "color": "#1068bf",
+  "_links":{
+      "self": "http://gitlab.example.com/api/v4/groups/17/epics/35",
+      "epic_issues": "http://gitlab.example.com/api/v4/groups/17/epics/35/issues",
+      "group":"http://gitlab.example.com/api/v4/groups/17",
+      "parent":"http://gitlab.example.com/api/v4/groups/17/epics/1"
+  }
+  }
+]</code></p>
+<h2>Single epic</h2>
+<p>Gets a single epic</p>
+<p><code>plaintext
+GET /groups/:id/epics/:epic_iid</code></p>
+<p>| Attribute           | Type             | Required   | Description                                                                            |
+| ------------------- | ---------------- | ---------- | ---------------------------------------------------------------------------------------|
+| <code>id</code>                | integer/string   | yes        | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the group</a> owned by the authenticated user                |
+| <code>epic_iid</code>          | integer/string   | yes        | The internal ID of the epic.  |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/groups/1/epics/5"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "id": 30,
+  "iid": 5,
+  "group_id": 7,
+  "parent_id": null,
+  "parent_iid": null,
+  "title": "Ea cupiditate dolores ut vero consequatur quasi veniam voluptatem et non.",
+  "description": "Molestias dolorem eos vitae expedita impedit necessitatibus quo voluptatum.",
+  "state": "opened",
+  "imported": false,
+  "imported_from": "none",
+  "web_url": "http://gitlab.example.com/groups/test/-/epics/5",
+  "reference": "&amp;5",
+  "references": {
+    "short": "&amp;5",
+    "relative": "&amp;5",
+    "full": "test&amp;5"
+  },
+  "author":{
+    "id": 7,
+    "name": "Pamella Huel",
+    "username": "arnita",
+    "state": "active",
+    "avatar_url": "http://www.gravatar.com/avatar/a2f5c6fcef64c9c69cb8779cb292be1b?s=80&amp;d=identicon",
+    "web_url": "http://gitlab.example.com/arnita"
+  },
+  "start_date": null,
+  "start_date_is_fixed": false,
+  "start_date_fixed": null,
+  "start_date_from_milestones": null,       //deprecated in favor of start_date_from_inherited_source
+  "start_date_from_inherited_source": null,
+  "end_date": "2018-07-31",                 //deprecated in favor of due_date
+  "due_date": "2018-07-31",
+  "due_date_is_fixed": false,
+  "due_date_fixed": null,
+  "due_date_from_milestones": "2018-07-31", //deprecated in favor of start_date_from_inherited_source
+  "due_date_from_inherited_source": "2018-07-31",
+  "created_at": "2018-07-17T13:36:22.770Z",
+  "updated_at": "2018-07-18T12:22:05.239Z",
+  "closed_at": "2018-08-18T12:22:05.239Z",
+  "labels": [],
+  "upvotes": 4,
+  "downvotes": 0,
+  "color": "#1068bf",
+  "subscribed": true,
+  "_links":{
+      "self": "http://gitlab.example.com/api/v4/groups/7/epics/5",
+      "epic_issues": "http://gitlab.example.com/api/v4/groups/7/epics/5/issues",
+      "group":"http://gitlab.example.com/api/v4/groups/7",
+      "parent": null
+  }
+}</code></p>
+<h2>New epic</h2>
+<p>Creates a new epic.</p>
+<p>NOTE:
+Starting with GitLab <a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/6448">11.3</a>, <code>start_date</code> and <code>end_date</code> should no longer be assigned
+directly, as they now represent composite values. You can configure it via the <code>*_is_fixed</code> and
+<code>*_fixed</code> fields instead.</p>
+<p><code>plaintext
+POST /groups/:id/epics</code></p>
+<p>| Attribute           | Type             | Required   | Description                                                                            |
+| ------------------- | ---------------- | ---------- | ---------------------------------------------------------------------------------------|
+| <code>id</code>                | integer/string   | yes        | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the group</a> owned by the authenticated user                |
+| <code>title</code>             | string           | yes        | The title of the epic |
+| <code>labels</code>            | string           | no         | The comma-separated list of labels |
+| <code>description</code>       | string           | no         | The description of the epic. Limited to 1,048,576 characters.  |
+| <code>color</code>             | string           | no         | The color of the epic. Behind a feature flag named <code>epic_highlight_color</code> (disabled by default) |
+| <code>confidential</code>      | boolean          | no         | Whether the epic should be confidential |
+| <code>created_at</code>        | string           | no         | When the epic was created. Date time string, ISO 8601 formatted, for example <code>2016-03-11T03:45:40Z</code> . Requires administrator or project/group owner privileges |
+| <code>start_date_is_fixed</code> | boolean        | no         | Whether start date should be sourced from <code>start_date_fixed</code> or from milestones |
+| <code>start_date_fixed</code>  | string           | no         | The fixed start date of an epic |
+| <code>due_date_is_fixed</code> | boolean          | no         | Whether due date should be sourced from <code>due_date_fixed</code> or from milestones |
+| <code>due_date_fixed</code>    | string           | no         | The fixed due date of an epic |
+| <code>parent_id</code>         | integer/string   | no         | The ID of a parent epic |</p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/groups/1/epics?title=Epic&amp;description=Epic%20description&amp;parent_id=29"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "id": 33,
+  "iid": 6,
+  "group_id": 7,
+  "parent_id": 29,
+  "parent_iid": 4,
+  "title": "Epic",
+  "description": "Epic description",
+  "state": "opened",
+  "imported": false,
+  "imported_from": "none",
+  "confidential": "false",
+  "web_url": "http://gitlab.example.com/groups/test/-/epics/6",
+  "reference": "&amp;6",
+  "references": {
+    "short": "&amp;6",
+    "relative": "&amp;6",
+    "full": "test&amp;6"
+  },
+  "author": {
+    "name" : "Alexandra Bashirian",
+    "avatar_url" : null,
+    "state" : "active",
+    "web_url" : "https://gitlab.example.com/eileen.lowe",
+    "id" : 18,
+    "username" : "eileen.lowe"
+  },
+  "start_date": null,
+  "start_date_is_fixed": false,
+  "start_date_fixed": null,
+  "start_date_from_milestones": null,       //deprecated in favor of start_date_from_inherited_source
+  "start_date_from_inherited_source": null,
+  "end_date": "2018-07-31",                 //deprecated in favor of due_date
+  "due_date": "2018-07-31",
+  "due_date_is_fixed": false,
+  "due_date_fixed": null,
+  "due_date_from_milestones": "2018-07-31", //deprecated in favor of start_date_from_inherited_source
+  "due_date_from_inherited_source": "2018-07-31",
+  "created_at": "2018-07-17T13:36:22.770Z",
+  "updated_at": "2018-07-18T12:22:05.239Z",
+  "closed_at": "2018-08-18T12:22:05.239Z",
+  "labels": [],
+  "upvotes": 4,
+  "downvotes": 0,
+  "color": "#1068bf",
+  "_links":{
+    "self": "http://gitlab.example.com/api/v4/groups/7/epics/6",
+    "epic_issues": "http://gitlab.example.com/api/v4/groups/7/epics/6/issues",
+    "group":"http://gitlab.example.com/api/v4/groups/7",
+    "parent": "http://gitlab.example.com/api/v4/groups/7/epics/4"
+  }
+}</code></p>
+<h2>Update epic</h2>
+<p>Updates an epic.</p>
+<p><code>plaintext
+PUT /groups/:id/epics/:epic_iid</code></p>
+<p>| Attribute           | Type             | Required   | Description                                                                            |
+| ------------------- | ---------------- | ---------- | ---------------------------------------------------------------------------------------|
+| <code>id</code>                | integer/string   | yes        | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the group</a> owned by the authenticated user                |
+| <code>epic_iid</code>          | integer/string   | yes        | The internal ID of the epic  |
+| <code>add_labels</code>        | string           | no         | Comma-separated label names to add to an issue. |
+| <code>confidential</code>      | boolean          | no         | Whether the epic should be confidential |
+| <code>description</code>       | string           | no         | The description of an epic. Limited to 1,048,576 characters.  |
+| <code>due_date_fixed</code>    | string           | no         | The fixed due date of an epic |
+| <code>due_date_is_fixed</code> | boolean          | no         | Whether due date should be sourced from <code>due_date_fixed</code> or from milestones |
+| <code>labels</code>            | string           | no         | Comma-separated label names for an issue. Set to an empty string to unassign all labels. |
+| <code>parent_id</code>         | integer/string   | no         | The ID of a parent epic. |
+| <code>remove_labels</code>     | string           | no         | Comma-separated label names to remove from an issue. |
+| <code>start_date_fixed</code>  | string           | no         | The fixed start date of an epic |
+| <code>start_date_is_fixed</code> | boolean        | no         | Whether start date should be sourced from <code>start_date_fixed</code> or from milestones |
+| <code>state_event</code>       | string           | no         | State event for an epic. Set <code>close</code> to close the epic and <code>reopen</code> to reopen it |
+| <code>title</code>             | string           | no         | The title of an epic |
+| <code>updated_at</code>        | string           | no         | When the epic was updated. Date time string, ISO 8601 formatted, for example <code>2016-03-11T03:45:40Z</code> . Requires administrator or project/group owner privileges |
+| <code>color</code>             | string           | no         | The color of the epic. Behind a feature flag named <code>epic_highlight_color</code> (disabled by default) |</p>
+<p><code>shell
+curl --request PUT --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/groups/1/epics/5?title=New%20Title&amp;parent_id=29"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "id": 33,
+  "iid": 6,
+  "group_id": 7,
+  "parent_id": 29,
+  "parent_iid": 4,
+  "title": "New Title",
+  "description": "Epic description",
+  "state": "opened",
+  "imported": false,
+  "imported_from": "none",
+  "confidential": "false",
+  "web_url": "http://gitlab.example.com/groups/test/-/epics/6",
+  "reference": "&amp;6",
+  "references": {
+    "short": "&amp;6",
+    "relative": "&amp;6",
+    "full": "test&amp;6"
+  },
+  "author": {
+    "name" : "Alexandra Bashirian",
+    "avatar_url" : null,
+    "state" : "active",
+    "web_url" : "https://gitlab.example.com/eileen.lowe",
+    "id" : 18,
+    "username" : "eileen.lowe"
+  },
+  "start_date": null,
+  "start_date_is_fixed": false,
+  "start_date_fixed": null,
+  "start_date_from_milestones": null,       //deprecated in favor of start_date_from_inherited_source
+  "start_date_from_inherited_source": null,
+  "end_date": "2018-07-31",                 //deprecated in favor of due_date
+  "due_date": "2018-07-31",
+  "due_date_is_fixed": false,
+  "due_date_fixed": null,
+  "due_date_from_milestones": "2018-07-31", //deprecated in favor of start_date_from_inherited_source
+  "due_date_from_inherited_source": "2018-07-31",
+  "created_at": "2018-07-17T13:36:22.770Z",
+  "updated_at": "2018-07-18T12:22:05.239Z",
+  "closed_at": "2018-08-18T12:22:05.239Z",
+  "labels": [],
+  "upvotes": 4,
+  "downvotes": 0,
+  "color": "#1068bf"
+}</code></p>
+<h2>Delete epic</h2>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/issues/452189">Changed</a> in GitLab 16.11. In GitLab 16.10 and earlier, if you delete an epic, all its child epics and their descendants are deleted as well. If needed, you can remove child epics from the parent epic before you delete it.</li>
+</ul>
+<p>Deletes an epic</p>
+<p><code>plaintext
+DELETE /groups/:id/epics/:epic_iid</code></p>
+<p>| Attribute           | Type             | Required   | Description                                                                            |
+| ------------------- | ---------------- | ---------- | ---------------------------------------------------------------------------------------|
+| <code>id</code>                | integer/string   | yes        | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the group</a> owned by the authenticated user                |
+| <code>epic_iid</code>          | integer/string   | yes        | The internal ID of the epic.  |</p>
+<p><code>shell
+curl --request DELETE --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/groups/1/epics/5"</code></p>
+<h2>Create a to-do item</h2>
+<p>Manually creates a to-do item for the current user on an epic. If
+there already exists a to-do item for the user on that epic, status code <code>304</code> is
+returned.</p>
+<p><code>plaintext
+POST /groups/:id/epics/:epic_iid/todo</code></p>
+<p>| Attribute   | Type    | Required | Description                          |
+|-------------|---------|----------|--------------------------------------|
+| <code>id</code>        | integer/string | yes   | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the group</a> owned by the authenticated user  |
+| <code>epic_iid</code> | integer | yes          | The internal ID of a group's epic |</p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/groups/1/epics/5/todo"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "id": 112,
+  "group": {
+    "id": 1,
+    "name": "Gitlab",
+    "path": "gitlab",
+    "kind": "group",
+    "full_path": "base/gitlab",
+    "parent_id": null
+  },
+  "author": {
+    "name": "Administrator",
+    "username": "root",
+    "id": 1,
+    "state": "active",
+    "avatar_url": "http://www.gravatar.com/avatar/e64c7d89f26bd1972efa854d13d7dd61?s=80&amp;d=identicon",
+    "web_url": "https://gitlab.example.com/root"
+  },
+  "action_name": "marked",
+  "target_type": "epic",
+  "target": {
+    "id": 30,
+    "iid": 5,
+    "group_id": 1,
+    "title": "Ea cupiditate dolores ut vero consequatur quasi veniam voluptatem et non.",
+    "description": "Molestias dolorem eos vitae expedita impedit necessitatibus quo voluptatum.",
+    "author":{
+      "id": 7,
+      "name": "Pamella Huel",
+      "username": "arnita",
+      "state": "active",
+      "avatar_url": "http://www.gravatar.com/avatar/a2f5c6fcef64c9c69cb8779cb292be1b?s=80&amp;d=identicon",
+      "web_url": "http://gitlab.example.com/arnita"
+    },
+    "web_url": "http://gitlab.example.com/groups/test/-/epics/5",
+    "reference": "&amp;5",
+    "references": {
+      "short": "&amp;5",
+      "relative": "&amp;5",
+      "full": "test&amp;5"
+    },
+    "start_date": null,
+    "end_date": null,
+    "created_at": "2018-01-21T06:21:13.165Z",
+    "updated_at": "2018-01-22T12:41:41.166Z",
+    "closed_at": "2018-08-18T12:22:05.239Z"
+  },
+  "target_url": "https://gitlab.example.com/groups/epics/5",
+  "body": "Vel voluptas atque dicta mollitia adipisci qui at.",
+  "state": "pending",
+  "created_at": "2016-07-01T11:09:13.992Z"
+}</code></p>
+</body>
+</html>

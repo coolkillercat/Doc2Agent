@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>google_cloud_integration API Documentation</title>
+</head>
+<body>
+<hr />
+<p>stage: Govern
+group: Authentication
+info: &gt;-
+  To determine the technical writer assigned to the Stage/Group associated with
+  this page, see
+  https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments</p>
+<hr />
+<h1>Google Cloud Integration API</h1>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> GitLab.com
+<strong>Status:</strong> Experiment</p>
+<h2>Project-level Google Cloud integration scripts</h2>
+<p>DETAILS:
+<strong>Status:</strong> Experiment</p>
+<blockquote>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/141870">Introduced</a> in GitLab 16.10. This feature is an <a href="../policy/experiment-beta-support.md">Experiment</a>.</li>
+</ul>
+</blockquote>
+<h3>Workload identity federation creation script</h3>
+<blockquote>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/141870">Introduced</a> in GitLab 16.10.</li>
+</ul>
+</blockquote>
+<p>Users with at least the Maintainer role for the project can use the following endpoint to
+query a shell script that creates and configures the workload identity
+federation in Google Cloud:</p>
+<p><code>plaintext
+GET /projects/:id/google_cloud/setup/wlif.sh</code></p>
+<p>Supported attributes:</p>
+<p>| Attribute                                         | Type             | Required | Description                                                                                                      |
+|---------------------------------------------------|------------------|----------|------------------------------------------------------------------------------------------------------------------|
+| <code>id</code>                                              | integer          | Yes      | The ID a project.                                                                                                |
+| <code>google_cloud_project_id</code>                         | string           | Yes      | Google Cloud Project ID for the workload identity federation.                                                    |
+| <code>google_cloud_workload_identity_pool_id</code>          | string           | No       | ID of the Google Cloud workload identity pool to create. Defaults to <code>gitlab-wlif</code>.                              |
+| <code>google_cloud_workload_identity_pool_display_name</code>| string           | No       | Display name of the Google Cloud workload identity pool to create. Defaults to <code>WLIF for GitLab integration</code>.   |
+| <code>google_cloud_workload_identity_pool_provider_id</code> | string           | No       | ID of the Google Cloud workload identity pool provider to create. Defaults to <code>gitlab-wlif-oidc-provider</code>.       |
+| <code>google_cloud_workload_identity_pool_provider_display_name</code>| string  | No       | Display name of the Google Cloud workload identity pool provider to created. Defaults to <code>GitLab OIDC provider</code>. |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --request GET \
+     --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+     --url "https://gitlab.com/api/v4/projects/&lt;your_project_id&gt;/google_cloud/setup/wlif.sh"</code></p>
+<h3>Script to set up a Google Cloud integration</h3>
+<blockquote>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/144787">Introduced</a> in GitLab 16.10.</li>
+</ul>
+</blockquote>
+<p>Users with at least the Maintainer role for the project can use the following endpoint to
+query a shell script to set up a Google Cloud integration:</p>
+<p><code>plaintext
+GET /projects/:id/google_cloud/setup/integrations.sh</code></p>
+<p>Only the <a href="../user/project/integrations/google_artifact_management.md">Google Artifact Management integration</a>
+is supported.
+The script creates IAM policies to access Google Artifact Registry:</p>
+<ul>
+<li><a href="https://cloud.google.com/artifact-registry/docs/access-control#roles">Artifact Registry Reader</a>
+  role is granted to members with at least Reporter role</li>
+<li><a href="https://cloud.google.com/artifact-registry/docs/access-control#roles">Artifact Registry Writer</a>
+  role is granted to members with at least Developer role</li>
+</ul>
+<p>Supported attributes:</p>
+<p>| Attribute                                   | Type    | Required | Description                                                                 |
+|---------------------------------------------|---------|----------|-----------------------------------------------------------------------------|
+| <code>id</code>                                        | integer | Yes      | The ID of a GitLab project.                                                           |
+| <code>enable_google_cloud_artifact_registry</code>     | boolean | Yes      | Flag to indicate if Google Artifact Management integration should be enabled. |
+| <code>google_cloud_artifact_registry_project_id</code> | string  | Yes      | Google Cloud Project ID for the Artifact Registry.                          |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --request GET \
+     --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+     --url "https://gitlab.com/api/v4/projects/&lt;your_project_id&gt;/google_cloud/setup/integrations.sh"</code></p>
+<h3>Script to configure a Google Cloud project for runner provisioning</h3>
+<blockquote>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/145525">Introduced</a> in GitLab 16.10.</li>
+</ul>
+</blockquote>
+<p>Users with at least the Maintainer role for the project can use the following endpoint to
+query a shell script to configure a Google Cloud project for runner provisioning and execution:</p>
+<p><code>plaintext
+GET /projects/:id/google_cloud/setup/runner_deployment_project.sh</code></p>
+<p>The script performs preparatory configuration steps in the specified Google Cloud project,
+namely enabling required services and creating a <code>GRITProvisioner</code> role and a <code>grit-provisioner</code> service account.</p>
+<p>Supported attributes:</p>
+<p>| Attribute                 | Type    | Required | Description                            |
+|---------------------------|---------|----------|----------------------------------------|
+| <code>id</code>                      | integer | Yes      | The ID of a GitLab project.            |
+| <code>google_cloud_project_id</code> | string  | Yes      | The ID of the Google Cloud project.    |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --request GET \
+     --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+     --url "https://gitlab.com/api/v4/projects/&lt;your_project_id&gt;/google_cloud/setup/runner_deployment_project.sh?google_cloud_project_id=&lt;your_google_cloud_project_id&gt;"</code></p>
+</body>
+</html>

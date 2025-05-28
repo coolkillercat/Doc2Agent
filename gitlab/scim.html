@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>scim API Documentation</title>
+</head>
+<body>
+<hr />
+<p>stage: Govern
+group: Authentication
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments</p>
+<hr />
+<h1>SCIM API</h1>
+<p>DETAILS:
+<strong>Tier:</strong> Premium, Ultimate
+<strong>Offering:</strong> GitLab.com</p>
+<blockquote>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/98354">Introduced</a> in GitLab 15.5.</li>
+</ul>
+</blockquote>
+<p>The GitLab SCIM API manages SCIM identities within groups and provides the <code>/groups/:groups_id/scim/identities</code> and <code>/groups/:groups_id/scim/:uid</code> endpoints. The base URL is <code>&lt;http|https&gt;://&lt;GitLab host&gt;/api/v4</code>.</p>
+<p>To use this API, <a href="../user/group/saml_sso/index.md">Group SSO</a> must be enabled for the group.
+This API is only in use where <a href="../user/group/saml_sso/scim_setup.md">SCIM for Group SSO</a> is enabled. It's a prerequisite to the creation of SCIM identities.</p>
+<p>This API is different to the <a href="../development/internal_api/index.md#group-scim-api">internal group SCIM API</a> and the <a href="../development/internal_api/index.md#instance-scim-api">instance SCIM API</a>:</p>
+<ul>
+<li>This API:</li>
+<li>Does not implement the <a href="https://www.rfc-editor.org/rfc/rfc7644">RFC7644 protocol</a>.</li>
+<li>
+<p>Gets, checks, updates, and deletes SCIM identities within groups.</p>
+</li>
+<li>
+<p>The internal group and instance SCIM APIs:</p>
+</li>
+<li>Are for system use for SCIM provider integration.</li>
+<li>Implement the <a href="https://www.rfc-editor.org/rfc/rfc7644">RFC7644 protocol</a>.</li>
+<li>Get a list of SCIM provisioned users for the group or instance.</li>
+<li>Create, delete and update SCIM provisioned users for the group or instance.</li>
+</ul>
+<h2>Get SCIM identities for a group</h2>
+<blockquote>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/issues/227841">Introduced</a> in GitLab 15.5.</li>
+</ul>
+</blockquote>
+<p><code>plaintext
+GET /groups/:id/scim/identities</code></p>
+<p>Supported attributes:</p>
+<p>| Attribute         | Type    | Required | Description           |
+|:------------------|:--------|:---------|:----------------------|
+| <code>id</code>      | integer/string | Yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the group</a> |</p>
+<p>If successful, returns <a href="rest/index.md#status-codes"><code>200</code></a> and the following
+response attributes:</p>
+<p>| Attribute    | Type    | Description               |
+| ------------ | ------- | ------------------------- |
+| <code>extern_uid</code> | string  | External UID for the user |
+| <code>user_id</code>    | integer | ID for the user           |
+| <code>active</code>     | boolean | Status of the identity    |</p>
+<p>Example response:</p>
+<p><code>json
+[
+    {
+        "extern_uid": "be20d8dcc028677c931e04f387",
+        "user_id": 48,
+        "active": true
+    }
+]</code></p>
+<p>Example request:</p>
+<p><code>shell
+curl --location --request GET "https://gitlab.example.com/api/v4/groups/33/scim/identities" \
+--header "PRIVATE-TOKEN: &lt;PRIVATE-TOKEN&gt;"</code></p>
+<h2>Get a single SCIM identity</h2>
+<blockquote>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/123591">Introduced</a> in GitLab 16.1.</li>
+</ul>
+</blockquote>
+<p><code>plaintext
+GET /groups/:id/scim/:uid</code></p>
+<p>Supported attributes:</p>
+<p>| Attribute | Type    | Required | Description               |
+| --------- | ------- | -------- | ------------------------- |
+| <code>id</code>      | integer | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the group</a> |
+| <code>uid</code>     | string  | yes      | External UID of the user. |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --location --request GET "https://gitlab.example.com/api/v4/groups/33/scim/be20d8dcc028677c931e04f387" --header "PRIVATE-TOKEN: &lt;PRIVATE TOKEN&gt;"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+    "extern_uid": "be20d8dcc028677c931e04f387",
+    "user_id": 48,
+    "active": true
+}</code></p>
+<h2>Update <code>extern_uid</code> field for a SCIM identity</h2>
+<blockquote>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/issues/227841">Introduced</a> in GitLab 15.5.</li>
+</ul>
+</blockquote>
+<p>Fields that can be updated are:</p>
+<p>| SCIM/IdP field  | GitLab field |
+| --------------- | ------------ |
+| <code>id/externalId</code> | <code>extern_uid</code> |</p>
+<p><code>plaintext
+PATCH /groups/:groups_id/scim/:uid</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type   | Required | Description               |
+| --------- | ------ | -------- | ------------------------- |
+| <code>id</code>      | integer/string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the group</a> |
+| <code>uid</code>     | string | yes      | External UID of the user. |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --location --request PATCH "https://gitlab.example.com/api/v4/groups/33/scim/be20d8dcc028677c931e04f387" \
+--header "PRIVATE-TOKEN: &lt;PRIVATE TOKEN&gt;" \
+--form "extern_uid=yrnZW46BrtBFqM7xDzE7dddd"</code></p>
+<h2>Delete a single SCIM identity</h2>
+<blockquote>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/issues/423592">Introduced</a> in GitLab 16.5.</li>
+</ul>
+</blockquote>
+<p><code>plaintext
+DELETE /groups/:id/scim/:uid</code></p>
+<p>Supported attributes:</p>
+<p>| Attribute | Type    | Required | Description               |
+| --------- | ------- | -------- | ------------------------- |
+| <code>id</code>      | integer | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the group</a>. |
+| <code>uid</code>     | string  | yes      | External UID of the user. |</p>
+<p>Example request:</p>
+<p>```shell
+curl --request DELETE --header "Content-Type: application/json" --header "Authorization: Bearer <your_access_token>" "https://gitlab.example.com/api/v4/groups/33/scim/yrnZW46BrtBFqM7xDzE7dddd"</p>
+<p>```</p>
+<p>Example response:</p>
+<p><code>json
+{
+    "message" : "204 No Content"
+}</code></p>
+</body>
+</html>

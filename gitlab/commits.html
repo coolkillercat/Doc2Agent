@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>commits API Documentation</title>
+</head>
+<body>
+<hr />
+<p>stage: Create
+group: Source Code
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
+description: "Documentation for the REST API for Git commits in GitLab."</p>
+<hr />
+<h1>Commits API</h1>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> GitLab.com, Self-managed, GitLab Dedicated</p>
+<p>This API operates on <a href="https://git-scm.com/book/en/v2/Git-Basics-Recording-Changes-to-the-Repository">repository commits</a>. Read more about <a href="../user/project/repository/index.md#commit-changes-to-a-repository">GitLab-specific information</a> for commits.</p>
+<h2>Responses</h2>
+<p>Some date fields in responses from this API are, or can appear to be, duplicated
+information:</p>
+<ul>
+<li>The <code>created_at</code> field exists solely for consistency with other GitLab APIs. It
+  is always identical to the <code>committed_date</code> field.</li>
+<li>The <code>committed_date</code> and <code>authored_date</code> fields are generated from different sources,
+  and may not be identical.</li>
+</ul>
+<h2>List repository commits</h2>
+<blockquote>
+<ul>
+<li>Commits by author <a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/114417">introduced</a> in GitLab 15.10.</li>
+</ul>
+</blockquote>
+<p>Get a list of repository commits in a project.</p>
+<p><code>plaintext
+GET /projects/:id/repository/commits</code></p>
+<p>| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| <code>id</code>      | integer/string | yes | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user |
+| <code>ref_name</code> | string | no | The name of a repository branch, tag or revision range, or if not given the default branch |
+| <code>since</code> | string | no | Only commits after or on this date are returned in ISO 8601 format <code>YYYY-MM-DDTHH:MM:SSZ</code> |
+| <code>until</code> | string | no | Only commits before or on this date are returned in ISO 8601 format <code>YYYY-MM-DDTHH:MM:SSZ</code> |
+| <code>path</code> | string | no | The file path |
+| <code>author</code> | string | no | Search commits by commit author.|
+| <code>all</code> | boolean | no | Retrieve every commit from the repository |
+| <code>with_stats</code> | boolean | no | Stats about each commit are added to the response |
+| <code>first_parent</code> | boolean | no | Follow only the first parent commit upon seeing a merge commit |
+| <code>order</code> | string | no | List commits in order. Possible values: <code>default</code>, <a href="https://git-scm.com/docs/git-log#Documentation/git-log.txt---topo-order"><code>topo</code></a>. Defaults to <code>default</code>, the commits are shown in reverse chronological order. |
+| <code>trailers</code> | boolean | no | Parse and include <a href="https://git-scm.com/docs/git-interpret-trailers">Git trailers</a> for every commit |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  --url "https://gitlab.example.com/api/v4/projects/5/repository/commits"</code></p>
+<p>Example response:</p>
+<p><code>json
+[
+  {
+    "id": "ed899a2f4b50b4370feeea94676502b42383c746",
+    "short_id": "ed899a2f4b5",
+    "title": "Replace sanitize with escape once",
+    "author_name": "Example User",
+    "author_email": "user@example.com",
+    "authored_date": "2021-09-20T11:50:22.001+00:00",
+    "committer_name": "Administrator",
+    "committer_email": "admin@example.com",
+    "committed_date": "2021-09-20T11:50:22.001+00:00",
+    "created_at": "2021-09-20T11:50:22.001+00:00",
+    "message": "Replace sanitize with escape once",
+    "parent_ids": [
+      "6104942438c14ec7bd21c6cd5bd995272b3faff6"
+    ],
+    "web_url": "https://gitlab.example.com/janedoe/gitlab-foss/-/commit/ed899a2f4b50b4370feeea94676502b42383c746",
+    "trailers": {},
+    "extended_trailers": {}
+  },
+  {
+    "id": "6104942438c14ec7bd21c6cd5bd995272b3faff6",
+    "short_id": "6104942438c",
+    "title": "Sanitize for network graph",
+    "author_name": "randx",
+    "author_email": "user@example.com",
+    "committer_name": "ExampleName",
+    "committer_email": "user@example.com",
+    "created_at": "2021-09-20T09:06:12.201+00:00",
+    "message": "Sanitize for network graph\nCc: John Doe &lt;johndoe@gitlab.com&gt;\nCc: Jane Doe &lt;janedoe@gitlab.com&gt;",
+    "parent_ids": [
+      "ae1d9fb46aa2b07ee9836d49862ec4e2c46fbbba"
+    ],
+    "web_url": "https://gitlab.example.com/janedoe/gitlab-foss/-/commit/ed899a2f4b50b4370feeea94676502b42383c746",
+    "trailers": { "Cc": "Jane Doe &lt;janedoe@gitlab.com&gt;" },
+    "extended_trailers": { "Cc": ["John Doe &lt;johndoe@gitlab.com&gt;", "Jane Doe &lt;janedoe@gitlab.com&gt;"] }
+  }
+]</code></p>
+<h2>Create a commit with multiple files and actions</h2>
+<p>Create a commit by posting a JSON payload</p>
+<p><code>plaintext
+POST /projects/:id/repository/commits</code></p>
+<p>| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| <code>id</code> | integer/string | yes | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> |
+| <code>branch</code> | string | yes | Name of the branch to commit into. To create a new branch, also provide either <code>start_branch</code> or <code>start_sha</code>, and optionally <code>start_project</code>. |
+| <code>commit_message</code> | string | yes | Commit message |
+| <code>start_branch</code> | string | no | Name of the branch to start the new branch from |
+| <code>start_sha</code> | string | no | SHA of the commit to start the new branch from |
+| <code>start_project</code> | integer/string | no | The project ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> to start the new branch from. Defaults to the value of <code>id</code>. |
+| <code>actions[]</code> | array | yes | An array of action hashes to commit as a batch. See the next table for what attributes it can take. |
+| <code>author_email</code> | string | no | Specify the commit author's email address |
+| <code>author_name</code> | string | no | Specify the commit author's name |
+| <code>stats</code> | boolean | no | Include commit stats. Default is true |
+| <code>force</code> | boolean | no | When <code>true</code> overwrites the target branch with a new commit based on the <code>start_branch</code> or <code>start_sha</code> |</p>
+<p>| <code>actions[]</code> Attribute | Type    | Required | Description |
+|-----------------------|---------|----------|-------------|
+| <code>action</code>              | string  | yes      | The action to perform: <code>create</code>, <code>delete</code>, <code>move</code>, <code>update</code>, or <code>chmod</code>. |
+| <code>file_path</code>           | string  | yes      | Full path to the file. For example: <code>lib/class.rb</code>. |
+| <code>previous_path</code>       | string  | no       | Original full path to the file being moved. For example <code>lib/class1.rb</code>. Only considered for <code>move</code> action. |
+| <code>content</code>             | string  | no       | File content, required for all except <code>delete</code>, <code>chmod</code>, and <code>move</code>. Move actions that do not specify <code>content</code> preserve the existing file content, and any other value of <code>content</code> overwrites the file content. |
+| <code>encoding</code>            | string  | no       | <code>text</code> or <code>base64</code>. <code>text</code> is default. |
+| <code>last_commit_id</code>      | string  | no       | Last known file commit ID. Only considered in update, move, and delete actions. |
+| <code>execute_filemode</code>    | boolean | no       | When <code>true/false</code> enables/disables the execute flag on the file. Only considered for <code>chmod</code> action. |</p>
+<p><code>shell
+PAYLOAD=$(cat &lt;&lt; 'JSON'
+{
+  "branch": "main",
+  "commit_message": "some commit message",
+  "actions": [
+    {
+      "action": "create",
+      "file_path": "foo/bar",
+      "content": "some content"
+    },
+    {
+      "action": "delete",
+      "file_path": "foo/bar2"
+    },
+    {
+      "action": "move",
+      "file_path": "foo/bar3",
+      "previous_path": "foo/bar4",
+      "content": "some content"
+    },
+    {
+      "action": "update",
+      "file_path": "foo/bar5",
+      "content": "new content"
+    },
+    {
+      "action": "chmod",
+      "file_path": "foo/bar5",
+      "execute_filemode": true
+    }
+  ]
+}
+JSON
+)
+curl --request POST \
+  --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  --header "Content-Type: application/json" \
+  --data "$PAYLOAD" \
+  --url "https://gitlab.example.com/api/v4/projects/1/repository/commits"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "id": "ed899a2f4b50b4370feeea94676502b42383c746",
+  "short_id": "ed899a2f4b5",
+  "title": "some commit message",
+  "author_name": "Example User",
+  "author_email": "user@example.com",
+  "committer_name": "Example User",
+  "committer_email": "user@example.com",
+  "created_at": "2016-09-20T09:26:24.000-07:00",
+  "message": "some commit message",
+  "parent_ids": [
+    "ae1d9fb46aa2b07ee9836d49862ec4e2c46fbbba"
+  ],
+  "committed_date": "2016-09-20T09:26:24.000-07:00",
+  "authored_date": "2016-09-20T09:26:24.000-07:00",
+  "stats": {
+    "additions": 2,
+    "deletions": 2,
+    "total": 4
+  },
+  "status": null,
+  "web_url": "https://gitlab.example.com/janedoe/gitlab-foss/-/commit/ed899a2f4b50b4370feeea94676502b42383c746"
+}</code></p>
+<p>GitLab supports <a href="rest/index.md#encoding-api-parameters-of-array-and-hash-types">form encoding</a>. The following is an example using Commit API with form encoding:</p>
+<p><code>shell
+curl --request POST \
+     --form "branch=main" \
+     --form "commit_message=some commit message" \
+     --form "start_branch=main" \
+     --form "actions[][action]=create" \
+     --form "actions[][file_path]=foo/bar" \
+     --form "actions[][content]=&lt;/path/to/local.file" \
+     --form "actions[][action]=delete" \
+     --form "actions[][file_path]=foo/bar2" \
+     --form "actions[][action]=move" \
+     --form "actions[][file_path]=foo/bar3" \
+     --form "actions[][previous_path]=foo/bar4" \
+     --form "actions[][content]=&lt;/path/to/local1.file" \
+     --form "actions[][action]=update" \
+     --form "actions[][file_path]=foo/bar5" \
+     --form "actions[][content]=&lt;/path/to/local2.file" \
+     --form "actions[][action]=chmod" \
+     --form "actions[][file_path]=foo/bar5" \
+     --form "actions[][execute_filemode]=true" \
+     --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+     "https://gitlab.example.com/api/v4/projects/1/repository/commits"</code></p>
+<h2>Get a single commit</h2>
+<p>Get a specific commit identified by the commit hash or name of a branch or tag.</p>
+<p><code>plaintext
+GET /projects/:id/repository/commits/:sha</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| <code>id</code>      | integer/string | yes | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user |
+| <code>sha</code> | string | yes | The commit hash or name of a repository branch or tag |
+| <code>stats</code> | boolean | no | Include commit stats. Default is true |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  --url "https://gitlab.example.com/api/v4/projects/5/repository/commits/main"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "id": "6104942438c14ec7bd21c6cd5bd995272b3faff6",
+  "short_id": "6104942438c",
+  "title": "Sanitize for network graph",
+  "author_name": "randx",
+  "author_email": "user@example.com",
+  "committer_name": "Dmitriy",
+  "committer_email": "user@example.com",
+  "created_at": "2021-09-20T09:06:12.300+03:00",
+  "message": "Sanitize for network graph",
+  "committed_date": "2021-09-20T09:06:12.300+03:00",
+  "authored_date": "2021-09-20T09:06:12.420+03:00",
+  "parent_ids": [
+    "ae1d9fb46aa2b07ee9836d49862ec4e2c46fbbba"
+  ],
+  "last_pipeline" : {
+    "id": 8,
+    "ref": "main",
+    "sha": "2dc6aa325a317eda67812f05600bdf0fcdc70ab0",
+    "status": "created"
+  },
+  "stats": {
+    "additions": 15,
+    "deletions": 10,
+    "total": 25
+  },
+  "status": "running",
+  "web_url": "https://gitlab.example.com/janedoe/gitlab-foss/-/commit/6104942438c14ec7bd21c6cd5bd995272b3faff6"
+}</code></p>
+<h2>Get references a commit is pushed to</h2>
+<p>Get all references (from branches or tags) a commit is pushed to.
+The pagination parameters <code>page</code> and <code>per_page</code> can be used to restrict the list of references.</p>
+<p><code>plaintext
+GET /projects/:id/repository/commits/:sha/refs</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| <code>id</code>      | integer/string | yes | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user |
+| <code>sha</code> | string | yes | The commit hash  |
+| <code>type</code> | string | no | The scope of commits. Possible values <code>branch</code>, <code>tag</code>, <code>all</code>. Default is <code>all</code>.  |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  --url "https://gitlab.example.com/api/v4/projects/5/repository/commits/5937ac0a7beb003549fc5fd26fc247adbce4a52e/refs?type=all"</code></p>
+<p>Example response:</p>
+<p>```json
+[
+  {"type": "branch", "name": "'test'"},
+  {"type": "branch", "name": "add-balsamiq-file"},
+  {"type": "branch", "name": "wip"},
+  {"type": "tag", "name": "v1.1.0"}
+ ]</p>
+<p>```</p>
+<h2>Get the sequence of a commit</h2>
+<blockquote>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/issues/438151">Introduced</a> in GitLab 16.9.</li>
+</ul>
+</blockquote>
+<p>Get the sequence number of a commit in a project by following the parent links from the given commit.</p>
+<p>This API provides essentially the same features as the <code>git rev-list --count</code> command for a given commit SHA.</p>
+<p><code>plaintext
+GET /projects/:id/repository/commits/:sha/sequence</code></p>
+<p>Parameters:</p>
+<p>| Attribute      | Type           | Required | Description |
+| -------------- | -------------- | -------- | ----------- |
+| <code>id</code>           | integer/string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user. |
+| <code>sha</code>          | string         | yes      | The commit hash. |
+| <code>first_parent</code> | boolean        | no       | Follow only the first parent commit upon seeing a merge commit. |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  --url "https://gitlab.example.com/api/v4/projects/5/repository/commits/5937ac0a7beb003549fc5fd26fc247adbce4a52e/sequence"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "count": 632
+}</code></p>
+<h2>Cherry-pick a commit</h2>
+<p>Cherry-picks a commit to a given branch.</p>
+<p><code>plaintext
+POST /projects/:id/repository/commits/:sha/cherry_pick</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| <code>id</code>      | integer/string | yes | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user |
+| <code>sha</code> | string | yes | The commit hash  |
+| <code>branch</code> | string | yes | The name of the branch  |
+| <code>dry_run</code> | boolean | no | Does not commit any changes. Default is false. |
+| <code>message</code> | string | no | A custom commit message to use for the new commit. |</p>
+<p><code>shell
+curl --request POST \
+  --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  --form "branch=main" \
+  --url "https://gitlab.example.com/api/v4/projects/5/repository/commits/main/cherry_pick"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "id": "8b090c1b79a14f2bd9e8a738f717824ff53aebad",
+  "short_id": "8b090c1b",
+  "author_name": "Example User",
+  "author_email": "user@example.com",
+  "authored_date": "2016-12-12T20:10:39.000+01:00",
+  "created_at": "2016-12-12T20:10:39.000+01:00",
+  "committer_name": "Administrator",
+  "committer_email": "admin@example.com",
+  "committed_date": "2016-12-12T20:10:39.000+01:00",
+  "title": "Feature added",
+  "message": "Feature added\n\nSigned-off-by: Example User &lt;user@example.com&gt;\n",
+  "parent_ids": [
+    "a738f717824ff53aebad8b090c1b79a14f2bd9e8"
+  ],
+  "web_url": "https://gitlab.example.com/janedoe/gitlab-foss/-/commit/8b090c1b79a14f2bd9e8a738f717824ff53aebad"
+}</code></p>
+<p>In the event of a failed cherry-pick, the response provides context about
+why:</p>
+<p><code>json
+{
+  "message": "Sorry, we cannot cherry-pick this commit automatically. This commit may already have been cherry-picked, or a more recent commit may have updated some of its content.",
+  "error_code": "empty"
+}</code></p>
+<p>In this case, the cherry-pick failed because the changeset was empty and likely
+indicates that the commit already exists in the target branch. The other
+possible error code is <code>conflict</code>, which indicates that there was a merge
+conflict.</p>
+<p>When <code>dry_run</code> is enabled, the server attempts to apply the cherry-pick <em>but
+not actually commit any resulting changes</em>. If the cherry-pick applies cleanly,
+the API responds with <code>200 OK</code>:</p>
+<p><code>json
+{
+  "dry_run": "success"
+}</code></p>
+<p>In the event of a failure, an error displays that is identical to a failure without
+dry run.</p>
+<h2>Revert a commit</h2>
+<p>Reverts a commit in a given branch.</p>
+<p><code>plaintext
+POST /projects/:id/repository/commits/:sha/revert</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type           | Required | Description                                                                     |
+| --------- | ----           | -------- | -----------                                                                     |
+| <code>id</code>      | integer/string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> |
+| <code>sha</code>     | string         | yes      | Commit SHA to revert                                                            |
+| <code>branch</code>  | string         | yes      | Target branch name                                                              |
+| <code>dry_run</code> | boolean        | no       | Does not commit any changes. Default is false. |</p>
+<p><code>shell
+curl --request POST \
+  --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  --form "branch=main" \
+  --url "https://gitlab.example.com/api/v4/projects/5/repository/commits/a738f717824ff53aebad8b090c1b79a14f2bd9e8/revert"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "id":"8b090c1b79a14f2bd9e8a738f717824ff53aebad",
+  "short_id": "8b090c1b",
+  "title":"Revert \"Feature added\"",
+  "created_at":"2018-11-08T15:55:26.000Z",
+  "parent_ids":["a738f717824ff53aebad8b090c1b79a14f2bd9e8"],
+  "message":"Revert \"Feature added\"\n\nThis reverts commit a738f717824ff53aebad8b090c1b79a14f2bd9e8",
+  "author_name":"Administrator",
+  "author_email":"admin@example.com",
+  "authored_date":"2018-11-08T15:55:26.000Z",
+  "committer_name":"Administrator",
+  "committer_email":"admin@example.com",
+  "committed_date":"2018-11-08T15:55:26.000Z",
+  "web_url": "https://gitlab.example.com/janedoe/gitlab-foss/-/commit/8b090c1b79a14f2bd9e8a738f717824ff53aebad"
+}</code></p>
+<p>In the event of a failed revert, the response provides context about why:</p>
+<p><code>json
+{
+  "message": "Sorry, we cannot revert this commit automatically. This commit may already have been reverted, or a more recent commit may have updated some of its content.",
+  "error_code": "conflict"
+}</code></p>
+<p>In this case, the revert failed because the attempted revert generated a merge
+conflict. The other possible error code is <code>empty</code>, which indicates that the
+changeset was empty, likely due to the change having already been reverted.</p>
+<p>When <code>dry_run</code> is enabled, the server attempts to apply the revert <em>but not
+actually commit any resulting changes</em>. If the revert applies cleanly, the API
+responds with <code>200 OK</code>:</p>
+<p><code>json
+{
+  "dry_run": "success"
+}</code></p>
+<p>In the event of a failure, an error displays that is identical to a failure without
+dry run.</p>
+<h2>Get the diff of a commit</h2>
+<p>Get the diff of a commit in a project.</p>
+<p><code>plaintext
+GET /projects/:id/repository/commits/:sha/diff</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| <code>id</code>      | integer/string | yes | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user |
+| <code>sha</code> | string | yes | The commit hash or name of a repository branch or tag |
+| <code>unidiff</code> | boolean | no | Present diffs in the <a href="https://www.gnu.org/software/diffutils/manual/html_node/Detailed-Unified.html">unified diff</a> format. Default is false. <a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/130610">Introduced</a> in GitLab 16.5. |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  --url "https://gitlab.example.com/api/v4/projects/5/repository/commits/main/diff"</code></p>
+<p>Example response:</p>
+<p><code>json
+[
+  {
+    "diff": "@@ -71,6 +71,8 @@\n sudo -u git -H bundle exec rake migrate_keys RAILS_ENV=production\n sudo -u git -H bundle exec rake migrate_inline_notes RAILS_ENV=production\n \n+sudo -u git -H bundle exec rake gitlab:assets:compile RAILS_ENV=production\n+\n</code>\n \n ### 6. Update config files",
+    "new_path": "doc/update/5.4-to-6.0.md",
+    "old_path": "doc/update/5.4-to-6.0.md",
+    "a_mode": null,
+    "b_mode": "100644",
+    "new_file": false,
+    "renamed_file": false,
+    "deleted_file": false
+  }
+]
+```</p>
+<h2>Get the comments of a commit</h2>
+<p>Get the comments of a commit in a project.</p>
+<p><code>plaintext
+GET /projects/:id/repository/commits/:sha/comments</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| <code>id</code>      | integer/string | yes | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user |
+| <code>sha</code> | string | yes | The commit hash or name of a repository branch or tag |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  --url "https://gitlab.example.com/api/v4/projects/5/repository/commits/main/comments"</code></p>
+<p>Example response:</p>
+<p><code>json
+[
+  {
+    "note": "this code is really nice",
+    "author": {
+      "id": 11,
+      "username": "admin",
+      "email": "admin@local.host",
+      "name": "Administrator",
+      "state": "active",
+      "created_at": "2014-03-06T08:17:35.000Z"
+    }
+  }
+]</code></p>
+<h2>Post comment to commit</h2>
+<p>Adds a comment to a commit.</p>
+<p>To post a comment in a particular line of a particular file, you must specify
+the full commit SHA, the <code>path</code>, the <code>line</code>, and <code>line_type</code> should be <code>new</code>.</p>
+<p>The comment is added at the end of the last commit if at least one of the
+cases below is valid:</p>
+<ul>
+<li>the <code>sha</code> is instead a branch or a tag and the <code>line</code> or <code>path</code> are invalid</li>
+<li>the <code>line</code> number is invalid (does not exist)</li>
+<li>the <code>path</code> is invalid (does not exist)</li>
+</ul>
+<p>In any of the above cases, the response of <code>line</code>, <code>line_type</code> and <code>path</code> is
+set to <code>null</code>.</p>
+<p>For other approaches to commenting on a merge request, see
+<a href="notes.md#create-new-merge-request-note">Create new merge request note</a> in the Notes API,
+and <a href="discussions.md#create-a-new-thread-in-the-merge-request-diff">Create a new thread in the merge request diff</a>
+in the Discussions API.</p>
+<p><code>plaintext
+POST /projects/:id/repository/commits/:sha/comments</code></p>
+<p>| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| <code>id</code>      | integer/string | yes | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user |
+| <code>sha</code>       | string  | yes | The commit SHA or name of a repository branch or tag |
+| <code>note</code>      | string  | yes | The text of the comment |
+| <code>path</code>      | string  | no  | The file path relative to the repository |
+| <code>line</code>      | integer | no  | The line number where the comment should be placed |
+| <code>line_type</code> | string  | no  | The line type. Takes <code>new</code> or <code>old</code> as arguments |</p>
+<p><code>shell
+curl --request POST \
+  --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  --form "note=Nice picture\!" \
+  --form "path=README.md" \
+  --form "line=11" \
+  --form "line_type=new" \
+  --url "https://gitlab.example.com/api/v4/projects/17/repository/commits/18f3e63d05582537db6d183d9d557be09e1f90c8/comments"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+   "author" : {
+      "web_url" : "https://gitlab.example.com/janedoe",
+      "avatar_url" : "https://gitlab.example.com/uploads/user/avatar/28/jane-doe-400-400.png",
+      "username" : "janedoe",
+      "state" : "active",
+      "name" : "Jane Doe",
+      "id" : 28
+   },
+   "created_at" : "2016-01-19T09:44:55.600Z",
+   "line_type" : "new",
+   "path" : "README.md",
+   "line" : 11,
+   "note" : "Nice picture!"
+}</code></p>
+<h2>Get the discussions of a commit</h2>
+<p>Get the discussions of a commit in a project.</p>
+<p><code>plaintext
+GET /projects/:id/repository/commits/:sha/discussions</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| <code>id</code>      | integer/string | yes | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user |
+| <code>sha</code>     | string | yes | The commit hash or name of a repository branch or tag |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  --url "https://gitlab.example.com/api/v4/projects/5/repository/commits/4604744a1c64de00ff62e1e8a6766919923d2b41/discussions"</code></p>
+<p>Example response:</p>
+<p>```json
+[
+  {
+    "id": "4604744a1c64de00ff62e1e8a6766919923d2b41",
+    "individual_note": true,
+    "notes": [
+      {
+        "id": 334686748,
+        "type": null,
+        "body": "Nice piece of code!",
+        "attachment": null,
+        "author" : {
+          "id" : 28,
+          "name" : "Jane Doe",
+          "username" : "janedoe",
+          "web_url" : "https://gitlab.example.com/janedoe",
+          "state" : "active",
+          "avatar_url" : "https://gitlab.example.com/uploads/user/avatar/28/jane-doe-400-400.png"
+        },
+        "created_at": "2020-04-30T18:48:11.432Z",
+        "updated_at": "2020-04-30T18:48:11.432Z",
+        "system": false,
+        "noteable_id": null,
+        "noteable_type": "Commit",
+        "resolvable": false,
+        "confidential": null,
+        "noteable_iid": null,
+        "commands_changes": {}
+      }
+    ]
+  }
+]</p>
+<p>```</p>
+<h2>Commit status</h2>
+<p>This is the commit status API for use with GitLab.</p>
+<h3>List the statuses of a commit</h3>
+<p>List the statuses of a commit in a project.
+The pagination parameters <code>page</code> and <code>per_page</code> can be used to restrict the list of references.</p>
+<p><code>plaintext
+GET /projects/:id/repository/commits/:sha/statuses</code></p>
+<p>| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| <code>id</code>      | integer/string | yes | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user |
+| <code>sha</code>     | string  | yes | The commit SHA |
+| <code>ref</code>     | string  | no  | The name of a repository branch or tag or, if not given, the default branch |
+| <code>stage</code>   | string  | no  | Filter by <a href="../ci/yaml/index.md#stages">build stage</a>, for example, <code>test</code> |
+| <code>name</code>    | string  | no  | Filter by <a href="../ci/yaml/index.md#job-keywords">job name</a>, for example, <code>bundler:audit</code> |
+| <code>all</code>     | boolean | no  | Return all statuses, not only the latest ones |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  --url "https://gitlab.example.com/api/v4/projects/17/repository/commits/18f3e63d05582537db6d183d9d557be09e1f90c8/statuses"</code></p>
+<p>Example response:</p>
+<p>```json
+[
+   ...</p>
+<p>{
+      "status" : "pending",
+      "created_at" : "2016-01-19T08:40:25.934Z",
+      "started_at" : null,
+      "name" : "bundler:audit",
+      "allow_failure" : true,
+      "author" : {
+         "username" : "janedoe",
+         "state" : "active",
+         "web_url" : "https://gitlab.example.com/janedoe",
+         "avatar_url" : "https://gitlab.example.com/uploads/user/avatar/28/jane-doe-400-400.png",
+         "id" : 28,
+         "name" : "Jane Doe"
+      },
+      "description" : null,
+      "sha" : "18f3e63d05582537db6d183d9d557be09e1f90c8",
+      "target_url" : "https://gitlab.example.com/janedoe/gitlab-foss/builds/91",
+      "finished_at" : null,
+      "id" : 91,
+      "ref" : "main"
+   },
+   {
+      "started_at" : null,
+      "name" : "test",
+      "allow_failure" : false,
+      "status" : "pending",
+      "created_at" : "2016-01-19T08:40:25.832Z",
+      "target_url" : "https://gitlab.example.com/janedoe/gitlab-foss/builds/90",
+      "id" : 90,
+      "finished_at" : null,
+      "ref" : "main",
+      "sha" : "18f3e63d05582537db6d183d9d557be09e1f90c8",
+      "author" : {
+         "id" : 28,
+         "name" : "Jane Doe",
+         "username" : "janedoe",
+         "web_url" : "https://gitlab.example.com/janedoe",
+         "state" : "active",
+         "avatar_url" : "https://gitlab.example.com/uploads/user/avatar/28/jane-doe-400-400.png"
+      },
+      "description" : null
+   },</p>
+<p>...
+]
+```</p>
+<h3>Set the pipeline status of a commit</h3>
+<p>Add or update the pipeline status of a commit. If the commit is associated with a merge request,
+the API call must target the commit in the merge request's source branch.</p>
+<p><code>plaintext
+POST /projects/:id/statuses/:sha</code></p>
+<p>| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| <code>id</code>      | integer/string | yes | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user |
+| <code>sha</code>     | string  | yes   | The commit SHA |
+| <code>state</code>   | string  | yes   | The state of the status. Can be one of the following: <code>pending</code>, <code>running</code>, <code>success</code>, <code>failed</code>, <code>canceled</code> |
+| <code>ref</code>     | string  | no    | The <code>ref</code> (branch or tag) to which the status refers |
+| <code>name</code> or <code>context</code> | string  | no | The label to differentiate this status from the status of other systems. Default value is <code>default</code> |
+| <code>target_url</code> |  string  | no  | The target URL to associate with this status |
+| <code>description</code> | string  | no  | The short description of the status |
+| <code>coverage</code> | float  | no    | The total code coverage |
+| <code>pipeline_id</code> |  integer  | no  | The ID of the pipeline to set status. Use in case of several pipeline on same SHA. |</p>
+<p><code>shell
+curl --request POST \
+  --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  --url "https://gitlab.example.com/api/v4/projects/17/statuses/18f3e63d05582537db6d183d9d557be09e1f90c8?state=success"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+   "author" : {
+      "web_url" : "https://gitlab.example.com/janedoe",
+      "name" : "Jane Doe",
+      "avatar_url" : "https://gitlab.example.com/uploads/user/avatar/28/jane-doe-400-400.png",
+      "username" : "janedoe",
+      "state" : "active",
+      "id" : 28
+   },
+   "name" : "default",
+   "sha" : "18f3e63d05582537db6d183d9d557be09e1f90c8",
+   "status" : "success",
+   "coverage": 100.0,
+   "description" : null,
+   "id" : 93,
+   "target_url" : null,
+   "ref" : null,
+   "started_at" : null,
+   "created_at" : "2016-01-19T09:05:50.355Z",
+   "allow_failure" : false,
+   "finished_at" : "2016-01-19T09:05:50.365Z"
+}</code></p>
+<h2>List merge requests associated with a commit</h2>
+<p>Returns information about the merge request that originally introduced a specific commit.</p>
+<p><code>plaintext
+GET /projects/:id/repository/commits/:sha/merge_requests</code></p>
+<p>| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| <code>id</code>      | integer/string | yes | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user |
+| <code>sha</code>     | string  | yes   | The commit SHA |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  --url "https://gitlab.example.com/api/v4/projects/5/repository/commits/af5b13261899fb2c0db30abdd0af8b07cb44fdc5/merge_requests"</code></p>
+<p>Example response:</p>
+<p><code>json
+[
+   {
+      "id":45,
+      "iid":1,
+      "project_id":35,
+      "title":"Add new file",
+      "description":"",
+      "state":"opened",
+      "created_at":"2018-03-26T17:26:30.916Z",
+      "updated_at":"2018-03-26T17:26:30.916Z",
+      "target_branch":"main",
+      "source_branch":"test-branch",
+      "upvotes":0,
+      "downvotes":0,
+      "author" : {
+        "web_url" : "https://gitlab.example.com/janedoe",
+        "name" : "Jane Doe",
+        "avatar_url" : "https://gitlab.example.com/uploads/user/avatar/28/jane-doe-400-400.png",
+        "username" : "janedoe",
+        "state" : "active",
+        "id" : 28
+      },
+      "assignee":null,
+      "source_project_id":35,
+      "target_project_id":35,
+      "labels":[ ],
+      "draft":false,
+      "work_in_progress":false,
+      "milestone":null,
+      "merge_when_pipeline_succeeds":false,
+      "merge_status":"can_be_merged",
+      "sha":"af5b13261899fb2c0db30abdd0af8b07cb44fdc5",
+      "merge_commit_sha":null,
+      "squash_commit_sha":null,
+      "user_notes_count":0,
+      "discussion_locked":null,
+      "should_remove_source_branch":null,
+      "force_remove_source_branch":false,
+      "web_url":"https://gitlab.example.com/root/test-project/merge_requests/1",
+      "time_stats":{
+         "time_estimate":0,
+         "total_time_spent":0,
+         "human_time_estimate":null,
+         "human_total_time_spent":null
+      }
+   }
+]</code></p>
+<h2>Get signature of a commit</h2>
+<p>Get the <a href="../user/project/repository/signed_commits">signature from a commit</a>,
+if it is signed. For unsigned commits, it results in a 404 response.</p>
+<p><code>plaintext
+GET /projects/:id/repository/commits/:sha/signature</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| <code>id</code>      | integer/string | yes | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user |
+| <code>sha</code> | string | yes | The commit hash or name of a repository branch or tag |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  --url "https://gitlab.example.com/api/v4/projects/1/repository/commits/da738facbc19eb2fc2cef57c49be0e6038570352/signature"</code></p>
+<p>Example response if commit is GPG signed:</p>
+<p><code>json
+{
+  "signature_type": "PGP",
+  "verification_status": "verified",
+  "gpg_key_id": 1,
+  "gpg_key_primary_keyid": "8254AAB3FBD54AC9",
+  "gpg_key_user_name": "John Doe",
+  "gpg_key_user_email": "johndoe@example.com",
+  "gpg_key_subkey_id": null,
+  "commit_source": "gitaly"
+}</code></p>
+<p>Example response if commit is signed with SSH:</p>
+<p><code>json
+{
+  "signature_type": "SSH",
+  "verification_status": "verified",
+  "key": {
+    "id": 11,
+    "title": "Key",
+    "created_at": "2023-05-08T09:12:38.503Z",
+    "expires_at": "2024-05-07T00:00:00.000Z",
+    "key": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILZzYDq6DhLp3aX84DGIV3F6Vf+Ae4yCTTz7RnqMJOlR MyKey)",
+    "usage_type": "auth_and_signing"
+  },
+  "commit_source": "gitaly"
+}</code></p>
+<p>Example response if commit is X.509 signed:</p>
+<p><code>json
+{
+  "signature_type": "X509",
+  "verification_status": "unverified",
+  "x509_certificate": {
+    "id": 1,
+    "subject": "CN=gitlab@example.org,OU=Example,O=World",
+    "subject_key_identifier": "BC:BC:BC:BC:BC:BC:BC:BC:BC:BC:BC:BC:BC:BC:BC:BC:BC:BC:BC:BC",
+    "email": "gitlab@example.org",
+    "serial_number": 278969561018901340486471282831158785578,
+    "certificate_status": "good",
+    "x509_issuer": {
+      "id": 1,
+      "subject": "CN=PKI,OU=Example,O=World",
+      "subject_key_identifier": "AB:AB:AB:AB:AB:AB:AB:AB:AB:AB:AB:AB:AB:AB:AB:AB:AB:AB:AB:AB",
+      "crl_url": "http://example.com/pki.crl"
+    }
+  },
+  "commit_source": "gitaly"
+}</code></p>
+<p>Example response if commit is unsigned:</p>
+<p><code>json
+{
+  "message": "404 GPG Signature Not Found"
+}</code></p>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>saml API Documentation</title>
+</head>
+<body>
+<hr />
+<p>stage: Govern
+group: Authentication
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments</p>
+<hr />
+<h1>SAML API</h1>
+<p>DETAILS:
+<strong>Tier:</strong> Premium, Ultimate
+<strong>Offering:</strong> GitLab.com, Self-managed, GitLab Dedicated</p>
+<blockquote>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/issues/227841">Introduced</a> in GitLab 15.5.</li>
+</ul>
+</blockquote>
+<p>API for accessing SAML features.</p>
+<h2>Get SAML identities for a group</h2>
+<p><code>plaintext
+GET /groups/:id/saml/identities</code></p>
+<p>Fetch SAML identities for a group.</p>
+<p>Supported attributes:</p>
+<p>| Attribute         | Type    | Required | Description           |
+|:------------------|:--------|:---------|:----------------------|
+| <code>id</code>              | integer/string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the group</a> |</p>
+<p>If successful, returns <a href="rest/index.md#status-codes"><code>200</code></a> and the following
+response attributes:</p>
+<p>| Attribute    | Type   | Description               |
+| ------------ | ------ | ------------------------- |
+| <code>extern_uid</code> | string | External UID for the user |
+| <code>user_id</code>    | string | ID for the user           |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --location --request GET "https://gitlab.example.com/api/v4/groups/33/saml/identities" --header "PRIVATE-TOKEN: &lt;PRIVATE-TOKEN&gt;"</code></p>
+<p>Example response:</p>
+<p><code>json
+[
+    {
+        "extern_uid": "yrnZW46BrtBFqM7xDzE7dddd",
+        "user_id": 48
+    }
+]</code></p>
+<h2>Get a single SAML identity</h2>
+<blockquote>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/123591">Introduced</a> in GitLab 16.1.</li>
+</ul>
+</blockquote>
+<p><code>plaintext
+GET /groups/:id/saml/:uid</code></p>
+<p>Supported attributes:</p>
+<p>| Attribute | Type           | Required | Description               |
+| --------- | -------------- | -------- | ------------------------- |
+| <code>id</code>      | integer/string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the group</a> |
+| <code>uid</code>     | string         | yes      | External UID of the user. |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --location --request GET "https://gitlab.example.com/api/v4/groups/33/saml/yrnZW46BrtBFqM7xDzE7dddd" --header "PRIVATE-TOKEN: &lt;PRIVATE TOKEN&gt;"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+    "extern_uid": "yrnZW46BrtBFqM7xDzE7dddd",
+    "user_id": 48
+}</code></p>
+<h2>Update <code>extern_uid</code> field for a SAML identity</h2>
+<p>Update <code>extern_uid</code> field for a SAML identity:</p>
+<p>| SAML IdP attribute | GitLab field |
+| ------------------ | ------------ |
+| <code>id/externalId</code>    | <code>extern_uid</code> |</p>
+<p><code>plaintext
+PATCH /groups/:id/saml/:uid</code></p>
+<p>Supported attributes:</p>
+<p>| Attribute | Type   | Required | Description               |
+| --------- | ------ | -------- | ------------------------- |
+| <code>id</code>      | integer/string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the group</a> |
+| <code>uid</code>     | string | yes      | External UID of the user. |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --location --request PATCH "https://gitlab.example.com/api/v4/groups/33/saml/yrnZW46BrtBFqM7xDzE7dddd" \
+--header "PRIVATE-TOKEN: &lt;PRIVATE TOKEN&gt;" \
+--form "extern_uid=be20d8dcc028677c931e04f387"</code></p>
+<h2>Delete a single SAML identity</h2>
+<blockquote>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/issues/423592">Introduced</a> in GitLab 16.5.</li>
+</ul>
+</blockquote>
+<p><code>plaintext
+DELETE /groups/:id/saml/:uid</code></p>
+<p>Supported attributes:</p>
+<p>| Attribute | Type    | Required | Description               |
+| --------- | ------- | -------- | ------------------------- |
+| <code>id</code>      | integer | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the group</a>. |
+| <code>uid</code>     | string  | yes      | External UID of the user. |</p>
+<p>Example request:</p>
+<p>```shell
+curl --request DELETE --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/groups/33/saml/be20d8dcc028677c931e04f387"</p>
+<p>```</p>
+<p>Example response:</p>
+<p><code>json
+{
+    "message" : "204 No Content"
+}</code></p>
+</body>
+</html>

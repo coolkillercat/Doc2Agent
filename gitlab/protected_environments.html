@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>protected_environments API Documentation</title>
+</head>
+<body>
+<hr />
+<p>stage: Deploy
+group: Environments
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments</p>
+<hr />
+<h1>Protected environments API</h1>
+<p>DETAILS:
+<strong>Tier:</strong> Premium, Ultimate
+<strong>Offering:</strong> GitLab.com, Self-managed, GitLab Dedicated</p>
+<h2>Valid access levels</h2>
+<p>The access levels are defined in the <code>ProtectedEnvironments::DeployAccessLevel::ALLOWED_ACCESS_LEVELS</code> method.
+Currently, these levels are recognized:</p>
+<p><code>plaintext
+30 =&gt; Developer access
+40 =&gt; Maintainer access
+60 =&gt; Admin access</code></p>
+<h2>Group inheritance types</h2>
+<p>Group inheritance allows deploy access levels and access rules to take inherited group membership into account. The group inheritance types are defined by <code>ProtectedEnvironments::Authorizable::GROUP_INHERITANCE_TYPE</code>.
+The following types are recognized:</p>
+<p><code>plaintext
+0 =&gt; Direct group membership only (default)
+1 =&gt; All inherited groups</code></p>
+<h2>List protected environments</h2>
+<p>Gets a list of protected environments from a project:</p>
+<p><code>plaintext
+GET /projects/:id/protected_environments</code></p>
+<p>| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| <code>id</code> | integer/string | yes | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user. |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/5/protected_environments/"</code></p>
+<p>Example response:</p>
+<p><code>json
+[
+   {
+      "name":"production",
+      "deploy_access_levels":[
+         {
+            "id": 12,
+            "access_level":40,
+            "access_level_description":"Maintainers",
+            "user_id":null,
+            "group_id":null,
+            "group_inheritance_type": 0
+         }
+      ],
+      "required_approval_count": 0
+   }
+]</code></p>
+<h2>Get a single protected environment</h2>
+<p>Gets a single protected environment:</p>
+<p><code>plaintext
+GET /projects/:id/protected_environments/:name</code></p>
+<p>| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| <code>id</code> | integer/string | yes | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user |
+| <code>name</code> | string | yes | The name of the protected environment |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/5/protected_environments/production"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+   "name":"production",
+   "deploy_access_levels":[
+      {
+         "id": 12,
+         "access_level": 40,
+         "access_level_description": "Maintainers",
+         "user_id": null,
+         "group_id": null,
+         "group_inheritance_type": 0
+      }
+   ],
+   "required_approval_count": 0
+}</code></p>
+<h2>Protect a single environment</h2>
+<p>Protects a single environment:</p>
+<p><code>plaintext
+POST /projects/:id/protected_environments</code></p>
+<p>| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| <code>id</code>                            | integer/string | yes | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user. |
+| <code>name</code>                          | string         | yes | The name of the environment. |
+| <code>deploy_access_levels</code>          | array          | yes | Array of access levels allowed to deploy, with each described by a hash. |
+| <code>approval_rules</code>                | array          | no  | Array of access levels allowed to approve, with each described by a hash. See <a href="../ci/environments/deployment_approvals.md#add-multiple-approval-rules">Multiple approval rules</a>. |</p>
+<p>Elements in the <code>deploy_access_levels</code> and <code>approval_rules</code> array should be one of <code>user_id</code>, <code>group_id</code> or
+<code>access_level</code>, and take the form <code>{user_id: integer}</code>, <code>{group_id: integer}</code> or
+<code>{access_level: integer}</code>. Optionally, you can specify the <code>group_inheritance_type</code> on each as one of the <a href="#group-inheritance-types">valid group inheritance types</a>.</p>
+<p>Each user must have access to the project and each group must <a href="../user/project/members/share_project_with_groups.md">have this project shared</a>.</p>
+<p><code>shell
+curl --header 'Content-Type: application/json' --request POST \
+     --data '{"name": "production", "deploy_access_levels": [{"group_id": 9899826}], "approval_rules": [{"group_id": 134}, {"group_id": 135, "required_approvals": 2}]}' \
+     --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+     "https://gitlab.example.com/api/v4/projects/22034114/protected_environments"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+   "name": "production",
+   "deploy_access_levels": [
+      {
+         "id": 12,
+         "access_level": 40,
+         "access_level_description": "protected-access-group",
+         "user_id": null,
+         "group_id": 9899826,
+         "group_inheritance_type": 0
+      }
+   ],
+   "required_approval_count": 0,
+   "approval_rules": [
+      {
+         "id": 38,
+         "user_id": null,
+         "group_id": 134,
+         "access_level": null,
+         "access_level_description": "qa-group",
+         "required_approvals": 1,
+         "group_inheritance_type": 0
+      },
+      {
+         "id": 39,
+         "user_id": null,
+         "group_id": 135,
+         "access_level": null,
+         "access_level_description": "security-group",
+         "required_approvals": 2,
+         "group_inheritance_type": 0
+      }
+   ]
+}</code></p>
+<h2>Update a protected environment</h2>
+<blockquote>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/issues/351854">Introduced</a> in GitLab 15.4.</li>
+</ul>
+</blockquote>
+<p>Updates a single environment.</p>
+<p><code>plaintext
+PUT /projects/:id/protected_environments/:name</code></p>
+<p>| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| <code>id</code>                            | integer/string | yes | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user. |
+| <code>name</code>                          | string         | yes | The name of the environment. |
+| <code>deploy_access_levels</code>          | array          | no  | Array of access levels allowed to deploy, with each described by a hash. |
+| <code>approval_rules</code>                | array          | no  | Array of access levels allowed to approve, with each described by a hash. See <a href="../ci/environments/deployment_approvals.md#add-multiple-approval-rules">Multiple approval rules</a> for more information. |</p>
+<p>Elements in the <code>deploy_access_levels</code> and <code>approval_rules</code> array should be one of <code>user_id</code>, <code>group_id</code> or
+<code>access_level</code>, and take the form <code>{user_id: integer}</code>, <code>{group_id: integer}</code> or
+<code>{access_level: integer}</code>. Optionally you can specify the <code>group_inheritance_type</code> on each as one of the <a href="#group-inheritance-types">valid group inheritance types</a>.</p>
+<p>To update:</p>
+<ul>
+<li><strong><code>user_id</code></strong>: Ensure the updated user has access to the project. You must also pass the <code>id</code> of either a <code>deploy_access_level</code> or <code>approval_rule</code> in the respective hash.</li>
+<li><strong><code>group_id</code></strong>: Ensure the updated group <a href="../user/project/members/share_project_with_groups.md">have this project shared</a>. You must also pass the <code>id</code> of either a <code>deploy_access_level</code> or <code>approval_rule</code> in the respective hash.</li>
+</ul>
+<p>To delete:</p>
+<ul>
+<li>You must pass <code>_destroy</code> set to <code>true</code>. See the following examples.</li>
+</ul>
+<h3>Example: Create a <code>deploy_access_level</code> record</h3>
+<p><code>shell
+curl --header 'Content-Type: application/json' --request PUT \
+     --data '{"deploy_access_levels": [{"group_id": 9899829, access_level: 40}]' \
+     --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+     "https://gitlab.example.com/api/v4/projects/22034114/protected_environments/production"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+   "name": "production",
+   "deploy_access_levels": [
+      {
+         "id": 12,
+         "access_level": 40,
+         "access_level_description": "protected-access-group",
+         "user_id": null,
+         "group_id": 9899829,
+         "group_inheritance_type": 1
+      }
+   ],
+   "required_approval_count": 0
+}</code></p>
+<h3>Example: Update a <code>deploy_access_level</code> record</h3>
+<p><code>shell
+curl --header 'Content-Type: application/json' --request PUT \
+     --data '{"deploy_access_levels": [{"id": 12, "group_id": 22034120}]}' \
+     --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/22034114/protected_environments/production"</code></p>
+<p><code>json
+{
+   "name": "production",
+   "deploy_access_levels": [
+      {
+         "id": 12,
+         "access_level": 40,
+         "access_level_description": "protected-access-group",
+         "user_id": null,
+         "group_id": 22034120,
+         "group_inheritance_type": 0
+      }
+   ],
+   "required_approval_count": 2
+}</code></p>
+<h3>Example: Delete a <code>deploy_access_level</code> record</h3>
+<p><code>shell
+curl --header 'Content-Type: application/json' --request PUT \
+     --data '{"deploy_access_levels": [{"id": 12, "_destroy": true}]}' \
+     --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/22034114/protected_environments/production"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+   "name": "production",
+   "deploy_access_levels": [],
+   "required_approval_count": 0
+}</code></p>
+<h3>Example: Create an <code>approval_rule</code> record</h3>
+<p><code>shell
+curl --header 'Content-Type: application/json' --request PUT \
+     --data '{"approval_rules": [{"group_id": 134, "required_approvals": 1}]}' \
+     --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+     "https://gitlab.example.com/api/v4/projects/22034114/protected_environments/production"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+   "name": "production",
+   "approval_rules": [
+      {
+         "id": 38,
+         "user_id": null,
+         "group_id": 134,
+         "access_level": null,
+         "access_level_description": "qa-group",
+         "required_approvals": 1,
+         "group_inheritance_type": 0
+      }
+   ]
+}</code></p>
+<h3>Example: Update an <code>approval_rule</code> record</h3>
+<p><code>shell
+curl --header 'Content-Type: application/json' --request PUT \
+     --data '{"approval_rules": [{"id": 38, "group_id": 135, "required_approvals": 2}]}' \
+     --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/22034114/protected_environments/production"</code></p>
+<p><code>json
+{
+   "name": "production",
+   "approval_rules": [
+      {
+         "id": 38,
+         "user_id": null,
+         "group_id": 135,
+         "access_level": null,
+         "access_level_description": "security-group",
+         "required_approvals": 2,
+         "group_inheritance_type": 0
+      }
+   ]
+}</code></p>
+<h3>Example: Delete an <code>approval_rule</code> record</h3>
+<p><code>shell
+curl --header 'Content-Type: application/json' --request PUT \
+     --data '{"approval_rules": [{"id": 38, "_destroy": true}]}' \
+     --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/22034114/protected_environments/production"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+   "name": "production",
+   "approval_rules": []
+}</code></p>
+<h2>Unprotect a single environment</h2>
+<p>Unprotects the given protected environment:</p>
+<p><code>plaintext
+DELETE /projects/:id/protected_environments/:name</code></p>
+<p>| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| <code>id</code> | integer/string | yes | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user. |
+| <code>name</code> | string | yes | The name of the protected environment. |</p>
+<p><code>shell
+curl --request DELETE --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/5/protected_environments/staging"</code></p>
+</body>
+</html>

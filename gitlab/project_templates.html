@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>project_templates API Documentation</title>
+</head>
+<body>
+<hr />
+<p>stage: Create
+group: Source Code
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments</p>
+<hr />
+<h1>Project templates API</h1>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> GitLab.com, Self-managed, GitLab Dedicated</p>
+<p>This API is a project-specific version of these endpoints:</p>
+<ul>
+<li><a href="templates/dockerfiles.md">Dockerfile templates</a></li>
+<li><a href="templates/gitignores.md">Gitignore templates</a></li>
+<li><a href="templates/gitlab_ci_ymls.md">GitLab CI/CD Configuration templates</a></li>
+<li><a href="templates/licenses.md">Open source license templates</a></li>
+<li><a href="../user/project/description_templates.md">Issue and merge request templates</a></li>
+</ul>
+<p>It deprecates these endpoints, which are scheduled for removal in API version 5.</p>
+<p>In addition to templates common to the entire instance, project-specific
+templates are also available from this API endpoint.</p>
+<p>Support is also available for <a href="../user/group/manage.md#group-file-templates">group-level file templates</a>.</p>
+<h2>Get all templates of a particular type</h2>
+<p><code>plaintext
+GET /projects/:id/templates/:type</code></p>
+<p>| Attribute  | Type   | Required | Description |
+| ---------- | ------ | -------- | ----------- |
+| <code>id</code>      | integer or string | Yes       | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>. |
+| <code>type</code>     | string | Yes  | The type of the template. Accepted values are: <code>dockerfiles</code>, <code>gitignores</code>, <code>gitlab_ci_ymls</code>, <code>licenses</code>, <code>issues</code>, or <code>merge_requests</code>. |</p>
+<p>Example response (licenses):</p>
+<p><code>json
+[
+  {
+    "key": "epl-1.0",
+    "name": "Eclipse Public License 1.0"
+  },
+  {
+    "key": "lgpl-3.0",
+    "name": "GNU Lesser General Public License v3.0"
+  },
+  {
+    "key": "unlicense",
+    "name": "The Unlicense"
+  },
+  {
+    "key": "agpl-3.0",
+    "name": "GNU Affero General Public License v3.0"
+  },
+  {
+    "key": "gpl-3.0",
+    "name": "GNU General Public License v3.0"
+  },
+  {
+    "key": "bsd-3-clause",
+    "name": "BSD 3-clause \"New\" or \"Revised\" License"
+  },
+  {
+    "key": "lgpl-2.1",
+    "name": "GNU Lesser General Public License v2.1"
+  },
+  {
+    "key": "mit",
+    "name": "MIT License"
+  },
+  {
+    "key": "apache-2.0",
+    "name": "Apache License 2.0"
+  },
+  {
+    "key": "bsd-2-clause",
+    "name": "BSD 2-clause \"Simplified\" License"
+  },
+  {
+    "key": "mpl-2.0",
+    "name": "Mozilla Public License 2.0"
+  },
+  {
+    "key": "gpl-2.0",
+    "name": "GNU General Public License v2.0"
+  }
+]</code></p>
+<h2>Get one template of a particular type</h2>
+<p><code>plaintext
+GET /projects/:id/templates/:type/:name</code></p>
+<p>| Attribute  | Type   | Required | Description |
+| ---------- | ------ | -------- | ----------- |
+| <code>id</code>      | integer or string | Yes       | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>. |
+| <code>name</code>     | string | Yes       | The key of the template, as obtained from the collection endpoint. |
+| <code>type</code>     | string | Yes | The type of the template. One of: <code>dockerfiles</code>, <code>gitignores</code>, <code>gitlab_ci_ymls</code>, <code>licenses</code>, <code>issues</code>, or <code>merge_requests</code>. |
+| <code>fullname</code> | string | No        | The full name of the copyright holder to use when expanding placeholders in the template. Affects only licenses. |
+| <code>project</code>  | string | No        | The project name to use when expanding placeholders in the template. Affects only licenses. |
+| <code>source_template_project_id</code>   | integer | No       | The project ID where a given template is being stored. Helpful when multiple templates from different projects have the same name. If multiple templates have the same name, the match from <code>closest ancestor</code> is returned if <code>source_template_project_id</code> is not specified, |</p>
+<p>Example response (Dockerfile):</p>
+<p><code>json
+{
+  "name": "Binary",
+  "content": "# This file is a template, and might need editing before it works on your project.\n# This Dockerfile installs a compiled binary into a bare system.\n# You must either commit your compiled binary into source control (not recommended)\n# or build the binary first as part of a CI/CD pipeline.\n\nFROM buildpack-deps:buster\n\nWORKDIR /usr/local/bin\n\n# Change `app` to whatever your binary is called\nAdd app .\nCMD [\"./app\"]\n"
+}</code></p>
+<p>Example response (license):</p>
+<p><code>json
+{
+  "key": "mit",
+  "name": "MIT License",
+  "nickname": null,
+  "popular": true,
+  "html_url": "http://choosealicense.com/licenses/mit/",
+  "source_url": "https://opensource.org/licenses/MIT",
+  "description": "A short and simple permissive license with conditions only requiring preservation of copyright and license notices. Licensed works, modifications, and larger works may be distributed under different terms and without source code.",
+  "conditions": [
+    "include-copyright"
+  ],
+  "permissions": [
+    "commercial-use",
+    "modifications",
+    "distribution",
+    "private-use"
+  ],
+  "limitations": [
+    "liability",
+    "warranty"
+  ],
+  "content": "MIT License\n\nCopyright (c) 2018 [fullname]\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"
+}</code></p>
+</body>
+</html>

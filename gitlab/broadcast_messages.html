@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>broadcast_messages API Documentation</title>
+</head>
+<body>
+<hr />
+<p>stage: Growth
+group: Acquisition
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments</p>
+<hr />
+<h1>Broadcast Messages API</h1>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> Self-managed, GitLab Dedicated</p>
+<blockquote>
+<ul>
+<li><code>target_access_levels</code> <a href="https://gitlab.com/gitlab-org/growth/team-tasks/-/issues/461">introduced</a> in GitLab 14.8 <a href="../administration/feature_flags.md">with a flag</a> named <code>role_targeted_broadcast_messages</code>. Disabled by default.</li>
+<li><code>color</code> parameter <a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/95829">removed</a> in GitLab 15.6.</li>
+</ul>
+</blockquote>
+<p>Broadcast messages API operates on <a href="../administration/broadcast_messages.md">broadcast messages</a>.</p>
+<p>GET requests do not require authentication. All other broadcast message API endpoints are accessible only to administrators. Non-GET requests by:</p>
+<ul>
+<li>Guests result in <code>401 Unauthorized</code>.</li>
+<li>Regular users result in <code>403 Forbidden</code>.</li>
+</ul>
+<h2>Get all broadcast messages</h2>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> GitLab.com, Self-managed, GitLab Dedicated</p>
+<p>List all broadcast messages.</p>
+<p><code>plaintext
+GET /broadcast_messages</code></p>
+<p>Example request:</p>
+<p><code>shell
+curl "https://gitlab.example.com/api/v4/broadcast_messages"</code></p>
+<p>Example response:</p>
+<p><code>json
+[
+    {
+        "message":"Example broadcast message",
+        "starts_at":"2016-08-24T23:21:16.078Z",
+        "ends_at":"2016-08-26T23:21:16.080Z",
+        "font":"#FFFFFF",
+        "id":1,
+        "active": false,
+        "target_access_levels": [10,30],
+        "target_path": "*/welcome",
+        "broadcast_type": "banner",
+        "dismissable": false
+    }
+]</code></p>
+<h2>Get a specific broadcast message</h2>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> GitLab.com, Self-managed, GitLab Dedicated</p>
+<p>Get a specific broadcast message.</p>
+<p><code>plaintext
+GET /broadcast_messages/:id</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type    | Required | Description                          |
+|:----------|:--------|:---------|:-------------------------------------|
+| <code>id</code>      | integer | yes      | ID of broadcast message to retrieve. |</p>
+<p>Example request:</p>
+<p><code>shell
+curl "https://gitlab.example.com/api/v4/broadcast_messages/1"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+    "message":"Deploy in progress",
+    "starts_at":"2016-08-24T23:21:16.078Z",
+    "ends_at":"2016-08-26T23:21:16.080Z",
+    "font":"#FFFFFF",
+    "id":1,
+    "active":false,
+    "target_access_levels": [10,30],
+    "target_path": "*/welcome",
+    "broadcast_type": "banner",
+    "dismissable": false
+}</code></p>
+<h2>Create a broadcast message</h2>
+<p>Create a new broadcast message.</p>
+<p><code>plaintext
+POST /broadcast_messages</code></p>
+<p>Parameters:</p>
+<p>| Attribute              | Type              | Required | Description                                           |
+|:-----------------------|:------------------|:---------|:------------------------------------------------------|
+| <code>message</code>              | string            | yes      | Message to display.                                   |
+| <code>starts_at</code>            | datetime          | no       | Starting time (defaults to current time in UTC). Expected in ISO 8601 format (<code>2019-03-15T08:00:00Z</code>) |
+| <code>ends_at</code>              | datetime          | no       | Ending time (defaults to one hour from current time in UTC). Expected in ISO 8601 format (<code>2019-03-15T08:00:00Z</code>) |
+| <code>font</code>                 | string            | no       | Foreground color hex code.                            |
+| <code>target_access_levels</code> | array of integers | no       | Target access levels (roles) of the broadcast message.|
+| <code>target_path</code>          | string            | no       | Target path of the broadcast message.                 |
+| <code>broadcast_type</code>       | string            | no       | Appearance type (defaults to banner)                  |
+| <code>dismissable</code>          | boolean           | no       | Can the user dismiss the message?                     |</p>
+<p>The <code>target_access_levels</code> are defined in the <code>Gitlab::Access</code> module. The
+following levels are valid:</p>
+<ul>
+<li>Guest (<code>10</code>)</li>
+<li>Reporter (<code>20</code>)</li>
+<li>Developer (<code>30</code>)</li>
+<li>Maintainer (<code>40</code>)</li>
+<li>Owner (<code>50</code>)</li>
+</ul>
+<p>Example request:</p>
+<p><code>shell
+curl --data "message=Deploy in progress&amp;target_access_levels[]=10&amp;target_access_levels[]=30" \
+     --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+     "https://gitlab.example.com/api/v4/broadcast_messages"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+    "message":"Deploy in progress",
+    "starts_at":"2016-08-26T00:41:35.060Z",
+    "ends_at":"2016-08-26T01:41:35.060Z",
+    "font":"#FFFFFF",
+    "id":1,
+    "active": true,
+    "target_access_levels": [10,30],
+    "target_path": "*/welcome",
+    "broadcast_type": "notification",
+    "dismissable": false
+}</code></p>
+<h2>Update a broadcast message</h2>
+<p>Update an existing broadcast message.</p>
+<p><code>plaintext
+PUT /broadcast_messages/:id</code></p>
+<p>Parameters:</p>
+<p>| Attribute              | Type              | Required | Description                                           |
+|:-----------------------|:------------------|:---------|:------------------------------------------------------|
+| <code>id</code>                   | integer           | yes      | ID of broadcast message to update.                    |
+| <code>message</code>              | string            | no       | Message to display.                                   |
+| <code>starts_at</code>            | datetime          | no       | Starting time (UTC). Expected in ISO 8601 format (<code>2019-03-15T08:00:00Z</code>) |
+| <code>ends_at</code>              | datetime          | no       | Ending time (UTC). Expected in ISO 8601 format (<code>2019-03-15T08:00:00Z</code>) |
+| <code>font</code>                 | string            | no       | Foreground color hex code.                            |
+| <code>target_access_levels</code> | array of integers | no       | Target access levels (roles) of the broadcast message.|
+| <code>target_path</code>          | string            | no       | Target path of the broadcast message.                 |
+| <code>broadcast_type</code>       | string            | no       | Appearance type (defaults to banner)                  |
+| <code>dismissable</code>          | boolean           | no       | Can the user dismiss the message?                     |</p>
+<p>The <code>target_access_levels</code> are defined in the <code>Gitlab::Access</code> module. The
+following levels are valid:</p>
+<ul>
+<li>Guest (<code>10</code>)</li>
+<li>Reporter (<code>20</code>)</li>
+<li>Developer (<code>30</code>)</li>
+<li>Maintainer (<code>40</code>)</li>
+<li>Owner (<code>50</code>)</li>
+</ul>
+<p>Example request:</p>
+<p><code>shell
+curl --request PUT --data "message=Update message" \
+     --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/broadcast_messages/1"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+    "message":"Update message",
+    "starts_at":"2016-08-26T00:41:35.060Z",
+    "ends_at":"2016-08-26T01:41:35.060Z",
+    "font":"#FFFFFF",
+    "id":1,
+    "active": true,
+    "target_access_levels": [10,30],
+    "target_path": "*/welcome",
+    "broadcast_type": "notification",
+    "dismissable": false
+}</code></p>
+<h2>Delete a broadcast message</h2>
+<p>Delete a broadcast message.</p>
+<p><code>plaintext
+DELETE /broadcast_messages/:id</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type    | Required | Description                        |
+|:----------|:--------|:---------|:-----------------------------------|
+| <code>id</code>      | integer | yes      | ID of broadcast message to delete. |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --request DELETE --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/broadcast_messages/1"</code></p>
+</body>
+</html>

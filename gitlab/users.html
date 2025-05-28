@@ -1,0 +1,1981 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>users API Documentation</title>
+</head>
+<body>
+<hr />
+<p>stage: Govern
+group: Authentication
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments</p>
+<hr />
+<h1>Users API</h1>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> GitLab.com, Self-managed, GitLab Dedicated</p>
+<p>This documentation has information on API calls, parameters and responses for the Users API.</p>
+<p>For information on user activities that update the user event timestamps, see <a href="#get-user-activities">get user activities</a>.</p>
+<h2>List users</h2>
+<p>Get a list of users.</p>
+<p>This function takes pagination parameters <code>page</code> and <code>per_page</code> to restrict the list of users.</p>
+<h3>For non-administrator users</h3>
+<p><code>plaintext
+GET /users</code></p>
+<p>| Attribute          | Type    | Required | Description                                                                                                            |
+| ------------------ | ------- | -------- | ---------------------------------------------------------------------------------------------------------------------- |
+| <code>username</code>         | string  | no       | Get a single user with a specific username.                                                                            |
+| <code>search</code>           | string  | no       | Search for a username.                                                                                                |
+| <code>active</code>           | boolean | no       | Filters only active users. Default is <code>false</code>.                                                                         |
+| <code>external</code>         | boolean | no       | Filters only external users. Default is <code>false</code>.                                                                       |
+| <code>exclude_external</code> | boolean | no       | Filters only non external users. Default is <code>false</code>.                                                                   |
+| <code>blocked</code>          | boolean | no       | Filters only blocked users. Default is <code>false</code>.                                                                        |
+| <code>created_after</code>    | DateTime| no       | Returns users created after specified time.                                                                            |
+| <code>created_before</code>   | DateTime| no       | Returns users created before specified time.                                                                           |
+| <code>exclude_internal</code> | boolean | no       | Filters only non internal users. Default is <code>false</code>.                                                                   |
+| <code>without_project_bots</code>| boolean | no       | Filters user without project bots. Default is <code>false</code>.                                                             |</p>
+<p><code>json
+[
+  {
+    "id": 1,
+    "username": "john_smith",
+    "name": "John Smith",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "http://localhost:3000/uploads/user/avatar/1/cd8.jpeg",
+    "web_url": "http://localhost:3000/john_smith"
+  },
+  {
+    "id": 2,
+    "username": "jack_smith",
+    "name": "Jack Smith",
+    "state": "blocked",
+    "locked": false,
+    "avatar_url": "http://gravatar.com/../e32131cd8.jpeg",
+    "web_url": "http://localhost:3000/jack_smith"
+  }
+]</code></p>
+<p>This endpoint supports <a href="rest/index.md#keyset-based-pagination">keyset pagination</a>. Keyset pagination <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/419556">introduced</a> in GitLab 16.5.</p>
+<p>You can also use <code>?search=</code> to search for users by name, username, or public email. For example, <code>/users?search=John</code>. When you search for a:</p>
+<ul>
+<li>Public email, you must use the full email address to get an exact match. A search might return a partial match. For example, if you search for the email <code>on@example.com</code>, the search can return both <code>on@example.com</code> and <code>jon@example.com</code>.</li>
+<li>Name or username, you do not have to get an exact match because this is a fuzzy search.</li>
+</ul>
+<p>In addition, you can lookup users by username:</p>
+<p><code>plaintext
+GET /users?username=:username</code></p>
+<p>For example:</p>
+<p><code>plaintext
+GET /users?username=jack_smith</code></p>
+<p>NOTE:
+Username search is case insensitive.</p>
+<p>In addition, you can filter users based on the states <code>blocked</code> and <code>active</code>.
+It does not support <code>active=false</code> or <code>blocked=false</code>.</p>
+<p><code>plaintext
+GET /users?active=true</code></p>
+<p><code>plaintext
+GET /users?blocked=true</code></p>
+<p>In addition, you can search for external users only with <code>external=true</code>.
+It does not support <code>external=false</code>.</p>
+<p><code>plaintext
+GET /users?external=true</code></p>
+<p>GitLab supports bot users such as the <a href="../operations/incident_management/integrations.md">alert bot</a>
+or the <a href="../user/project/service_desk/configure.md#support-bot-user">support bot</a>.
+You can exclude the following types of <a href="../development/internal_users.md#internal-users">internal users</a>
+from the users' list with the <code>exclude_internal=true</code> parameter:</p>
+<ul>
+<li>Alert bot</li>
+<li>Support bot</li>
+</ul>
+<p>However, this action does not exclude <a href="../user/project/settings/project_access_tokens.md#bot-users-for-projects">bot users for projects</a>
+or <a href="../user/group/settings/group_access_tokens.md#bot-users-for-groups">bot users for groups</a>.</p>
+<p><code>plaintext
+GET /users?exclude_internal=true</code></p>
+<p>In addition, to exclude external users from the users' list, you can use the parameter <code>exclude_external=true</code>.</p>
+<p><code>plaintext
+GET /users?exclude_external=true</code></p>
+<p>To exclude <a href="../user/project/settings/project_access_tokens.md#bot-users-for-projects">bot users for projects</a>
+and <a href="../user/group/settings/group_access_tokens.md#bot-users-for-groups">bot users for groups</a>, you can use the
+parameter <code>without_project_bots=true</code>.</p>
+<p><code>plaintext
+GET /users?without_project_bots=true</code></p>
+<h3>For administrators</h3>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> Self-managed, GitLab Dedicated</p>
+<blockquote>
+<ul>
+<li>The <code>created_by</code> field in the response was <a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/93092">introduced</a> in GitLab 15.6.</li>
+<li>The <code>scim_identities</code> field in the response <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/324247">introduced</a> in GitLab 16.1.</li>
+<li>The <code>auditors</code> field in the response <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/418023">introduced</a> in GitLab 16.2.</li>
+<li>The <code>email_reset_offered_at</code> field in the response <a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/137610">introduced</a> in GitLab 16.7.</li>
+</ul>
+</blockquote>
+<p><code>plaintext
+GET /users</code></p>
+<p>You can use all <a href="#for-non-administrator-users">parameters available for everyone</a> plus these additional parameters available only for administrators.</p>
+<p>| Attribute          | Type    | Required | Description                                                                                                           |
+| ------------------ | ------- | -------- | --------------------------------------------------------------------------------------------------------------------- |
+| <code>extern_uid</code>       | string  | no       | Get a single user with a specific external authentication provider UID.                                                |
+| <code>provider</code>         | string  | no       | The external provider.                                                                                                 |
+| <code>order_by</code>         | string  | no       | Return users ordered by <code>id</code>, <code>name</code>, <code>username</code>, <code>created_at</code>, or <code>updated_at</code> fields. Default is <code>id</code>               |
+| <code>sort</code>             | string  | no       | Return users sorted in <code>asc</code> or <code>desc</code> order. Default is <code>desc</code>                                                       |
+| <code>two_factor</code>       | string  | no       | Filter users by Two-factor authentication. Filter values are <code>enabled</code> or <code>disabled</code>. By default it returns all users |
+| <code>without_projects</code> | boolean | no       | Filter users without projects. Default is <code>false</code>, which means that all users are returned, with and without projects. |
+| <code>admins</code>           | boolean | no       | Return only administrators. Default is <code>false</code>                                 |
+| <code>auditors</code>         | boolean | no       | Return only auditor users. Default is <code>false</code>. If not included, it returns all users. Premium and Ultimate only. |
+| <code>saml_provider_id</code> | number | no     | Return only users created by the specified SAML provider ID. If not included, it returns all users. Premium and Ultimate only. |
+| <code>skip_ldap</code>        | boolean | no     | Skip LDAP users. Premium and Ultimate only. |</p>
+<p><code>json
+[
+  {
+    "id": 1,
+    "username": "john_smith",
+    "email": "john@example.com",
+    "name": "John Smith",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "http://localhost:3000/uploads/user/avatar/1/index.jpg",
+    "web_url": "http://localhost:3000/john_smith",
+    "created_at": "2012-05-23T08:00:58Z",
+    "is_admin": false,
+    "bio": "",
+    "location": null,
+    "skype": "",
+    "linkedin": "",
+    "twitter": "",
+    "discord": "",
+    "website_url": "",
+    "organization": "",
+    "job_title": "",
+    "last_sign_in_at": "2012-06-01T11:41:01Z",
+    "confirmed_at": "2012-05-23T09:05:22Z",
+    "theme_id": 1,
+    "last_activity_on": "2012-05-23",
+    "color_scheme_id": 2,
+    "projects_limit": 100,
+    "current_sign_in_at": "2012-06-02T06:36:55Z",
+    "note": "DMCA Request: 2018-11-05 | DMCA Violation | Abuse | https://gitlab.zendesk.com/agent/tickets/123",
+    "identities": [
+      {"provider": "github", "extern_uid": "2435223452345"},
+      {"provider": "bitbucket", "extern_uid": "john.smith"},
+      {"provider": "google_oauth2", "extern_uid": "8776128412476123468721346"}
+    ],
+    "can_create_group": true,
+    "can_create_project": true,
+    "two_factor_enabled": true,
+    "external": false,
+    "private_profile": false,
+    "current_sign_in_ip": "196.165.1.102",
+    "last_sign_in_ip": "172.127.2.22",
+    "namespace_id": 1,
+    "created_by": null,
+    "email_reset_offered_at": null
+  },
+  {
+    "id": 2,
+    "username": "jack_smith",
+    "email": "jack@example.com",
+    "name": "Jack Smith",
+    "state": "blocked",
+    "locked": false,
+    "avatar_url": "http://localhost:3000/uploads/user/avatar/2/index.jpg",
+    "web_url": "http://localhost:3000/jack_smith",
+    "created_at": "2012-05-23T08:01:01Z",
+    "is_admin": false,
+    "bio": "",
+    "location": null,
+    "skype": "",
+    "linkedin": "",
+    "twitter": "",
+    "discord": "",
+    "website_url": "",
+    "organization": "",
+    "job_title": "",
+    "last_sign_in_at": null,
+    "confirmed_at": "2012-05-30T16:53:06.148Z",
+    "theme_id": 1,
+    "last_activity_on": "2012-05-23",
+    "color_scheme_id": 3,
+    "projects_limit": 100,
+    "current_sign_in_at": "2014-03-19T17:54:13Z",
+    "identities": [],
+    "can_create_group": true,
+    "can_create_project": true,
+    "two_factor_enabled": true,
+    "external": false,
+    "private_profile": false,
+    "current_sign_in_ip": "10.165.1.102",
+    "last_sign_in_ip": "172.127.2.22",
+    "namespace_id": 2,
+    "created_by": null,
+    "email_reset_offered_at": null
+  }
+]</code></p>
+<p>Users on <a href="https://about.gitlab.com/pricing/">GitLab Premium or Ultimate</a> also see the <code>shared_runners_minutes_limit</code>, <code>extra_shared_runners_minutes_limit</code>, <code>is_auditor</code>, and <code>using_license_seat</code> parameters.</p>
+<p><code>json
+[
+  {
+    "id": 1,
+    ...
+    "shared_runners_minutes_limit": 133,
+    "extra_shared_runners_minutes_limit": 133,
+    "is_auditor": false,
+    "using_license_seat": true
+    ...
+  }
+]</code></p>
+<p>Users on <a href="https://about.gitlab.com/pricing/">GitLab Premium or Ultimate</a> also see
+the <code>group_saml</code> provider option and <code>provisioned_by_group_id</code> parameter:</p>
+<p><code>json
+[
+  {
+    "id": 1,
+    ...
+    "identities": [
+      {"provider": "github", "extern_uid": "2435223452345"},
+      {"provider": "bitbucket", "extern_uid": "john.smith"},
+      {"provider": "google_oauth2", "extern_uid": "8776128412476123468721346"},
+      {"provider": "group_saml", "extern_uid": "123789", "saml_provider_id": 10}
+    ],
+    "provisioned_by_group_id": 123789
+    ...
+  }
+]</code></p>
+<p>You can also use <code>?search=</code> to search for users by name, username, or email. For example, <code>/users?search=John</code>. When you search for a:</p>
+<ul>
+<li>Email, you must use the full email address to get an exact match. As an administrator, you can search for both public and private email addresses.</li>
+<li>Name or username, you do not have to get an exact match because this is a fuzzy search.</li>
+</ul>
+<p>You can lookup users by external UID and provider:</p>
+<p><code>plaintext
+GET /users?extern_uid=:extern_uid&amp;provider=:provider</code></p>
+<p>For example:</p>
+<p><code>plaintext
+GET /users?extern_uid=1234567&amp;provider=github</code></p>
+<p>Users on <a href="https://about.gitlab.com/pricing/">GitLab Premium or Ultimate</a> have the <code>scim</code> provider available:</p>
+<p><code>plaintext
+GET /users?extern_uid=1234567&amp;provider=scim</code></p>
+<p>You can search users by creation date time range with:</p>
+<p><code>plaintext
+GET /users?created_before=2001-01-02T00:00:00.060Z&amp;created_after=1999-01-02T00:00:00.060</code></p>
+<p>You can search for users without projects with: <code>/users?without_projects=true</code></p>
+<p>You can filter by <a href="custom_attributes.md">custom attributes</a> with:</p>
+<p><code>plaintext
+GET /users?custom_attributes[key]=value&amp;custom_attributes[other_key]=other_value</code></p>
+<p>You can include the users' <a href="custom_attributes.md">custom attributes</a> in the response with:</p>
+<p><code>plaintext
+GET /users?with_custom_attributes=true</code></p>
+<p>You can use the <code>created_by</code> parameter to see if a user account was created:</p>
+<ul>
+<li><a href="../user/profile/account/create_accounts.md#create-users-in-admin-area">Manually by an administrator</a>.</li>
+<li>As a <a href="../user/project/settings/project_access_tokens.md#bot-users-for-projects">project bot user</a>.</li>
+</ul>
+<p>If the returned value is <code>null</code>, the account was created by a user who registered an account themselves.</p>
+<h2>Single user</h2>
+<p>Get a single user.</p>
+<h3>For user</h3>
+<p>Prerequisites:</p>
+<ul>
+<li>You must be signed in to use this endpoint.</li>
+</ul>
+<p><code>plaintext
+GET /users/:id</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type    | Required | Description      |
+|-----------|---------|----------|------------------|
+| <code>id</code>      | integer | yes      | ID of a user |</p>
+<p><code>json
+{
+  "id": 1,
+  "username": "john_smith",
+  "name": "John Smith",
+  "state": "active",
+  "locked": false,
+  "avatar_url": "http://localhost:3000/uploads/user/avatar/1/cd8.jpeg",
+  "web_url": "http://localhost:3000/john_smith",
+  "created_at": "2012-05-23T08:00:58Z",
+  "bio": "",
+  "bot": false,
+  "location": null,
+  "public_email": "john@example.com",
+  "skype": "",
+  "linkedin": "",
+  "twitter": "",
+  "discord": "",
+  "website_url": "",
+  "organization": "",
+  "job_title": "Operations Specialist",
+  "pronouns": "he/him",
+  "work_information": null,
+  "followers": 1,
+  "following": 1,
+  "local_time": "3:38 PM",
+  "is_followed": false
+}</code></p>
+<h3>For administrators</h3>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> Self-managed, GitLab Dedicated</p>
+<blockquote>
+<ul>
+<li>The <code>namespace_id</code> field in the response was <a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/82045">introduced</a> in GitLab 14.10.</li>
+<li>The <code>created_by</code> field in the response was <a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/93092">introduced</a> in GitLab 15.6.</li>
+<li>The <code>email_reset_offered_at</code> field in the response <a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/137610">introduced</a> in GitLab 16.7.</li>
+</ul>
+</blockquote>
+<p><code>plaintext
+GET /users/:id</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type    | Required | Description      |
+|-----------|---------|----------|------------------|
+| <code>id</code>      | integer | yes      | ID of a user |</p>
+<p>Example Responses:</p>
+<p><code>json
+{
+  "id": 1,
+  "username": "john_smith",
+  "email": "john@example.com",
+  "name": "John Smith",
+  "state": "active",
+  "locked": false,
+  "avatar_url": "http://localhost:3000/uploads/user/avatar/1/index.jpg",
+  "web_url": "http://localhost:3000/john_smith",
+  "created_at": "2012-05-23T08:00:58Z",
+  "is_admin": false,
+  "bio": "",
+  "location": null,
+  "public_email": "john@example.com",
+  "skype": "",
+  "linkedin": "",
+  "twitter": "",
+  "discord": "",
+  "website_url": "",
+  "organization": "",
+  "job_title": "Operations Specialist",
+  "pronouns": "he/him",
+  "work_information": null,
+  "followers": 1,
+  "following": 1,
+  "local_time": "3:38 PM",
+  "last_sign_in_at": "2012-06-01T11:41:01Z",
+  "confirmed_at": "2012-05-23T09:05:22Z",
+  "theme_id": 1,
+  "last_activity_on": "2012-05-23",
+  "color_scheme_id": 2,
+  "projects_limit": 100,
+  "current_sign_in_at": "2012-06-02T06:36:55Z",
+  "note": "DMCA Request: 2018-11-05 | DMCA Violation | Abuse | https://gitlab.zendesk.com/agent/tickets/123",
+  "identities": [
+    {"provider": "github", "extern_uid": "2435223452345"},
+    {"provider": "bitbucket", "extern_uid": "john.smith"},
+    {"provider": "google_oauth2", "extern_uid": "8776128412476123468721346"}
+  ],
+  "can_create_group": true,
+  "can_create_project": true,
+  "two_factor_enabled": true,
+  "external": false,
+  "private_profile": false,
+  "commit_email": "john-codes@example.com",
+  "current_sign_in_ip": "196.165.1.102",
+  "last_sign_in_ip": "172.127.2.22",
+  "plan": "gold",
+  "trial": true,
+  "sign_in_count": 1337,
+  "namespace_id": 1,
+  "created_by": null,
+  "email_reset_offered_at": null
+}</code></p>
+<p>NOTE:
+The <code>plan</code> and <code>trial</code> parameters are only available on GitLab Enterprise Edition.</p>
+<p>Users on <a href="https://about.gitlab.com/pricing/">GitLab Premium or Ultimate</a> also see
+the <code>shared_runners_minutes_limit</code>, <code>is_auditor</code>, and <code>extra_shared_runners_minutes_limit</code> parameters.</p>
+<p><code>json
+{
+  "id": 1,
+  "username": "john_smith",
+  "is_auditor": false,
+  "shared_runners_minutes_limit": 133,
+  "extra_shared_runners_minutes_limit": 133,
+  ...
+}</code></p>
+<p>Users on <a href="https://about.gitlab.com/pricing/">GitLab.com Premium or Ultimate</a> also
+see the <code>group_saml</code> option and <code>provisioned_by_group_id</code> parameter:</p>
+<p><code>json
+{
+  "id": 1,
+  "username": "john_smith",
+  "shared_runners_minutes_limit": 133,
+  "extra_shared_runners_minutes_limit": 133,
+  "identities": [
+    {"provider": "github", "extern_uid": "2435223452345"},
+    {"provider": "bitbucket", "extern_uid": "john.smith"},
+    {"provider": "google_oauth2", "extern_uid": "8776128412476123468721346"},
+    {"provider": "group_saml", "extern_uid": "123789", "saml_provider_id": 10}
+  ],
+  "provisioned_by_group_id": 123789
+  ...
+}</code></p>
+<p>Users on <a href="https://about.gitlab.com/pricing/">GitLab.com Premium or Ultimate</a> also
+see the <code>scim_identities</code> parameter:</p>
+<p><code>json
+{
+  ...
+  "extra_shared_runners_minutes_limit": null,
+  "scim_identities": [
+      {"extern_uid": "2435223452345", "group_id": "3", "active": true},
+      {"extern_uid": "john.smith", "group_id": "42", "active": false}
+    ]
+  ...
+}</code></p>
+<p>Administrators can use the <code>created_by</code> parameter to see if a user account was created:</p>
+<ul>
+<li><a href="../user/profile/account/create_accounts.md#create-users-in-admin-area">Manually by an administrator</a>.</li>
+<li>As a <a href="../user/project/settings/project_access_tokens.md#bot-users-for-projects">project bot user</a>.</li>
+</ul>
+<p>If the returned value is <code>null</code>, the account was created by a user who registered an account themselves.</p>
+<p>You can include the user's <a href="custom_attributes.md">custom attributes</a> in the response with:</p>
+<p><code>plaintext
+GET /users/:id?with_custom_attributes=true</code></p>
+<h2>User creation</h2>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> Self-managed, GitLab Dedicated</p>
+<blockquote>
+<ul>
+<li>The <code>namespace_id</code> field in the response was <a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/82045">introduced</a> in GitLab 14.10.</li>
+<li>Ability to create an auditor user was <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/366404">introduced</a> in GitLab 15.3.</li>
+</ul>
+</blockquote>
+<p>Creates a new user. Note only administrators can create new
+users. Either <code>password</code>, <code>reset_password</code>, or <code>force_random_password</code>
+must be specified. If <code>reset_password</code> and <code>force_random_password</code> are
+both <code>false</code>, then <code>password</code> is required.</p>
+<p><code>force_random_password</code> and <code>reset_password</code> take priority
+over <code>password</code>. In addition, <code>reset_password</code> and
+<code>force_random_password</code> can be used together.</p>
+<p>NOTE:
+<code>private_profile</code> defaults to the value of the
+<a href="../administration/settings/account_and_limit_settings.md#set-profiles-of-new-users-to-private-by-default">Set profiles of new users to private by default</a> setting.
+<code>bio</code> defaults to <code>""</code> instead of <code>null</code>.</p>
+<p><code>plaintext
+POST /users</code></p>
+<p>Parameters:</p>
+<p>| Attribute                            | Required | Description                                                                                                                                             |
+| :----------------------------------- | :------- | :------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| <code>admin</code>                              | No       | User is an administrator. Valid values are <code>true</code> or <code>false</code>. Defaults to false. |
+| <code>auditor</code>                            | No       | User is an auditor. Valid values are <code>true</code> or <code>false</code>. Defaults to false. <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/366404">Introduced</a> in GitLab 15.3. Premium and Ultimate only.                                                                                       |
+| <code>avatar</code>                             | No       | Image file for user's avatar                                                                                                                            |
+| <code>bio</code>                                | No       | User's biography                                                                                                                                        |
+| <code>can_create_group</code>                   | No       | User can create top-level groups - true or false                                                                                                                  |
+| <code>color_scheme_id</code>                    | No       | User's color scheme for the file viewer (for more information, see the <a href="../user/profile/preferences.md#change-the-syntax-highlighting-theme">user preference documentation</a>) |
+| <code>commit_email</code>                       | No       | User's commit email address                                                                                                                        |
+| <code>email</code>                              | Yes      | Email                                                                                                                                                   |
+| <code>extern_uid</code>                         | No       | External UID                                                                                                                                            |
+| <code>external</code>                           | No       | Flags the user as external - true or false (default)                                                                                                    |
+| <code>extra_shared_runners_minutes_limit</code> | No       | Can be set by administrators only. Additional compute minutes for this user. Premium and Ultimate only.                                                                        |
+| <code>force_random_password</code>              | No       | Set user password to a random value - true or false (default)                                                                                           |
+| <code>group_id_for_saml</code>                  | No       | ID of group where SAML has been configured                                                                                                              |
+| <code>linkedin</code>                           | No       | LinkedIn                                                                                                                                                |
+| <code>location</code>                           | No       | User's location                                                                                                                                         |
+| <code>name</code>                               | Yes      | Name                                                                                                                                                    |
+| <code>note</code>                               | No       | Administrator notes for this user                                                                                                                               |
+| <code>organization</code>                       | No       | Organization name                                                                                                                                       |
+| <code>password</code>                           | No       | Password                                                                                                                                                |
+| <code>private_profile</code>                    | No       | User's profile is private - true or false. The default value is determined by <a href="../administration/settings/account_and_limit_settings.md#set-profiles-of-new-users-to-private-by-default">this</a> setting. |
+| <code>projects_limit</code>                     | No       | Number of projects user can create                                                                                                                      |
+| <code>pronouns</code>                           | No       | User's pronouns                                                                                                                                    |
+| <code>provider</code>                           | No       | External provider name                                                                                                                                  |
+| <code>public_email</code>                       | No       | User's public email address                                                                                                                        |
+| <code>reset_password</code>                     | No       | Send user password reset link - true or false(default)                                                                                                  |
+| <code>shared_runners_minutes_limit</code>       | No       | Can be set by administrators only. Maximum number of monthly compute minutes for this user. Can be <code>nil</code> (default; inherit system default), <code>0</code> (unlimited), or <code>&gt; 0</code>. Premium and Ultimate only.                                                                                          |
+| <code>skip_confirmation</code>                  | No       | Skip confirmation - true or false (default)                                                                                                             |
+| <code>skype</code>                              | No       | Skype ID                                                                                                                                                |
+| <code>theme_id</code>                           | No       | GitLab theme for the user (for more information, see the <a href="../user/profile/preferences.md#change-the-color-theme">user preference documentation</a> for more information)                    |
+| <code>twitter</code>                            | No       | X (formerly Twitter) account                                                                                                                                         |
+| <code>discord</code>                            | No       | Discord account                                                                                                                                         |
+| <code>username</code>                           | Yes      | Username                                                                                                                                                |
+| <code>view_diffs_file_by_file</code>            | No       | Flag indicating the user sees only one file diff per page                                                                                               |
+| <code>website_url</code>                        | No       | Website URL                                                                                                                                             |</p>
+<h2>User modification</h2>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> Self-managed, GitLab Dedicated</p>
+<blockquote>
+<ul>
+<li>The <code>namespace_id</code> field in the response was <a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/82045">introduced</a> in GitLab 14.10.</li>
+<li>Ability to modify an auditor user was <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/366404">introduced</a> in GitLab 15.3.</li>
+</ul>
+</blockquote>
+<p>Modifies an existing user. Only administrators can change attributes of a user.</p>
+<p>The <code>email</code> field is the user's primary email address. You can only change this field to an already-added secondary email address for that user. To add more email addresses to the same user, use the <a href="#add-email">add email function</a>.</p>
+<p><code>plaintext
+PUT /users/:id</code></p>
+<p>Parameters:</p>
+<p>| Attribute                            | Required | Description                                                                                                                                             |
+| :----------------------------------- | :------- | :------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| <code>admin</code>                              | No       |User is an administrator. Valid values are <code>true</code> or <code>false</code>. Defaults to false. |
+| <code>auditor</code>                            | No       |  User is an auditor. Valid values are <code>true</code> or <code>false</code>. Defaults to false. <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/366404">Introduced</a> in GitLab 15.3.(default) Premium and Ultimate only.                                                                                                          |
+| <code>avatar</code>                             | No       | Image file for user's avatar                                                                                                                            |
+| <code>bio</code>                                | No       | User's biography                                                                                                                                        |
+| <code>can_create_group</code>                   | No       | User can create groups - true or false                                                                                                                  |
+| <code>color_scheme_id</code>                    | No       | User's color scheme for the file viewer (for more information, see the <a href="../user/profile/preferences.md#change-the-syntax-highlighting-theme">user preference documentation</a> for more information) |
+| <code>commit_email</code>                       | No       | User's commit email. Set to <code>_private</code> to use the private commit email. <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/375148">Introduced</a> in GitLab 15.5. |
+| <code>email</code>                              | No       | Email                                                                                                                                                   |
+| <code>extern_uid</code>                         | No       | External UID                                                                                                                                            |
+| <code>external</code>                           | No       | Flags the user as external - true or false (default)                                                                                                    |
+| <code>extra_shared_runners_minutes_limit</code> | No       | Can be set by administrators only. Additional compute minutes for this user. Premium and Ultimate only.                                                                                                 |
+| <code>group_id_for_saml</code>                  | No       | ID of group where SAML has been configured                                                                                                              |
+| <code>id</code>                                 | Yes      | ID of the user                                                                                                                                      |
+| <code>linkedin</code>                           | No       | LinkedIn                                                                                                                                                |
+| <code>location</code>                           | No       | User's location                                                                                                                                         |
+| <code>name</code>                               | No       | Name                                                                                                                                                    |
+| <code>note</code>                               | No       | Administration notes for this user                                                                                                                               |
+| <code>organization</code>                       | No       | Organization name                                                                                                                                       |
+| <code>password</code>                           | No       | Password                                                                                                                                                |
+| <code>private_profile</code>                    | No       | User's profile is private - true or false.                                                                 |
+| <code>projects_limit</code>                     | No       | Limit projects each user can create                                                                                                                     |
+| <code>pronouns</code>                           | No       | Pronouns                                                                                                                                                |
+| <code>provider</code>                           | No       | External provider name                                                                                                                                  |
+| <code>public_email</code>                       | No       | Public email of the user (must be already verified)                                                                                                                            |
+| <code>shared_runners_minutes_limit</code>       | No       | Can be set by administrators only. Maximum number of monthly compute minutes for this user. Can be <code>nil</code> (default; inherit system default), <code>0</code> (unlimited) or <code>&gt; 0</code>. Premium and Ultimate only.                                                                                                     |
+| <code>skip_reconfirmation</code>                | No       | Skip reconfirmation - true or false (default)                                                                                                           |
+| <code>skype</code>                              | No       | Skype ID                                                                                                                                                |
+| <code>theme_id</code>                           | No       | GitLab theme for the user (for more information, see the <a href="../user/profile/preferences.md#change-the-color-theme">user preference documentation</a> for more information)                    |
+| <code>twitter</code>                            | No       | X (formerly Twitter) account                                                                                                                                         |
+| <code>discord</code>                            | No       | Discord account                                                                                                                                         |
+| <code>username</code>                           | No       | Username                                                                                                                                                |
+| <code>view_diffs_file_by_file</code>            | No       | Flag indicating the user sees only one file diff per page                                                                                               |
+| <code>website_url</code>                        | No       | Website URL                                                                                                                                             |</p>
+<p>On password update, the user is forced to change it upon next login.
+Note, at the moment this method does only return a <code>404</code> error,
+even in cases where a <code>409</code> (Conflict) would be more appropriate.
+For example, when renaming the email address to some existing one.</p>
+<h2>Delete authentication identity from user</h2>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> Self-managed, GitLab Dedicated</p>
+<p>Deletes a user's authentication identity using the provider name associated with that identity. Available only for administrators.</p>
+<p><code>plaintext
+DELETE /users/:id/identities/:provider</code></p>
+<p>Parameters:</p>
+<p>| Attribute  | Type    | Required | Description            |
+|------------|---------|----------|------------------------|
+| <code>id</code>       | integer | yes      | ID of a user       |
+| <code>provider</code> | string  | yes      | External provider name |</p>
+<h2>User deletion</h2>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> Self-managed, GitLab Dedicated</p>
+<p>Deletes a user. Available only for administrators.
+This returns a <code>204 No Content</code> status code if the operation was successfully, <code>404</code> if the resource was not found or <code>409</code> if the user cannot be soft deleted.</p>
+<p><code>plaintext
+DELETE /users/:id</code></p>
+<p>Parameters:</p>
+<p>| Attribute     | Type    | Required | Description                                  |
+|---------------|---------|----------|----------------------------------------------|
+| <code>id</code>          | integer | yes      | ID of a user                             |
+| <code>hard_delete</code> | boolean | no       | If true, contributions that would usually be <a href="../user/profile/account/delete_account.md#associated-records">moved to Ghost User</a> are deleted instead, as well as groups owned solely by this user. |</p>
+<h2>List current user</h2>
+<p>Get current user.</p>
+<h3>For non-administrator users</h3>
+<p>Gets the authenticated user.</p>
+<p><code>plaintext
+GET /user</code></p>
+<p><code>json
+{
+  "id": 1,
+  "username": "john_smith",
+  "email": "john@example.com",
+  "name": "John Smith",
+  "state": "active",
+  "locked": false,
+  "avatar_url": "http://localhost:3000/uploads/user/avatar/1/index.jpg",
+  "web_url": "http://localhost:3000/john_smith",
+  "created_at": "2012-05-23T08:00:58Z",
+  "bio": "",
+  "location": null,
+  "public_email": "john@example.com",
+  "skype": "",
+  "linkedin": "",
+  "twitter": "",
+  "discord": "",
+  "website_url": "",
+  "organization": "",
+  "job_title": "",
+  "pronouns": "he/him",
+  "bot": false,
+  "work_information": null,
+  "followers": 0,
+  "following": 0,
+  "local_time": "3:38 PM",
+  "last_sign_in_at": "2012-06-01T11:41:01Z",
+  "confirmed_at": "2012-05-23T09:05:22Z",
+  "theme_id": 1,
+  "last_activity_on": "2012-05-23",
+  "color_scheme_id": 2,
+  "projects_limit": 100,
+  "current_sign_in_at": "2012-06-02T06:36:55Z",
+  "identities": [
+    {"provider": "github", "extern_uid": "2435223452345"},
+    {"provider": "bitbucket", "extern_uid": "john_smith"},
+    {"provider": "google_oauth2", "extern_uid": "8776128412476123468721346"}
+  ],
+  "can_create_group": true,
+  "can_create_project": true,
+  "two_factor_enabled": true,
+  "external": false,
+  "private_profile": false,
+  "commit_email": "admin@example.com",
+}</code></p>
+<p>Users on <a href="https://about.gitlab.com/pricing/">GitLab Premium or Ultimate</a> also see the <code>shared_runners_minutes_limit</code>, <code>extra_shared_runners_minutes_limit</code> parameters.</p>
+<h3>For administrators</h3>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> Self-managed, GitLab Dedicated</p>
+<blockquote>
+<ul>
+<li>The <code>namespace_id</code> field in the response was <a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/82045">introduced</a> in GitLab 14.10.</li>
+<li>The <code>created_by</code> field in the response was <a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/93092">introduced</a> in GitLab 15.6.</li>
+<li>The <code>email_reset_offered_at</code> field in the response <a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/137610">introduced</a> in GitLab 16.7.</li>
+</ul>
+</blockquote>
+<p><code>plaintext
+GET /user</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type    | Required | Description                                      |
+|-----------|---------|----------|--------------------------------------------------|
+| <code>sudo</code>    | integer | no       | ID of a user to make the call in their place |</p>
+<p><code>json
+{
+  "id": 1,
+  "username": "john_smith",
+  "email": "john@example.com",
+  "name": "John Smith",
+  "state": "active",
+  "locked": false,
+  "avatar_url": "http://localhost:3000/uploads/user/avatar/1/index.jpg",
+  "web_url": "http://localhost:3000/john_smith",
+  "created_at": "2012-05-23T08:00:58Z",
+  "is_admin": true,
+  "bio": "",
+  "location": null,
+  "public_email": "john@example.com",
+  "skype": "",
+  "linkedin": "",
+  "twitter": "",
+  "discord": "",
+  "website_url": "",
+  "organization": "",
+  "job_title": "",
+  "last_sign_in_at": "2012-06-01T11:41:01Z",
+  "confirmed_at": "2012-05-23T09:05:22Z",
+  "theme_id": 1,
+  "last_activity_on": "2012-05-23",
+  "color_scheme_id": 2,
+  "projects_limit": 100,
+  "current_sign_in_at": "2012-06-02T06:36:55Z",
+  "identities": [
+    {"provider": "github", "extern_uid": "2435223452345"},
+    {"provider": "bitbucket", "extern_uid": "john_smith"},
+    {"provider": "google_oauth2", "extern_uid": "8776128412476123468721346"}
+  ],
+  "can_create_group": true,
+  "can_create_project": true,
+  "two_factor_enabled": true,
+  "external": false,
+  "private_profile": false,
+  "commit_email": "john-codes@example.com",
+  "current_sign_in_ip": "196.165.1.102",
+  "last_sign_in_ip": "172.127.2.22",
+  "namespace_id": 1,
+  "created_by": null,
+  "email_reset_offered_at": null,
+  "note": null
+}</code></p>
+<p>Users on <a href="https://about.gitlab.com/pricing/">GitLab Premium or Ultimate</a> also see these
+parameters:</p>
+<ul>
+<li><code>shared_runners_minutes_limit</code></li>
+<li><code>extra_shared_runners_minutes_limit</code></li>
+<li><code>is_auditor</code></li>
+<li><code>provisioned_by_group_id</code></li>
+<li><code>using_license_seat</code></li>
+</ul>
+<h2>User status</h2>
+<p>Get the status of the authenticated user.</p>
+<p><code>plaintext
+GET /user/status</code></p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/user/status"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "emoji":"coffee",
+  "availability":"busy",
+  "message":"I crave coffee :coffee:",
+  "message_html": "I crave coffee &lt;gl-emoji title=\"hot beverage\" data-name=\"coffee\" data-unicode-version=\"4.0\"&gt;☕&lt;/gl-emoji&gt;",
+  "clear_status_at": null
+}</code></p>
+<h2>Get the status of a user</h2>
+<p>Get the status of a user. This endpoint can be accessed without authentication.</p>
+<p><code>plaintext
+GET /users/:id_or_username/status</code></p>
+<p>| Attribute        | Type   | Required | Description                                       |
+| ---------------- | ------ | -------- | ------------------------------------------------- |
+| <code>id_or_username</code> | string | yes      | ID or username of the user to get a status of |</p>
+<p><code>shell
+curl "https://gitlab.example.com/users/janedoe/status"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "emoji":"coffee",
+  "availability":"busy",
+  "message":"I crave coffee :coffee:",
+  "message_html": "I crave coffee &lt;gl-emoji title=\"hot beverage\" data-name=\"coffee\" data-unicode-version=\"4.0\"&gt;☕&lt;/gl-emoji&gt;",
+  "clear_status_at": null
+}</code></p>
+<h2>Set user status</h2>
+<p>Set the status of the current user.</p>
+<p><code>plaintext
+PUT /user/status
+PATCH /user/status</code></p>
+<p>| Attribute            | Type   | Required | Description                                                                                                                                                                                                             |
+| -------------------- | ------ | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| <code>emoji</code>              | string | no       | Name of the emoji to use as status. If omitted <code>speech_balloon</code> is used. Emoji name can be one of the specified names in the <a href="https://github.com/bonusly/gemojione/blob/master/config/index.json">Gemojione index</a>. |
+| <code>message</code>            | string | no       | Message to set as a status. It can also contain emoji codes. Cannot exceed 100 characters.                                                                                                                                                      |
+| <code>clear_status_after</code> | string | no       | Automatically clean up the status after a given time interval, allowed values: <code>30_minutes</code>, <code>3_hours</code>, <code>8_hours</code>, <code>1_day</code>, <code>3_days</code>, <code>7_days</code>, <code>30_days</code> |</p>
+<p>Difference between <code>PUT</code> and <code>PATCH</code></p>
+<p>When using <code>PUT</code> any parameters that are not passed are set to <code>null</code> and therefore cleared. When using <code>PATCH</code> any parameters that are not passed are ignored. Explicitly pass <code>null</code> to clear a field.</p>
+<p><code>shell
+curl --request PUT --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" --data "clear_status_after=1_day" --data "emoji=coffee" \
+     --data "message=I crave coffee" "https://gitlab.example.com/api/v4/user/status"</code></p>
+<p>Example responses</p>
+<p><code>json
+{
+  "emoji":"coffee",
+  "message":"I crave coffee",
+  "message_html": "I crave coffee",
+  "clear_status_at":"2021-02-15T10:49:01.311Z"
+}</code></p>
+<h2>Get user preferences</h2>
+<p>Get a list of the authenticated user's preferences.</p>
+<p><code>plaintext
+GET /user/preferences</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "id": 1,
+  "user_id": 1,
+  "view_diffs_file_by_file": true,
+  "show_whitespace_in_diffs": false,
+  "pass_user_identities_to_ci_jwt": false
+}</code></p>
+<p>Parameters:</p>
+<ul>
+<li><strong>none</strong></li>
+</ul>
+<h2>User preference modification</h2>
+<p>Update the current user's preferences.</p>
+<p><code>plaintext
+PUT /user/preferences</code></p>
+<p><code>json
+{
+  "id": 1,
+  "user_id": 1,
+  "view_diffs_file_by_file": true,
+  "show_whitespace_in_diffs": false,
+  "pass_user_identities_to_ci_jwt": false
+}</code></p>
+<p>Parameters:</p>
+<p>| Attribute                        | Required | Description                                                                  |
+| :------------------------------- | :------- | :--------------------------------------------------------------------------- |
+| <code>view_diffs_file_by_file</code>        | Yes      | Flag indicating the user sees only one file diff per page.                   |
+| <code>show_whitespace_in_diffs</code>       | Yes      | Flag indicating the user sees whitespace changes in diffs.                   |
+| <code>pass_user_identities_to_ci_jwt</code> | Yes      | Flag indicating the user passes their external identities as CI information. This attribute does not contain enough information to identify or authorize the user in an external system. The attribute is internal to GitLab, and must not be passed to third-party services. For more information and examples, see <a href="../ci/secrets/id_token_authentication.md#token-payload">Token Payload</a>. |</p>
+<h2>User follow</h2>
+<h3>Follow and unfollow users</h3>
+<p>Follow a user.</p>
+<p><code>plaintext
+POST /users/:id/follow</code></p>
+<p>Unfollow a user.</p>
+<p><code>plaintext
+POST /users/:id/unfollow</code></p>
+<p>| Attribute | Type    | Required | Description                  |
+| --------- | ------- | -------- | ---------------------------- |
+| <code>id</code>      | integer | yes      | ID of the user to follow |</p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/users/3/follow"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "id": 1,
+  "username": "john_smith",
+  "name": "John Smith",
+  "state": "active",
+  "locked": false,
+  "avatar_url": "http://localhost:3000/uploads/user/avatar/1/cd8.jpeg",
+  "web_url": "http://localhost:3000/john_smith"
+}</code></p>
+<h3>Followers and following</h3>
+<p>Get the followers of a user.</p>
+<p><code>plaintext
+GET /users/:id/followers</code></p>
+<p>Get the list of users being followed.</p>
+<p><code>plaintext
+GET /users/:id/following</code></p>
+<p>| Attribute | Type    | Required | Description                  |
+| --------- | ------- | -------- | ---------------------------- |
+| <code>id</code>      | integer | yes      | ID of the user to follow |</p>
+<p><code>shell
+curl --request GET --header "PRIVATE-TOKEN: &lt;your_access_token&gt;"  "https://gitlab.example.com/users/3/followers"</code></p>
+<p>Example response:</p>
+<p><code>json
+[
+  {
+    "id": 2,
+    "name": "Lennie Donnelly",
+    "username": "evette.kilback",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://www.gravatar.com/avatar/7955171a55ac4997ed81e5976287890a?s=80&amp;d=identicon",
+    "web_url": "http://127.0.0.1:3000/evette.kilback"
+  },
+  {
+    "id": 4,
+    "name": "Serena Bradtke",
+    "username": "cammy",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://www.gravatar.com/avatar/a2daad869a7b60d3090b7b9bef4baf57?s=80&amp;d=identicon",
+    "web_url": "http://127.0.0.1:3000/cammy"
+  }
+]</code></p>
+<h2>User counts</h2>
+<p>Get the counts (same as in the upper-right menu) of the authenticated user.</p>
+<p>| Attribute                         | Type   | Description                                                                  |
+| --------------------------------- | ------ | ---------------------------------------------------------------------------- |
+| <code>assigned_issues</code>                 | number | Number of issues that are open and assigned to the current user.             |
+| <code>assigned_merge_requests</code>         | number | Number of merge requests that are active and assigned to the current user.   |
+| <code>merge_requests</code>                  | number | <a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/50026">Deprecated</a> in GitLab 13.8. Equivalent to and replaced by <code>assigned_merge_requests</code>.        |
+| <code>review_requested_merge_requests</code> | number | Number of merge requests that the current user has been requested to review. |
+| <code>todos</code>                           | number | Number of pending to-do items for current user.                              |</p>
+<p><code>plaintext
+GET /user_counts</code></p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/user_counts"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "merge_requests": 4,
+  "assigned_issues": 15,
+  "assigned_merge_requests": 11,
+  "review_requested_merge_requests": 0,
+  "todos": 1
+}</code></p>
+<h2>Create Service Account User</h2>
+<p>DETAILS:
+<strong>Tier:</strong> Premium, Ultimate
+<strong>Offering:</strong> Self-managed, GitLab Dedicated</p>
+<blockquote>
+<ul>
+<li>Ability to create a service account user was <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/406782">introduced</a> in GitLab 16.1</li>
+<li>Ability to specify a username or name was <a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/144841">introduced</a> in GitLab 16.10.</li>
+</ul>
+</blockquote>
+<p>Creates a service account user. You can specify the account username and name. If you do not specify these attributes, the default name is <code>Service account user</code> and the username is automatically generated. Available only for administrators.</p>
+<p><code>plaintext
+POST /service_accounts</code></p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/service_accounts"</code></p>
+<p>Supported attributes:</p>
+<p>| Attribute                  | Type           | Required                  | Description                                                                    |
+|:---------------------------|:---------------|:--------------------------|:-------------------------------------------------------------------------------|
+| <code>name</code>       | string | no | Name of the user |
+| <code>username</code>   | string | no | Username of the user |</p>
+<p>Example response:</p>
+<p><code>json
+{
+  "id": 57,
+  "username": "service_account_6018816a18e515214e0c34c2b33523fc",
+  "name": "Service account user"
+}</code></p>
+<h2>List user projects</h2>
+<p>See the <a href="projects.md#list-user-projects">list of user projects</a>.</p>
+<h2>List associations count for user</h2>
+<p>Get a list of a specified user's count of:</p>
+<ul>
+<li>Projects.</li>
+<li>Groups.</li>
+<li>Issues.</li>
+<li>Merge requests.</li>
+</ul>
+<p>Administrators can query any user, but non-administrators can only query themselves.</p>
+<p><code>plaintext
+GET /users/:id/associations_count</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type    | Required | Description      |
+|-----------|---------|----------|------------------|
+| <code>id</code>      | integer | yes      | ID of a user |</p>
+<p>Example response:</p>
+<p><code>json
+{
+  "groups_count": 2,
+  "projects_count": 3,
+  "issues_count": 8,
+  "merge_requests_count": 5
+}</code></p>
+<h2>List SSH keys</h2>
+<p>Get a list of the authenticated user's SSH keys.</p>
+<p>This function takes pagination parameters <code>page</code> and <code>per_page</code> to restrict the list of keys.</p>
+<p><code>plaintext
+GET /user/keys</code></p>
+<p><code>json
+[
+  {
+    "id": 1,
+    "title": "Public key",
+    "key": "ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAIEAiPWx6WM4lhHNedGfBpPJNPpZ7yKu+dnn1SJejgt4596k6YjzGGphH2TUxwKzxcKDKKezwkpfnxPkSMkuEspGRt/aZZ9wa++Oi7Qkr8prgHc4soW6NUlfDzpvZK2H5E7eQaSeP3SAwGmQKUFHCddNaP0L+hM7zhFNzjFvpaMgJw0=",
+    "created_at": "2014-08-01T14:47:39.080Z"
+  },
+  {
+    "id": 3,
+    "title": "Another Public key",
+    "key": "ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAIEAiPWx6WM4lhHNedGfBpPJNPpZ7yKu+dnn1SJejgt4596k6YjzGGphH2TUxwKzxcKDKKezwkpfnxPkSMkuEspGRt/aZZ9wa++Oi7Qkr8prgHc4soW6NUlfDzpvZK2H5E7eQaSeP3SAwGmQKUFHCddNaP0L+hM7zhFNzjFvpaMgJw0=",
+    "created_at": "2014-08-01T14:47:39.080Z"
+  }
+]</code></p>
+<p>Parameters:</p>
+<ul>
+<li><strong>none</strong></li>
+</ul>
+<h2>List SSH keys for user</h2>
+<p>Get a list of a specified user's SSH keys.</p>
+<p><code>plaintext
+GET /users/:id_or_username/keys</code></p>
+<p>| Attribute        | Type   | Required | Description                                             |
+| ---------------- | ------ | -------- | ------------------------------------------------------- |
+| <code>id_or_username</code> | string | yes      | ID or username of the user to get the SSH keys for. |</p>
+<h2>Single SSH key</h2>
+<p>Get a single key.</p>
+<p><code>plaintext
+GET /user/keys/:key_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type   | Required | Description          |
+|-----------|--------|----------|----------------------|
+| <code>key_id</code>  | string | yes      | ID of an SSH key |</p>
+<p><code>json
+{
+  "id": 1,
+  "title": "Public key",
+  "key": "ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAIEAiPWx6WM4lhHNedGfBpPJNPpZ7yKu+dnn1SJejgt4596k6YjzGGphH2TUxwKzxcKDKKezwkpfnxPkSMkuEspGRt/aZZ9wa++Oi7Qkr8prgHc4soW6NUlfDzpvZK2H5E7eQaSeP3SAwGmQKUFHCddNaP0L+hM7zhFNzjFvpaMgJw0=",
+  "created_at": "2014-08-01T14:47:39.080Z"
+}</code></p>
+<h2>Single SSH key for given user</h2>
+<blockquote>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/81790">Introduced</a> in GitLab 14.9.</li>
+</ul>
+</blockquote>
+<p>Get a single key for a given user.</p>
+<p><code>plaintext
+GET /users/:id/keys/:key_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type    | Required | Description          |
+|-----------|---------|----------|----------------------|
+| <code>id</code>      | integer | yes      | ID of specified user |
+| <code>key_id</code>  | integer | yes      | SSH key ID           |</p>
+<p><code>json
+{
+  "id": 1,
+  "title": "Public key",
+  "key": "ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAIEAiPWx6WM4lhHNedGfBpPJNPpZ7yKu+dnn1SJejgt4596k6YjzGGphH2TUxwKzxcKDKKezwkpfnxPkSMkuEspGRt/aZZ9wa++Oi7Qkr8prgHc4soW6NUlfDzpvZK2H5E7eQaSeP3SAwGmQKUFHCddNaP0L+hM7zhFNzjFvpaMgJw0=",
+  "created_at": "2014-08-01T14:47:39.080Z"
+}</code></p>
+<h2>Add SSH key</h2>
+<blockquote>
+<ul>
+<li>The <code>usage_type</code> parameter was <a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/105551">introduced</a> in GitLab 15.7.</li>
+</ul>
+</blockquote>
+<p>Creates a new key owned by the authenticated user.</p>
+<p><code>plaintext
+POST /user/keys</code></p>
+<p>Parameters:</p>
+<p>| Attribute    | Type   | Required | Description                                                                    |
+|--------------|--------|----------|--------------------------------------------------------------------------------|
+| <code>title</code>      | string | yes      | New SSH key's title                                                            |
+| <code>key</code>        | string | yes      | New SSH key                                                                    |
+| <code>expires_at</code> | string | no       | Expiration date of the SSH key in ISO 8601 format (<code>YYYY-MM-DDTHH:MM:SSZ</code>) |
+| <code>usage_type</code> | string | no       | Scope of usage for the SSH key: <code>auth</code>, <code>signing</code> or <code>auth_and_signing</code>. Default: <code>auth_and_signing</code> |</p>
+<p><code>json
+{
+  "title": "ABC",
+  "key": "ssh-dss AAAAB3NzaC1kc3MAAACBAMLrhYgI3atfrSD6KDas1b/3n6R/HP+bLaHHX6oh+L1vg31mdUqK0Ac/NjZoQunavoyzqdPYhFz9zzOezCrZKjuJDS3NRK9rspvjgM0xYR4d47oNZbdZbwkI4cTv/gcMlquRy0OvpfIvJtjtaJWMwTLtM5VhRusRuUlpH99UUVeXAAAAFQCVyX+92hBEjInEKL0v13c/egDCTQAAAIEAvFdWGq0ccOPbw4f/F8LpZqvWDydAcpXHV3thwb7WkFfppvm4SZte0zds1FJ+Hr8Xzzc5zMHe6J4Nlay/rP4ewmIW7iFKNBEYb/yWa+ceLrs+TfR672TaAgO6o7iSRofEq5YLdwgrwkMmIawa21FrZ2D9SPao/IwvENzk/xcHu7YAAACAQFXQH6HQnxOrw4dqf0NqeKy1tfIPxYYUZhPJfo9O0AmBW2S36pD2l14kS89fvz6Y1g8gN/FwFnRncMzlLY/hX70FSc/3hKBSbH6C6j8hwlgFKfizav21eS358JJz93leOakJZnGb8XlWvz1UJbwCsnR2VEY8Dz90uIk1l/UqHkA= loic@call",
+  "expires_at": "2016-01-21T00:00:00.000Z",
+  "usage_type": "auth"
+}</code></p>
+<p>Returns a created key with status <code>201 Created</code> on success. If an
+error occurs a <code>400 Bad Request</code> is returned with a message explaining the error:</p>
+<p><code>json
+{
+  "message": {
+    "fingerprint": [
+      "has already been taken"
+    ],
+    "key": [
+      "has already been taken"
+    ]
+  }
+}</code></p>
+<h2>Add SSH key for user</h2>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> Self-managed, GitLab Dedicated</p>
+<blockquote>
+<ul>
+<li>The <code>usage_type</code> parameter was <a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/105551">introduced</a> in GitLab 15.7.</li>
+</ul>
+</blockquote>
+<p>Create new key owned by specified user. Available only for administrator.</p>
+<p><code>plaintext
+POST /users/:id/keys</code></p>
+<p>Parameters:</p>
+<p>| Attribute    | Type    | Required | Description                                                                    |
+|--------------|---------|----------|--------------------------------------------------------------------------------|
+| <code>id</code>         | integer | yes      | ID of specified user                                                           |
+| <code>title</code>      | string  | yes      | New SSH key's title                                                            |
+| <code>key</code>        | string  | yes      | New SSH key                                                                    |
+| <code>expires_at</code> | string  | no       | Expiration date of the SSH key in ISO 8601 format (<code>YYYY-MM-DDTHH:MM:SSZ</code>) |
+| <code>usage_type</code> | string  | no       | Scope of usage for the SSH key: <code>auth</code>, <code>signing</code> or <code>auth_and_signing</code>. Default: <code>auth_and_signing</code> |</p>
+<p><code>json
+{
+  "title": "ABC",
+  "key": "ssh-dss AAAAB3NzaC1kc3MAAACBAMLrhYgI3atfrSD6KDas1b/3n6R/HP+bLaHHX6oh+L1vg31mdUqK0Ac/NjZoQunavoyzqdPYhFz9zzOezCrZKjuJDS3NRK9rspvjgM0xYR4d47oNZbdZbwkI4cTv/gcMlquRy0OvpfIvJtjtaJWMwTLtM5VhRusRuUlpH99UUVeXAAAAFQCVyX+92hBEjInEKL0v13c/egDCTQAAAIEAvFdWGq0ccOPbw4f/F8LpZqvWDydAcpXHV3thwb7WkFfppvm4SZte0zds1FJ+Hr8Xzzc5zMHe6J4Nlay/rP4ewmIW7iFKNBEYb/yWa+ceLrs+TfR672TaAgO6o7iSRofEq5YLdwgrwkMmIawa21FrZ2D9SPao/IwvENzk/xcHu7YAAACAQFXQH6HQnxOrw4dqf0NqeKy1tfIPxYYUZhPJfo9O0AmBW2S36pD2l14kS89fvz6Y1g8gN/FwFnRncMzlLY/hX70FSc/3hKBSbH6C6j8hwlgFKfizav21eS358JJz93leOakJZnGb8XlWvz1UJbwCsnR2VEY8Dz90uIk1l/UqHkA= loic@call",
+  "expires_at": "2016-01-21T00:00:00.000Z",
+  "usage_type": "auth"
+}</code></p>
+<p>Returns a created key with status <code>201 Created</code> on success. If an
+error occurs a <code>400 Bad Request</code> is returned with a message explaining the error:</p>
+<p><code>json
+{
+  "message": {
+    "fingerprint": [
+      "has already been taken"
+    ],
+    "key": [
+      "has already been taken"
+    ]
+  }
+}</code></p>
+<p>NOTE:
+This also adds an audit event.</p>
+<h2>Delete SSH key for current user</h2>
+<p>Deletes key owned by the authenticated user.</p>
+<p>This returns a <code>204 No Content</code> status code if the operation was successfully
+or <code>404</code> if the resource was not found.</p>
+<p><code>plaintext
+DELETE /user/keys/:key_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type    | Required | Description |
+|-----------|---------|----------|-------------|
+| <code>key_id</code>  | integer | yes      | SSH key ID  |</p>
+<h2>Delete SSH key for given user</h2>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> Self-managed, GitLab Dedicated</p>
+<p>Deletes key owned by a specified user. Available only for administrator.</p>
+<p><code>plaintext
+DELETE /users/:id/keys/:key_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type    | Required | Description          |
+|-----------|---------|----------|----------------------|
+| <code>id</code>      | integer | yes      | ID of specified user |
+| <code>key_id</code>  | integer | yes      | SSH key ID           |</p>
+<h2>List all GPG keys</h2>
+<p>Get a list of the authenticated user's GPG keys.</p>
+<p><code>plaintext
+GET /user/gpg_keys</code></p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/user/gpg_keys"</code></p>
+<p>Example response:</p>
+<p><code>json
+[
+    {
+        "id": 1,
+        "key": "-----BEGIN PGP PUBLIC KEY BLOCK-----\r\n\r\nxsBNBFVjnlIBCACibzXOLCiZiL2oyzYUaTOCkYnSUhymg3pdbfKtd4mpBa58xKBj\r\nt1pTHVpw3Sk03wmzhM/Ndlt1AV2YhLv++83WKr+gAHFYFiCV/tnY8bx3HqvVoy8O\r\nCfxWhw4QZK7+oYzVmJj8ZJm3ZjOC4pzuegNWlNLCUdZDx9OKlHVXLCX1iUbjdYWa\r\nqKV6tdV8hZolkbyjedQgrpvoWyeSHHpwHF7yk4gNJWMMI5rpcssL7i6mMXb/sDzO\r\nVaAtU5wiVducsOa01InRFf7QSTxoAm6Xy0PGv/k48M6xCALa9nY+BzlOv47jUT57\r\nvilf4Szy9dKD0v9S0mQ+IHB+gNukWrnwtXx5ABEBAAHNFm5hbWUgKGNvbW1lbnQp\r\nIDxlbUBpbD7CwHUEEwECACkFAlVjnlIJEINgJNgv009/AhsDAhkBBgsJCAcDAgYV\r\nCAIJCgsEFgIDAQAAxqMIAFBHuBA8P1v8DtHonIK8Lx2qU23t8Mh68HBIkSjk2H7/\r\noO2cDWCw50jZ9D91PXOOyMPvBWV2IE3tARzCvnNGtzEFRtpIEtZ0cuctxeIF1id5\r\ncrfzdMDsmZyRHAOoZ9VtuD6mzj0ybQWMACb7eIHjZDCee3Slh3TVrLy06YRdq2I4\r\nbjMOPePtK5xnIpHGpAXkB3IONxyITpSLKsA4hCeP7gVvm7r7TuQg1ygiUBlWbBYn\r\niE5ROzqZjG1s7dQNZK/riiU2umGqGuwAb2IPvNiyuGR3cIgRE4llXH/rLuUlspAp\r\no4nlxaz65VucmNbN1aMbDXLJVSqR1DuE00vEsL1AItI=\r\n=XQoy\r\n-----END PGP PUBLIC KEY BLOCK-----",
+        "created_at": "2017-09-05T09:17:46.264Z"
+    }
+]</code></p>
+<h2>Get a specific GPG key</h2>
+<p>Get a specific GPG key of authenticated user.</p>
+<p><code>plaintext
+GET /user/gpg_keys/:key_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type    | Required | Description           |
+| --------- | ------- | -------- | --------------------- |
+| <code>key_id</code>  | integer | yes      | ID of the GPG key |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/user/gpg_keys/1"</code></p>
+<p>Example response:</p>
+<p><code>json
+  {
+      "id": 1,
+      "key": "-----BEGIN PGP PUBLIC KEY BLOCK-----\r\n\r\nxsBNBFVjnlIBCACibzXOLCiZiL2oyzYUaTOCkYnSUhymg3pdbfKtd4mpBa58xKBj\r\nt1pTHVpw3Sk03wmzhM/Ndlt1AV2YhLv++83WKr+gAHFYFiCV/tnY8bx3HqvVoy8O\r\nCfxWhw4QZK7+oYzVmJj8ZJm3ZjOC4pzuegNWlNLCUdZDx9OKlHVXLCX1iUbjdYWa\r\nqKV6tdV8hZolkbyjedQgrpvoWyeSHHpwHF7yk4gNJWMMI5rpcssL7i6mMXb/sDzO\r\nVaAtU5wiVducsOa01InRFf7QSTxoAm6Xy0PGv/k48M6xCALa9nY+BzlOv47jUT57\r\nvilf4Szy9dKD0v9S0mQ+IHB+gNukWrnwtXx5ABEBAAHNFm5hbWUgKGNvbW1lbnQp\r\nIDxlbUBpbD7CwHUEEwECACkFAlVjnlIJEINgJNgv009/AhsDAhkBBgsJCAcDAgYV\r\nCAIJCgsEFgIDAQAAxqMIAFBHuBA8P1v8DtHonIK8Lx2qU23t8Mh68HBIkSjk2H7/\r\noO2cDWCw50jZ9D91PXOOyMPvBWV2IE3tARzCvnNGtzEFRtpIEtZ0cuctxeIF1id5\r\ncrfzdMDsmZyRHAOoZ9VtuD6mzj0ybQWMACb7eIHjZDCee3Slh3TVrLy06YRdq2I4\r\nbjMOPePtK5xnIpHGpAXkB3IONxyITpSLKsA4hCeP7gVvm7r7TuQg1ygiUBlWbBYn\r\niE5ROzqZjG1s7dQNZK/riiU2umGqGuwAb2IPvNiyuGR3cIgRE4llXH/rLuUlspAp\r\no4nlxaz65VucmNbN1aMbDXLJVSqR1DuE00vEsL1AItI=\r\n=XQoy\r\n-----END PGP PUBLIC KEY BLOCK-----",
+      "created_at": "2017-09-05T09:17:46.264Z"
+  }</code></p>
+<h2>Add a GPG key</h2>
+<p>Creates a new GPG key owned by the authenticated user.</p>
+<p><code>plaintext
+POST /user/gpg_keys</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type   | Required | Description     |
+|-----------|--------|----------|-----------------|
+| <code>key</code>     | string | yes      | New GPG key |</p>
+<p>```shell</p>
+<p>export KEY="$( gpg --armor --export <your_gpg_key_id>)"</p>
+<p>curl --data-urlencode "key=-----BEGIN PGP PUBLIC KEY BLOCK-----</p>
+<blockquote>
+<p>xsBNBFVjnlIBCACibzXOLCiZiL2oyzYUaTOCkYnSUhymg3pdbfKtd4mpBa58xKBj
+t1pTHVpw3Sk03wmzhM/Ndlt1AV2YhLv++83WKr+gAHFYFiCV/tnY8bx3HqvVoy8O
+CfxWhw4QZK7+oYzVmJj8ZJm3ZjOC4pzuegNWlNLCUdZDx9OKlHVXLCX1iUbjdYWa
+qKV6tdV8hZolkbyjedQgrpvoWyeSHHpwHF7yk4gNJWMMI5rpcssL7i6mMXb/sDzO
+VaAtU5wiVducsOa01InRFf7QSTxoAm6Xy0PGv/k48M6xCALa9nY+BzlOv47jUT57
+vilf4Szy9dKD0v9S0mQ+IHB+gNukWrnwtXx5ABEBAAHNFm5hbWUgKGNvbW1lbnQp
+IDxlbUBpbD7CwHUEEwECACkFAlVjnlIJEINgJNgv009/AhsDAhkBBgsJCAcDAgYV
+CAIJCgsEFgIDAQAAxqMIAFBHuBA8P1v8DtHonIK8Lx2qU23t8Mh68HBIkSjk2H7/
+oO2cDWCw50jZ9D91PXOOyMPvBWV2IE3tARzCvnNGtzEFRtpIEtZ0cuctxeIF1id5
+crfzdMDsmZyRHAOoZ9VtuD6mzj0ybQWMACb7eIHjZDCee3Slh3TVrLy06YRdq2I4
+bjMOPePtK5xnIpHGpAXkB3IONxyITpSLKsA4hCeP7gVvm7r7TuQg1ygiUBlWbBYn
+iE5ROzqZjG1s7dQNZK/riiU2umGqGuwAb2IPvNiyuGR3cIgRE4llXH/rLuUlspAp
+o4nlxaz65VucmNbN1aMbDXLJVSqR1DuE00vEsL1AItI=
+=XQoy
+-----END PGP PUBLIC KEY BLOCK-----" \
+     --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/user/gpg_keys"
+```</p>
+</blockquote>
+<p>Example response:</p>
+<p><code>json
+[
+    {
+        "id": 1,
+        "key": "-----BEGIN PGP PUBLIC KEY BLOCK-----\nxsBNBFVjnlIBCACibzXOLCiZiL2oyzYUaTOCkYnSUhymg3pdbfKtd4mpBa58xKBj\nt1pTHVpw3Sk03wmzhM/Ndlt1AV2YhLv++83WKr+gAHFYFiCV/tnY8bx3HqvVoy8O\nCfxWhw4QZK7+oYzVmJj8ZJm3ZjOC4pzuegNWlNLCUdZDx9OKlHVXLCX1iUbjdYWa\nqKV6tdV8hZolkbyjedQgrpvoWyeSHHpwHF7yk4gNJWMMI5rpcssL7i6mMXb/sDzO\nVaAtU5wiVducsOa01InRFf7QSTxoAm6Xy0PGv/k48M6xCALa9nY+BzlOv47jUT57\nvilf4Szy9dKD0v9S0mQ+IHB+gNukWrnwtXx5ABEBAAHNFm5hbWUgKGNvbW1lbnQp\nIDxlbUBpbD7CwHUEEwECACkFAlVjnlIJEINgJNgv009/AhsDAhkBBgsJCAcDAgYV\nCAIJCgsEFgIDAQAAxqMIAFBHuBA8P1v8DtHonIK8Lx2qU23t8Mh68HBIkSjk2H7/\noO2cDWCw50jZ9D91PXOOyMPvBWV2IE3tARzCvnNGtzEFRtpIEtZ0cuctxeIF1id5\ncrfzdMDsmZyRHAOoZ9VtuD6mzj0ybQWMACb7eIHjZDCee3Slh3TVrLy06YRdq2I4\nbjMOPePtK5xnIpHGpAXkB3IONxyITpSLKsA4hCeP7gVvm7r7TuQg1ygiUBlWbBYn\niE5ROzqZjG1s7dQNZK/riiU2umGqGuwAb2IPvNiyuGR3cIgRE4llXH/rLuUlspAp\no4nlxaz65VucmNbN1aMbDXLJVSqR1DuE00vEsL1AItI=\n=XQoy\n-----END PGP PUBLIC KEY BLOCK-----",
+        "created_at": "2017-09-05T09:17:46.264Z"
+    }
+]</code></p>
+<h2>Delete a GPG key</h2>
+<p>Delete a GPG key owned by the authenticated user.</p>
+<p><code>plaintext
+DELETE /user/gpg_keys/:key_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type    | Required | Description           |
+| --------- | ------- | -------- | --------------------- |
+| <code>key_id</code>  | integer | yes      | ID of the GPG key |</p>
+<p><code>shell
+curl --request DELETE --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/user/gpg_keys/1"</code></p>
+<p>Returns <code>204 No Content</code> on success or <code>404 Not Found</code> if the key cannot be found.</p>
+<h2>List all GPG keys for given user</h2>
+<p>Get a list of a specified user's GPG keys. This endpoint can be accessed without authentication.</p>
+<p><code>plaintext
+GET /users/:id/gpg_keys</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type    | Required | Description        |
+| --------- | ------- | -------- | ------------------ |
+| <code>id</code>      | integer | yes      | ID of the user |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/users/2/gpg_keys"</code></p>
+<p>Example response:</p>
+<p><code>json
+[
+    {
+        "id": 1,
+        "key": "-----BEGIN PGP PUBLIC KEY BLOCK-----\r\n\r\nxsBNBFVjnlIBCACibzXOLCiZiL2oyzYUaTOCkYnSUhymg3pdbfKtd4mpBa58xKBj\r\nt1pTHVpw3Sk03wmzhM/Ndlt1AV2YhLv++83WKr+gAHFYFiCV/tnY8bx3HqvVoy8O\r\nCfxWhw4QZK7+oYzVmJj8ZJm3ZjOC4pzuegNWlNLCUdZDx9OKlHVXLCX1iUbjdYWa\r\nqKV6tdV8hZolkbyjedQgrpvoWyeSHHpwHF7yk4gNJWMMI5rpcssL7i6mMXb/sDzO\r\nVaAtU5wiVducsOa01InRFf7QSTxoAm6Xy0PGv/k48M6xCALa9nY+BzlOv47jUT57\r\nvilf4Szy9dKD0v9S0mQ+IHB+gNukWrnwtXx5ABEBAAHNFm5hbWUgKGNvbW1lbnQp\r\nIDxlbUBpbD7CwHUEEwECACkFAlVjnlIJEINgJNgv009/AhsDAhkBBgsJCAcDAgYV\r\nCAIJCgsEFgIDAQAAxqMIAFBHuBA8P1v8DtHonIK8Lx2qU23t8Mh68HBIkSjk2H7/\r\noO2cDWCw50jZ9D91PXOOyMPvBWV2IE3tARzCvnNGtzEFRtpIEtZ0cuctxeIF1id5\r\ncrfzdMDsmZyRHAOoZ9VtuD6mzj0ybQWMACb7eIHjZDCee3Slh3TVrLy06YRdq2I4\r\nbjMOPePtK5xnIpHGpAXkB3IONxyITpSLKsA4hCeP7gVvm7r7TuQg1ygiUBlWbBYn\r\niE5ROzqZjG1s7dQNZK/riiU2umGqGuwAb2IPvNiyuGR3cIgRE4llXH/rLuUlspAp\r\no4nlxaz65VucmNbN1aMbDXLJVSqR1DuE00vEsL1AItI=\r\n=XQoy\r\n-----END PGP PUBLIC KEY BLOCK-----",
+        "created_at": "2017-09-05T09:17:46.264Z"
+    }
+]</code></p>
+<h2>Get a specific GPG key for a given user</h2>
+<p>Get a specific GPG key for a given user. This endpoint can be accessed without administrator authentication.</p>
+<p><code>plaintext
+GET /users/:id/gpg_keys/:key_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type    | Required | Description           |
+| --------- | ------- | -------- | --------------------- |
+| <code>id</code>      | integer | yes      | ID of the user    |
+| <code>key_id</code>  | integer | yes      | ID of the GPG key |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/users/2/gpg_keys/1"</code></p>
+<p>Example response:</p>
+<p><code>json
+  {
+      "id": 1,
+      "key": "-----BEGIN PGP PUBLIC KEY BLOCK-----\r\n\r\nxsBNBFVjnlIBCACibzXOLCiZiL2oyzYUaTOCkYnSUhymg3pdbfKtd4mpBa58xKBj\r\nt1pTHVpw3Sk03wmzhM/Ndlt1AV2YhLv++83WKr+gAHFYFiCV/tnY8bx3HqvVoy8O\r\nCfxWhw4QZK7+oYzVmJj8ZJm3ZjOC4pzuegNWlNLCUdZDx9OKlHVXLCX1iUbjdYWa\r\nqKV6tdV8hZolkbyjedQgrpvoWyeSHHpwHF7yk4gNJWMMI5rpcssL7i6mMXb/sDzO\r\nVaAtU5wiVducsOa01InRFf7QSTxoAm6Xy0PGv/k48M6xCALa9nY+BzlOv47jUT57\r\nvilf4Szy9dKD0v9S0mQ+IHB+gNukWrnwtXx5ABEBAAHNFm5hbWUgKGNvbW1lbnQp\r\nIDxlbUBpbD7CwHUEEwECACkFAlVjnlIJEINgJNgv009/AhsDAhkBBgsJCAcDAgYV\r\nCAIJCgsEFgIDAQAAxqMIAFBHuBA8P1v8DtHonIK8Lx2qU23t8Mh68HBIkSjk2H7/\r\noO2cDWCw50jZ9D91PXOOyMPvBWV2IE3tARzCvnNGtzEFRtpIEtZ0cuctxeIF1id5\r\ncrfzdMDsmZyRHAOoZ9VtuD6mzj0ybQWMACb7eIHjZDCee3Slh3TVrLy06YRdq2I4\r\nbjMOPePtK5xnIpHGpAXkB3IONxyITpSLKsA4hCeP7gVvm7r7TuQg1ygiUBlWbBYn\r\niE5ROzqZjG1s7dQNZK/riiU2umGqGuwAb2IPvNiyuGR3cIgRE4llXH/rLuUlspAp\r\no4nlxaz65VucmNbN1aMbDXLJVSqR1DuE00vEsL1AItI=\r\n=XQoy\r\n-----END PGP PUBLIC KEY BLOCK-----",
+      "created_at": "2017-09-05T09:17:46.264Z"
+  }</code></p>
+<h2>Add a GPG key for a given user</h2>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> Self-managed, GitLab Dedicated</p>
+<p>Create new GPG key owned by the specified user. Available only for administrator.</p>
+<p><code>plaintext
+POST /users/:id/gpg_keys</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type    | Required | Description           |
+| --------- | ------- | -------- | --------------------- |
+| <code>id</code>      | integer | yes      | ID of the user    |
+| <code>key_id</code>  | integer | yes      | ID of the GPG key |</p>
+<p>```shell
+curl --data-urlencode "key=-----BEGIN PGP PUBLIC KEY BLOCK-----</p>
+<blockquote>
+<p>xsBNBFVjnlIBCACibzXOLCiZiL2oyzYUaTOCkYnSUhymg3pdbfKtd4mpBa58xKBj
+t1pTHVpw3Sk03wmzhM/Ndlt1AV2YhLv++83WKr+gAHFYFiCV/tnY8bx3HqvVoy8O
+CfxWhw4QZK7+oYzVmJj8ZJm3ZjOC4pzuegNWlNLCUdZDx9OKlHVXLCX1iUbjdYWa
+qKV6tdV8hZolkbyjedQgrpvoWyeSHHpwHF7yk4gNJWMMI5rpcssL7i6mMXb/sDzO
+VaAtU5wiVducsOa01InRFf7QSTxoAm6Xy0PGv/k48M6xCALa9nY+BzlOv47jUT57
+vilf4Szy9dKD0v9S0mQ+IHB+gNukWrnwtXx5ABEBAAHNFm5hbWUgKGNvbW1lbnQp
+IDxlbUBpbD7CwHUEEwECACkFAlVjnlIJEINgJNgv009/AhsDAhkBBgsJCAcDAgYV
+CAIJCgsEFgIDAQAAxqMIAFBHuBA8P1v8DtHonIK8Lx2qU23t8Mh68HBIkSjk2H7/
+oO2cDWCw50jZ9D91PXOOyMPvBWV2IE3tARzCvnNGtzEFRtpIEtZ0cuctxeIF1id5
+crfzdMDsmZyRHAOoZ9VtuD6mzj0ybQWMACb7eIHjZDCee3Slh3TVrLy06YRdq2I4
+bjMOPePtK5xnIpHGpAXkB3IONxyITpSLKsA4hCeP7gVvm7r7TuQg1ygiUBlWbBYn
+iE5ROzqZjG1s7dQNZK/riiU2umGqGuwAb2IPvNiyuGR3cIgRE4llXH/rLuUlspAp
+o4nlxaz65VucmNbN1aMbDXLJVSqR1DuE00vEsL1AItI=
+=XQoy
+-----END PGP PUBLIC KEY BLOCK-----" \
+     --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/users/2/gpg_keys"
+```</p>
+</blockquote>
+<p>Example response:</p>
+<p><code>json
+[
+    {
+        "id": 1,
+        "key": "-----BEGIN PGP PUBLIC KEY BLOCK-----\nxsBNBFVjnlIBCACibzXOLCiZiL2oyzYUaTOCkYnSUhymg3pdbfKtd4mpBa58xKBj\nt1pTHVpw3Sk03wmzhM/Ndlt1AV2YhLv++83WKr+gAHFYFiCV/tnY8bx3HqvVoy8O\nCfxWhw4QZK7+oYzVmJj8ZJm3ZjOC4pzuegNWlNLCUdZDx9OKlHVXLCX1iUbjdYWa\nqKV6tdV8hZolkbyjedQgrpvoWyeSHHpwHF7yk4gNJWMMI5rpcssL7i6mMXb/sDzO\nVaAtU5wiVducsOa01InRFf7QSTxoAm6Xy0PGv/k48M6xCALa9nY+BzlOv47jUT57\nvilf4Szy9dKD0v9S0mQ+IHB+gNukWrnwtXx5ABEBAAHNFm5hbWUgKGNvbW1lbnQp\nIDxlbUBpbD7CwHUEEwECACkFAlVjnlIJEINgJNgv009/AhsDAhkBBgsJCAcDAgYV\nCAIJCgsEFgIDAQAAxqMIAFBHuBA8P1v8DtHonIK8Lx2qU23t8Mh68HBIkSjk2H7/\noO2cDWCw50jZ9D91PXOOyMPvBWV2IE3tARzCvnNGtzEFRtpIEtZ0cuctxeIF1id5\ncrfzdMDsmZyRHAOoZ9VtuD6mzj0ybQWMACb7eIHjZDCee3Slh3TVrLy06YRdq2I4\nbjMOPePtK5xnIpHGpAXkB3IONxyITpSLKsA4hCeP7gVvm7r7TuQg1ygiUBlWbBYn\niE5ROzqZjG1s7dQNZK/riiU2umGqGuwAb2IPvNiyuGR3cIgRE4llXH/rLuUlspAp\no4nlxaz65VucmNbN1aMbDXLJVSqR1DuE00vEsL1AItI=\n=XQoy\n-----END PGP PUBLIC KEY BLOCK-----",
+        "created_at": "2017-09-05T09:17:46.264Z"
+    }
+]</code></p>
+<h2>Delete a GPG key for a given user</h2>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> Self-managed, GitLab Dedicated</p>
+<p>Delete a GPG key owned by a specified user. Available only for administrator.</p>
+<p><code>plaintext
+DELETE /users/:id/gpg_keys/:key_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type    | Required | Description           |
+| --------- | ------- | -------- | --------------------- |
+| <code>id</code>      | integer | yes      | ID of the user    |
+| <code>key_id</code>  | integer | yes      | ID of the GPG key |</p>
+<p><code>shell
+curl --request DELETE --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/users/2/gpg_keys/1"</code></p>
+<h2>List emails</h2>
+<p>Get a list of the authenticated user's emails.</p>
+<p>NOTE:
+This endpoint does not return the primary email address, but <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/25077">issue 25077</a> proposes to change this behavior.</p>
+<p><code>plaintext
+GET /user/emails</code></p>
+<p><code>json
+[
+  {
+    "id": 1,
+    "email": "email@example.com",
+    "confirmed_at" : "2021-03-26T19:07:56.248Z"
+  },
+  {
+    "id": 3,
+    "email": "email2@example.com",
+    "confirmed_at" : null
+  }
+]</code></p>
+<p>Parameters:</p>
+<ul>
+<li><strong>none</strong></li>
+</ul>
+<h2>List emails for user</h2>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> Self-managed, GitLab Dedicated</p>
+<p>Get a list of a specified user's emails. Available only for administrator</p>
+<p>NOTE:
+This endpoint does not return the primary email address, but <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/25077">issue 25077</a> proposes to change this behavior.</p>
+<p><code>plaintext
+GET /users/:id/emails</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type    | Required | Description          |
+|-----------|---------|----------|----------------------|
+| <code>id</code>      | integer | yes      | ID of specified user |</p>
+<h2>Single email</h2>
+<p>Get a single email.</p>
+<p><code>plaintext
+GET /user/emails/:email_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute  | Type    | Required | Description |
+|------------|---------|----------|-------------|
+| <code>email_id</code> | integer | yes      | Email ID    |</p>
+<p><code>json
+{
+  "id": 1,
+  "email": "email@example.com",
+  "confirmed_at" : "2021-03-26T19:07:56.248Z"
+}</code></p>
+<h2>Add email</h2>
+<p>Creates a new email owned by the authenticated user.</p>
+<p><code>plaintext
+POST /user/emails</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type   | Required | Description |
+|-----------|--------|----------|-------------|
+| <code>email</code>   | string | yes      | Email address |</p>
+<p><code>json
+{
+  "id": 4,
+  "email": "email@example.com",
+  "confirmed_at" : "2021-03-26T19:07:56.248Z"
+}</code></p>
+<p>Returns a created email with status <code>201 Created</code> on success. If an
+error occurs a <code>400 Bad Request</code> is returned with a message explaining the error:</p>
+<p><code>json
+{
+  "message": {
+    "email": [
+      "has already been taken"
+    ]
+  }
+}</code></p>
+<h2>Add email for user</h2>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> Self-managed, GitLab Dedicated</p>
+<p>Create new email owned by specified user. Available only for administrator</p>
+<p><code>plaintext
+POST /users/:id/emails</code></p>
+<p>Parameters:</p>
+<p>| Attribute           | Type    | Required | Description                                                               |
+|---------------------|---------|----------|---------------------------------------------------------------------------|
+| <code>id</code>                | string  | yes      | ID of specified user                                                      |
+| <code>email</code>             | string  | yes      | Email address                                                             |
+| <code>skip_confirmation</code> | boolean | no       | Skip confirmation and assume email is verified - true or false (default) |</p>
+<h2>Delete email for current user</h2>
+<p>Deletes the specified email address owned by the authenticated user. Cannot be used to delete a primary email address.</p>
+<p>If the deleted email address is used for any user emails, those user emails are sent to the primary email address instead.</p>
+<p>NOTE:
+Because of <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/438600">known issue</a>, group notifications are still sent to
+the deleted email address.</p>
+<p><code>plaintext
+DELETE /user/emails/:email_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute  | Type    | Required | Description |
+|------------|---------|----------|-------------|
+| <code>email_id</code> | integer | yes      | Email ID    |</p>
+<p>Returns:</p>
+<ul>
+<li><code>204 No Content</code> if the operation was successful.</li>
+<li><code>404</code> if the resource was not found.</li>
+</ul>
+<h2>Delete email for given user</h2>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> Self-managed, GitLab Dedicated</p>
+<p>Prerequisites:</p>
+<ul>
+<li>You must be an administrator of a self-managed GitLab instance.</li>
+</ul>
+<p>Deletes an email address owned by a specified user. This cannot delete a primary email address.</p>
+<p><code>plaintext
+DELETE /users/:id/emails/:email_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute  | Type    | Required | Description          |
+|------------|---------|----------|----------------------|
+| <code>id</code>       | integer | yes      | ID of specified user |
+| <code>email_id</code> | integer | yes      | Email ID             |</p>
+<h2>Block user</h2>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> Self-managed, GitLab Dedicated</p>
+<p>Blocks the specified user. Available only for administrator.</p>
+<p><code>plaintext
+POST /users/:id/block</code></p>
+<p>Parameters:</p>
+<p>| Attribute  | Type    | Required | Description          |
+|------------|---------|----------|----------------------|
+| <code>id</code>       | integer | yes      | ID of specified user |</p>
+<p>Returns:</p>
+<ul>
+<li><code>201 OK</code> on success.</li>
+<li><code>404 User Not Found</code> if user cannot be found.</li>
+<li><code>403 Forbidden</code> when trying to block:</li>
+<li>A user that is blocked through LDAP.</li>
+<li>An internal user.</li>
+</ul>
+<h2>Unblock user</h2>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> Self-managed, GitLab Dedicated</p>
+<p>Unblocks the specified user. Available only for administrator.</p>
+<p><code>plaintext
+POST /users/:id/unblock</code></p>
+<p>Parameters:</p>
+<p>| Attribute  | Type    | Required | Description          |
+|------------|---------|----------|----------------------|
+| <code>id</code>       | integer | yes      | ID of specified user |</p>
+<p>Returns <code>201 OK</code> on success, <code>404 User Not Found</code> is user cannot be found or
+<code>403 Forbidden</code> when trying to unblock a user blocked by LDAP synchronization.</p>
+<h2>Deactivate user</h2>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> Self-managed, GitLab Dedicated</p>
+<blockquote>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/issues/22257">Introduced</a> in GitLab 12.4.</li>
+</ul>
+</blockquote>
+<p>Deactivates the specified user. Available only for administrator.</p>
+<p><code>plaintext
+POST /users/:id/deactivate</code></p>
+<p>Parameters:</p>
+<p>| Attribute  | Type    | Required | Description          |
+|------------|---------|----------|----------------------|
+| <code>id</code>       | integer | yes      | ID of specified user |</p>
+<p>Returns:</p>
+<ul>
+<li><code>201 OK</code> on success.</li>
+<li><code>404 User Not Found</code> if user cannot be found.</li>
+<li><code>403 Forbidden</code> when trying to deactivate a user that is:</li>
+<li>Blocked by administrator or by LDAP synchronization.</li>
+<li>Not <a href="../administration/moderate_users.md#automatically-deactivate-dormant-users">dormant</a>.</li>
+<li>Internal.</li>
+</ul>
+<h2>Activate user</h2>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> Self-managed, GitLab Dedicated</p>
+<blockquote>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/issues/22257">Introduced</a> in GitLab 12.4.</li>
+</ul>
+</blockquote>
+<p>Activates the specified user. Available only for administrator.</p>
+<p><code>plaintext
+POST /users/:id/activate</code></p>
+<p>Parameters:</p>
+<p>| Attribute  | Type    | Required | Description          |
+|------------|---------|----------|----------------------|
+| <code>id</code>       | integer | yes      | ID of specified user |</p>
+<p>Returns:</p>
+<ul>
+<li><code>201 OK</code> on success.</li>
+<li><code>404 User Not Found</code> if the user cannot be found.</li>
+<li><code>403 Forbidden</code> if the user cannot be activated because they are blocked by an administrator or by LDAP synchronization.</li>
+</ul>
+<h2>Ban user</h2>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> Self-managed, GitLab Dedicated</p>
+<blockquote>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/issues/327354">Introduced</a> in GitLab 14.3.</li>
+</ul>
+</blockquote>
+<p>Bans the specified user. Available only for administrator.</p>
+<p><code>plaintext
+POST /users/:id/ban</code></p>
+<p>Parameters:</p>
+<ul>
+<li><code>id</code> (required) - ID of specified user</li>
+</ul>
+<p>Returns:</p>
+<ul>
+<li><code>201 OK</code> on success.</li>
+<li><code>404 User Not Found</code> if user cannot be found.</li>
+<li><code>403 Forbidden</code> when trying to ban a user that is not active.</li>
+</ul>
+<h2>Unban user</h2>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> Self-managed, GitLab Dedicated</p>
+<blockquote>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/issues/327354">Introduced</a> in GitLab 14.3.</li>
+</ul>
+</blockquote>
+<p>Unbans the specified user. Available only for administrator.</p>
+<p><code>plaintext
+POST /users/:id/unban</code></p>
+<p>Parameters:</p>
+<ul>
+<li><code>id</code> (required) - ID of specified user</li>
+</ul>
+<p>Returns:</p>
+<ul>
+<li><code>201 OK</code> on success.</li>
+<li><code>404 User Not Found</code> if the user cannot be found.</li>
+<li><code>403 Forbidden</code> when trying to unban a user that is not banned.</li>
+</ul>
+<h2>Get user contribution events</h2>
+<p>See the <a href="events.md#get-user-contribution-events">Events API documentation</a></p>
+<h2>Get all impersonation tokens of a user</h2>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> Self-managed, GitLab Dedicated</p>
+<p>Requires administrator access.</p>
+<p>It retrieves every impersonation token of the user. Use the pagination
+parameters <code>page</code> and <code>per_page</code> to restrict the list of impersonation tokens.</p>
+<p><code>plaintext
+GET /users/:user_id/impersonation_tokens</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type    | Required | Description                                                |
+| --------- | ------- | -------- | ---------------------------------------------------------- |
+| <code>user_id</code> | integer | yes      | ID of the user                                         |
+| <code>state</code>   | string  | no       | Filter tokens based on state (<code>all</code>, <code>active</code>, <code>inactive</code>) |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/users/42/impersonation_tokens"</code></p>
+<p>Example response:</p>
+<p><code>json
+[
+   {
+      "active" : true,
+      "user_id" : 2,
+      "scopes" : [
+         "api"
+      ],
+      "revoked" : false,
+      "name" : "mytoken",
+      "id" : 2,
+      "created_at" : "2017-03-17T17:18:09.283Z",
+      "impersonation" : true,
+      "expires_at" : "2017-04-04",
+      "last_used_at": "2017-03-24T09:44:21.722Z"
+   },
+   {
+      "active" : false,
+      "user_id" : 2,
+      "scopes" : [
+         "read_user"
+      ],
+      "revoked" : true,
+      "name" : "mytoken2",
+      "created_at" : "2017-03-17T17:19:28.697Z",
+      "id" : 3,
+      "impersonation" : true,
+      "expires_at" : "2017-04-14",
+      "last_used_at": "2017-03-24T09:44:21.722Z"
+   }
+]</code></p>
+<h2>Approve user</h2>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> Self-managed, GitLab Dedicated</p>
+<p>Approves the specified user. Available only for administrators.</p>
+<p><code>plaintext
+POST /users/:id/approve</code></p>
+<p>Parameters:</p>
+<p>| Attribute  | Type    | Required | Description          |
+|------------|---------|----------|----------------------|
+| <code>id</code>       | integer | yes      | ID of specified user |</p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/users/42/approve"</code></p>
+<p>Returns:</p>
+<ul>
+<li><code>201 Created</code> on success.</li>
+<li><code>404 User Not Found</code> if user cannot be found.</li>
+<li><code>403 Forbidden</code> if the user cannot be approved because they are blocked by an administrator or by LDAP synchronization.</li>
+<li><code>409 Conflict</code> if the user has been deactivated.</li>
+</ul>
+<p>Example Responses:</p>
+<p><code>json
+{ "message": "Success" }</code></p>
+<p><code>json
+{ "message": "404 User Not Found" }</code></p>
+<p><code>json
+{ "message": "The user you are trying to approve is not pending approval" }</code></p>
+<h2>Reject user</h2>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> Self-managed, GitLab Dedicated</p>
+<blockquote>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/issues/339925">Introduced</a> in GitLab 14.3.</li>
+</ul>
+</blockquote>
+<p>Rejects specified user that is <a href="../administration/moderate_users.md#users-pending-approval">pending approval</a>. Available only for administrators.</p>
+<p><code>plaintext
+POST /users/:id/reject</code></p>
+<p>Parameters:</p>
+<ul>
+<li><code>id</code> (required) - ID of specified user</li>
+</ul>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/users/42/reject"</code></p>
+<p>Returns:</p>
+<ul>
+<li><code>200 OK</code> on success.</li>
+<li><code>403 Forbidden</code> if not authenticated as an administrator.</li>
+<li><code>404 User Not Found</code> if user cannot be found.</li>
+<li><code>409 Conflict</code> if user is not pending approval.</li>
+</ul>
+<p>Example Responses:</p>
+<p><code>json
+{ "message": "Success" }</code></p>
+<p><code>json
+{ "message": "404 User Not Found" }</code></p>
+<p><code>json
+{ "message": "User does not have a pending request" }</code></p>
+<h2>Get an impersonation token of a user</h2>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> Self-managed, GitLab Dedicated</p>
+<blockquote>
+<p>Requires administrators permissions.</p>
+</blockquote>
+<p>It shows a user's impersonation token.</p>
+<p><code>plaintext
+GET /users/:user_id/impersonation_tokens/:impersonation_token_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute                | Type    | Required | Description                       |
+| ------------------------ | ------- | -------- | --------------------------------- |
+| <code>user_id</code>                | integer | yes      | ID of the user                |
+| <code>impersonation_token_id</code> | integer | yes      | ID of the impersonation token |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/users/42/impersonation_tokens/2"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+   "active" : true,
+   "user_id" : 2,
+   "scopes" : [
+      "api"
+   ],
+   "revoked" : false,
+   "name" : "mytoken",
+   "id" : 2,
+   "created_at" : "2017-03-17T17:18:09.283Z",
+   "impersonation" : true,
+   "expires_at" : "2017-04-04"
+}</code></p>
+<h2>Create an impersonation token</h2>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> Self-managed, GitLab Dedicated</p>
+<p>Requires administrator access. Token values are returned once. Make sure you save it because you can't access
+it again.</p>
+<p>It creates a new impersonation token. Only administrators can do this.
+You are only able to create impersonation tokens to impersonate the user and perform
+both API calls and Git reads and writes. The user can't see these tokens in their profile
+settings page.</p>
+<p><code>plaintext
+POST /users/:user_id/impersonation_tokens</code></p>
+<p>| Attribute    | Type    | Required | Description                                                                 |
+| ------------ | ------- | -------- | --------------------------------------------------------------------------- |
+| <code>user_id</code>    | integer | yes      | ID of the user                                                          |
+| <code>name</code>       | string  | yes      | Name of the impersonation token                                         |
+| <code>expires_at</code> | date    | yes      | Expiration date of the impersonation token in ISO format (<code>YYYY-MM-DD</code>) |
+| <code>scopes</code>     | array   | yes      | Array of scopes of the impersonation token (<code>api</code>, <code>read_user</code>)         |</p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" --data "name=mytoken" --data "expires_at=2017-04-04" \
+     --data "scopes[]=api" "https://gitlab.example.com/api/v4/users/42/impersonation_tokens"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+   "id" : 2,
+   "revoked" : false,
+   "user_id" : 2,
+   "scopes" : [
+      "api"
+   ],
+   "token" : "EsMo-vhKfXGwX9RKrwiy",
+   "active" : true,
+   "impersonation" : true,
+   "name" : "mytoken",
+   "created_at" : "2017-03-17T17:18:09.283Z",
+   "expires_at" : "2017-04-04"
+}</code></p>
+<h2>Revoke an impersonation token</h2>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> Self-managed, GitLab Dedicated</p>
+<p>Requires administrator access.</p>
+<p>It revokes an impersonation token.</p>
+<p><code>plaintext
+DELETE /users/:user_id/impersonation_tokens/:impersonation_token_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute                | Type    | Required | Description                       |
+| ------------------------ | ------- | -------- | --------------------------------- |
+| <code>user_id</code>                | integer | yes      | ID of the user                |
+| <code>impersonation_token_id</code> | integer | yes      | ID of the impersonation token |</p>
+<p><code>shell
+curl --request DELETE --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/users/42/impersonation_tokens/1"</code></p>
+<h2>Create a personal access token</h2>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> Self-managed, GitLab Dedicated</p>
+<blockquote>
+<ul>
+<li>The <code>expires_at</code> attribute default was <a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/120213">introduced</a> in GitLab 16.0.</li>
+</ul>
+</blockquote>
+<p>Use this API to create a new personal access token. Token values are returned once so,
+make sure you save it as you can't access it again. This API can only be used by
+GitLab administrators.</p>
+<p><code>plaintext
+POST /users/:user_id/personal_access_tokens</code></p>
+<p>| Attribute    | Type    | Required | Description                                                                                                              |
+| ------------ | ------- | -------- | ------------------------------------------------------------------------------------------------------------------------ |
+| <code>user_id</code>    | integer | yes      | ID of the user                                                                                                       |
+| <code>name</code>       | string  | yes      | Name of the personal access token                                                                                    |
+| <code>expires_at</code> | date    | no       | Expiration date of the access token in ISO format (<code>YYYY-MM-DD</code>). If no date is set, the expiration is set to the <a href="../user/profile/personal_access_tokens.md#when-personal-access-tokens-expire">maximum allowable lifetime of an access token</a>. |
+| <code>scopes</code>     | array   | yes      | Array of scopes of the personal access token. See <a href="../user/profile/personal_access_tokens.md#personal-access-token-scopes">personal access token scopes</a> for possible values. |</p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" --data "name=mytoken" --data "expires_at=2017-04-04" \
+     --data "scopes[]=api" "https://gitlab.example.com/api/v4/users/42/personal_access_tokens"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+    "id": 3,
+    "name": "mytoken",
+    "revoked": false,
+    "created_at": "2020-10-14T11:58:53.526Z",
+    "scopes": [
+        "api"
+    ],
+    "user_id": 42,
+    "active": true,
+    "expires_at": "2020-12-31",
+    "token": "ggbfKkC4n-Lujy8jwCR2"
+}</code></p>
+<h2>Create a personal access token with limited scopes for the currently authenticated user</h2>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> Self-managed, GitLab Dedicated</p>
+<blockquote>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/131923">Introduced</a> in GitLab 16.5.</li>
+</ul>
+</blockquote>
+<p>Use this API to create a new personal access token for the currently authenticated user.
+For security purposes, the token:</p>
+<ul>
+<li>Is limited to the <a href="../user/profile/personal_access_tokens.md#personal-access-token-scopes"><code>k8s_proxy</code> scope</a>.
+  This scope grants permission to perform Kubernetes API calls using the agent for Kubernetes.</li>
+<li>By default, expires at the end of the day it was created on.</li>
+</ul>
+<p>Token values are returned once, so make sure you save the token as you cannot access
+it again.</p>
+<p><code>plaintext
+POST /user/personal_access_tokens</code></p>
+<p>| Attribute    | Type   | Required | Description                                                                                                                                                                                                                                                                                           |
+|--------------|--------|----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| <code>name</code>       | string | yes      | Name of the personal access token                                                                                                                                                                                                                                                                     |
+| <code>scopes</code>     | array  | yes      | Array of scopes of the personal access token. Possible values are <code>k8s_proxy</code>                                                                                                                                                                                                                         |
+| <code>expires_at</code> | array  | no       | Expiration date of the access token in ISO format (<code>YYYY-MM-DD</code>). If no date is set, the expiration is at the end of the current day. The expiration is subject to the <a href="../user/profile/personal_access_tokens.md#when-personal-access-tokens-expire">maximum allowable lifetime of an access token</a>. |</p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" --data "name=mytoken" --data "scopes[]=k8s_proxy" "https://gitlab.example.com/api/v4/user/personal_access_tokens"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+    "id": 3,
+    "name": "mytoken",
+    "revoked": false,
+    "created_at": "2020-10-14T11:58:53.526Z",
+    "scopes": [
+        "k8s_proxy"
+    ],
+    "user_id": 42,
+    "active": true,
+    "expires_at": "2020-10-15",
+    "token": "&lt;your_new_access_token&gt;"
+}</code></p>
+<h2>Get user activities</h2>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> Self-managed, GitLab Dedicated</p>
+<p>Pre-requisite:</p>
+<ul>
+<li>You must be an administrator to view the activity of users with private profiles.</li>
+</ul>
+<p>Get the last activity date for users with public profiles, sorted from oldest to newest.</p>
+<p>The activities that update the user event timestamps (<code>last_activity_on</code> and <code>current_sign_in_at</code>) are:</p>
+<ul>
+<li>Git HTTP/SSH activities (such as clone, push)</li>
+<li>User logging in to GitLab</li>
+<li>User visiting pages related to dashboards, projects, issues, and merge requests (<a href="https://gitlab.com/gitlab-org/gitlab-foss/-/issues/54947">introduced</a> in GitLab 11.8)</li>
+<li>User using the API</li>
+<li>User using the GraphQL API</li>
+</ul>
+<p>By default, it shows the activity for users with public profiles in the last 6 months, but this can be
+amended by using the <code>from</code> parameter.</p>
+<p><code>plaintext
+GET /user/activities</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type   | Required | Description                                                                                    |
+| --------- | ------ | -------- | ---------------------------------------------------------------------------------------------- |
+| <code>from</code>    | string | no       | Date string in the format <code>YEAR-MM-DD</code>. For example, <code>2016-03-11</code>. Defaults to 6 months ago. |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/user/activities"</code></p>
+<p>Example response:</p>
+<p><code>json
+[
+  {
+    "username": "user1",
+    "last_activity_on": "2015-12-14",
+    "last_activity_at": "2015-12-14"
+  },
+  {
+    "username": "user2",
+    "last_activity_on": "2015-12-15",
+    "last_activity_at": "2015-12-15"
+  },
+  {
+    "username": "user3",
+    "last_activity_on": "2015-12-16",
+    "last_activity_at": "2015-12-16"
+  }
+]</code></p>
+<p><code>last_activity_at</code> is deprecated. Use <code>last_activity_on</code> instead.</p>
+<h2>User memberships</h2>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> Self-managed, GitLab Dedicated</p>
+<blockquote>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/issues/20532">Introduced</a> in GitLab 12.8.</li>
+</ul>
+</blockquote>
+<p>Pre-requisite:</p>
+<ul>
+<li>You must be an administrator.</li>
+</ul>
+<p>Lists all projects and groups a user is a member of.
+It returns the <code>source_id</code>, <code>source_name</code>, <code>source_type</code>, and <code>access_level</code> of a membership.
+Source can be of type <code>Namespace</code> (representing a group) or <code>Project</code>. The response represents only direct memberships. Inherited memberships, for example in subgroups, are not included.
+Access levels are represented by an integer value. For more details, read about the meaning of <a href="access_requests.md#valid-access-levels">access level values</a>.</p>
+<p><code>plaintext
+GET /users/:id/memberships</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type    | Required | Description                                                        |
+| --------- | ------- | -------- | ------------------------------------------------------------------ |
+| <code>id</code>      | integer | yes      | ID of a specified user                                         |
+| <code>type</code>    | string  | no       | Filter memberships by type. Can be either <code>Project</code> or <code>Namespace</code> |</p>
+<p>Returns:</p>
+<ul>
+<li><code>200 OK</code> on success.</li>
+<li><code>404 User Not Found</code> if user can't be found.</li>
+<li><code>403 Forbidden</code> when not requested by an administrator.</li>
+<li><code>400 Bad Request</code> when requested type is not supported.</li>
+</ul>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/users/:user_id/memberships"</code></p>
+<p>Example response:</p>
+<p><code>json
+[
+  {
+    "source_id": 1,
+    "source_name": "Project one",
+    "source_type": "Project",
+    "access_level": "20"
+  },
+  {
+    "source_id": 3,
+    "source_name": "Group three",
+    "source_type": "Namespace",
+    "access_level": "20"
+  }
+]</code></p>
+<h2>Disable two factor authentication</h2>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> Self-managed, GitLab Dedicated</p>
+<blockquote>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/issues/295260">Introduced</a> in GitLab 15.2.</li>
+</ul>
+</blockquote>
+<p>Pre-requisite:</p>
+<ul>
+<li>You must be an administrator.</li>
+</ul>
+<p>Disables two factor authentication (2FA) for the specified user.</p>
+<p>Administrators cannot disable 2FA for their own user account or other administrators using the API. Instead, they can disable an
+administrator's 2FA <a href="../security/two_factor_authentication.md#for-a-single-user">using the Rails console</a>.</p>
+<p><code>plaintext
+PATCH /users/:id/disable_two_factor</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type    | Required | Description           |
+| --------- | ------- | -------- | --------------------- |
+| <code>id</code>      | integer | yes      | ID of the user    |</p>
+<p><code>shell
+curl --request PATCH --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/users/1/disable_two_factor"</code></p>
+<p>Returns:</p>
+<ul>
+<li><code>204 No content</code> on success.</li>
+<li><code>400 Bad request</code> if two factor authentication is not enabled for the specified user.</li>
+<li><code>403 Forbidden</code> if not authenticated as an administrator.</li>
+<li><code>404 User Not Found</code> if user cannot be found.</li>
+</ul>
+<h2>Create a runner linked to a user</h2>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> GitLab.com, Self-managed, GitLab Dedicated</p>
+<p>Creates a runner linked to the current user.</p>
+<p>Prerequisites:</p>
+<ul>
+<li>You must be an administrator or have the Owner role of the target namespace or project.</li>
+<li>For <code>instance_type</code>, you must be an administrator of the GitLab instance.</li>
+<li>For <code>group_type</code> or <code>project_type</code> with an Owner role, an administrator must not have enabled <a href="../administration/settings/continuous_integration.md#restrict-runner-registration-by-all-users-in-an-instance">restrict runner registration</a>.</li>
+<li>An access token with the <code>create_runner</code> scope.</li>
+</ul>
+<p>Be sure to copy or save the <code>token</code> in the response, the value cannot be retrieved again.</p>
+<p><code>plaintext
+POST /user/runners</code></p>
+<p>| Attribute          | Type         | Required | Description                                                                                       |
+|--------------------|--------------|----------|---------------------------------------------------------------------------------------------------|
+| <code>runner_type</code>      | string       | yes      | Specifies the scope of the runner; <code>instance_type</code>, <code>group_type</code>, or <code>project_type</code>.              |
+| <code>group_id</code>         | integer      | no       | The ID of the group that the runner is created in. Required if <code>runner_type</code> is <code>group_type</code>.     |
+| <code>project_id</code>       | integer      | no       | The ID of the project that the runner is created in. Required if <code>runner_type</code> is <code>project_type</code>. |
+| <code>description</code>      | string       | no       | Description of the runner.                                                                        |
+| <code>paused</code>           | boolean      | no       | Specifies if the runner should ignore new jobs.                                                   |
+| <code>locked</code>           | boolean      | no       | Specifies if the runner should be locked for the current project.                                 |
+| <code>run_untagged</code>     | boolean      | no       | Specifies if the runner should handle untagged jobs.                                              |
+| <code>tag_list</code>         | string array | no       | A list of runner tags.                                                                            |
+| <code>access_level</code>     | string       | no       | The access level of the runner; <code>not_protected</code> or <code>ref_protected</code>.                               |
+| <code>maximum_timeout</code>  | integer      | no       | Maximum timeout that limits the amount of time (in seconds) that runners can run jobs.            |
+| <code>maintenance_note</code> | string       | no       | Free-form maintenance notes for the runner (1024 characters).                                     |</p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" --data "runner_type=instance_type" \
+     "https://gitlab.example.com/api/v4/user/runners"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+    "id": 9171,
+    "token": "glrt-kyahzxLaj4Dc1jQf4xjX",
+    "token_expires_at": null
+}</code></p>
+<h2>Upload a current user avatar</h2>
+<blockquote>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/148130">Introduced</a> in GitLab 17.0.</li>
+</ul>
+</blockquote>
+<p>Upload an avatar to current user.</p>
+<p><code>plaintext
+PUT /user/avatar</code></p>
+<p>| Attribute | Type              | Required | Description                                                                                                 |
+|-----------|-------------------|----------|-------------------------------------------------------------------------------------------------------------|
+| <code>avatar</code>  | string            | Yes      | The file to be uploaded. The ideal image size is 192 x 192 pixels. The maximum file size allowed is 200 KiB. |</p>
+<p>To upload an avatar from your file system, use the <code>--form</code> argument. This causes
+cURL to post data using the header <code>Content-Type: multipart/form-data</code>. The
+<code>file=</code> parameter must point to an image file on your file system and be
+preceded by <code>@</code>. For example:</p>
+<p>Example request:</p>
+<p><code>shell
+curl --request PUT --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+     --form "avatar=@avatar.png" \
+     --url "https://gitlab.example.com/api/v4/user/avatar"</code></p>
+<p>Returned object:</p>
+<p>Returns <code>400 Bad Request</code> for file sizes greater than 200 KiB.</p>
+<p>If successful, returns <a href="rest/index.md#status-codes"><code>200</code></a> and the following
+response attributes:</p>
+<p><code>json
+{
+  "avatar_url": "http://gdk.test:3000/uploads/-/system/user/avatar/76/avatar.png",
+}</code></p>
+</body>
+</html>

@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>pipelines API Documentation</title>
+</head>
+<body>
+<hr />
+<p>stage: Verify
+group: Pipeline Execution
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments</p>
+<hr />
+<h1>Pipelines API</h1>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> GitLab.com, Self-managed, GitLab Dedicated</p>
+<h2>Pipelines pagination</h2>
+<p>By default, <code>GET</code> requests return 20 results at a time because the API results
+are paginated.</p>
+<p>Read more on <a href="rest/index.md#pagination">pagination</a>.</p>
+<h2>List project pipelines</h2>
+<blockquote>
+<ul>
+<li><code>iid</code> in response <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/342223">introduced</a> in GitLab 14.6.</li>
+<li><code>name</code> in response <a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/115310">introduced</a> in GitLab 15.11 <a href="../administration/feature_flags.md">with a flag</a> named <code>pipeline_name_in_api</code>. Disabled by default.</li>
+<li><code>name</code> in request <a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/115310">introduced</a> in 15.11 <a href="../administration/feature_flags.md">with a flag</a> named <code>pipeline_name_search</code>. Disabled by default.</li>
+<li><code>name</code> in response <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/398131">generally available</a> in GitLab 16.3. Feature flag <code>pipeline_name_in_api</code> removed.</li>
+<li><code>name</code> in request <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/385864">generally available</a> in GitLab 16.9. Feature flag <code>pipeline_name_search</code> removed.</li>
+<li>Support for returning child pipelines with <code>source</code> set to <code>parent_pipeline</code> <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/39503">introduced</a> in GitLab 17.0.</li>
+</ul>
+</blockquote>
+<p>List pipelines in a project.</p>
+<p>By default, <a href="../ci/pipelines/downstream_pipelines.md#parent-child-pipelines">child pipelines</a>
+are not included in the results. To return child pipelines, set <code>source</code> to <code>parent_pipeline</code>.</p>
+<p><code>plaintext
+GET /projects/:id/pipelines</code></p>
+<p>| Attribute        | Type           | Required | Description |
+|------------------|----------------|----------|-------------|
+| <code>id</code>             | integer/string | Yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> |
+| <code>name</code>           | string         | No       | Return pipelines with the specified name. |
+| <code>order_by</code>       | string         | No       | Order pipelines by <code>id</code>, <code>status</code>, <code>ref</code>, <code>updated_at</code> or <code>user_id</code> (default: <code>id</code>) |
+| <code>ref</code>            | string         | No       | The ref of pipelines |
+| <code>scope</code>          | string         | No       | The scope of pipelines, one of: <code>running</code>, <code>pending</code>, <code>finished</code>, <code>branches</code>, <code>tags</code> |
+| <code>sha</code>            | string         | No       | The SHA of pipelines |
+| <code>sort</code>           | string         | No       | Sort pipelines in <code>asc</code> or <code>desc</code> order (default: <code>desc</code>) |
+| <code>source</code>         | string         | No       | Returns how the pipeline was triggered, one of: <code>api</code>, <code>chat</code>, <code>external</code>, <code>external_pull_request_event</code>, <code>merge_request_event</code>, <code>ondemand_dast_scan</code>, <code>ondemand_dast_validation</code>, <code>parent_pipeline</code>, <code>pipeline</code>, <code>push</code>, <code>schedule</code>, <code>security_orchestration_policy</code>, <code>trigger</code>, <code>web</code>, or <code>webide</code>. |
+| <code>status</code>         | string         | No       | The status of pipelines, one of: <code>created</code>, <code>waiting_for_resource</code>, <code>preparing</code>, <code>pending</code>, <code>running</code>, <code>success</code>, <code>failed</code>, <code>canceled</code>, <code>skipped</code>, <code>manual</code>, <code>scheduled</code> |
+| <code>updated_after</code>  | datetime       | No       | Return pipelines updated after the specified date. Expected in ISO 8601 format (<code>2019-03-15T08:00:00Z</code>). |
+| <code>updated_before</code> | datetime       | No       | Return pipelines updated before the specified date. Expected in ISO 8601 format (<code>2019-03-15T08:00:00Z</code>). |
+| <code>username</code>       | string         | No       | The username of the user who triggered pipelines |
+| <code>yaml_errors</code>    | boolean        | No       | Returns pipelines with invalid configurations |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/1/pipelines"</code></p>
+<p>Example of response</p>
+<p><code>json
+[
+  {
+    "id": 47,
+    "iid": 12,
+    "project_id": 1,
+    "status": "pending",
+    "source": "push",
+    "ref": "new-pipeline",
+    "sha": "a91957a858320c0e17f3a0eca7cfacbff50ea29a",
+    "name": "Build pipeline",
+    "web_url": "https://example.com/foo/bar/pipelines/47",
+    "created_at": "2016-08-11T11:28:34.085Z",
+    "updated_at": "2016-08-11T11:32:35.169Z"
+  },
+  {
+    "id": 48,
+    "iid": 13,
+    "project_id": 1,
+    "status": "pending",
+    "source": "web",
+    "ref": "new-pipeline",
+    "sha": "eb94b618fb5865b26e80fdd8ae531b7a63ad851a",
+    "name": "Build pipeline",
+    "web_url": "https://example.com/foo/bar/pipelines/48",
+    "created_at": "2016-08-12T10:06:04.561Z",
+    "updated_at": "2016-08-12T10:09:56.223Z"
+  }
+]</code></p>
+<h2>Get a single pipeline</h2>
+<blockquote>
+<ul>
+<li><code>iid</code> in response <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/342223">introduced</a> in GitLab 14.6.</li>
+<li><code>name</code> in response <a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/115310">introduced</a> in GitLab 15.11 <a href="../administration/feature_flags.md">with a flag</a> named <code>pipeline_name_in_api</code>. Disabled by default.</li>
+<li><code>name</code> in response <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/398131">generally available</a> in GitLab 16.3. Feature flag <code>pipeline_name_in_api</code> removed.</li>
+</ul>
+</blockquote>
+<p>Get one pipeline from a project.</p>
+<p>You can also get a single <a href="../ci/pipelines/downstream_pipelines.md#parent-child-pipelines">child pipeline</a>.</p>
+<p><code>plaintext
+GET /projects/:id/pipelines/:pipeline_id</code></p>
+<p>| Attribute     | Type           | Required | Description |
+|---------------|----------------|----------|-------------|
+| <code>id</code>          | integer/string | Yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> |
+| <code>pipeline_id</code> | integer        | Yes      | The ID of a pipeline |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/1/pipelines/46"</code></p>
+<p>Example of response</p>
+<p><code>json
+{
+  "id": 46,
+  "iid": 11,
+  "project_id": 1,
+  "name": "Build pipeline",
+  "status": "success",
+  "ref": "main",
+  "sha": "a91957a858320c0e17f3a0eca7cfacbff50ea29a",
+  "before_sha": "a91957a858320c0e17f3a0eca7cfacbff50ea29a",
+  "tag": false,
+  "yaml_errors": null,
+  "user": {
+    "name": "Administrator",
+    "username": "root",
+    "id": 1,
+    "state": "active",
+    "avatar_url": "http://www.gravatar.com/avatar/e64c7d89f26bd1972efa854d13d7dd61?s=80&amp;d=identicon",
+    "web_url": "http://localhost:3000/root"
+  },
+  "created_at": "2016-08-11T11:28:34.085Z",
+  "updated_at": "2016-08-11T11:32:35.169Z",
+  "started_at": null,
+  "finished_at": "2016-08-11T11:32:35.145Z",
+  "committed_at": null,
+  "duration": 123.65,
+  "queued_duration": 0.010,
+  "coverage": "30.0",
+  "web_url": "https://example.com/foo/bar/pipelines/46"
+}</code></p>
+<h3>Get variables of a pipeline</h3>
+<p><code>plaintext
+GET /projects/:id/pipelines/:pipeline_id/variables</code></p>
+<p>| Attribute     | Type           | Required | Description |
+|---------------|----------------|----------|-------------|
+| <code>id</code>          | integer/string | Yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> |
+| <code>pipeline_id</code> | integer        | Yes      | The ID of a pipeline |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/1/pipelines/46/variables"</code></p>
+<p>Example of response</p>
+<p><code>json
+[
+  {
+    "key": "RUN_NIGHTLY_BUILD",
+    "variable_type": "env_var",
+    "value": "true"
+  },
+  {
+    "key": "foo",
+    "value": "bar"
+  }
+]</code></p>
+<h3>Get a pipeline's test report</h3>
+<p>NOTE:
+This API route is part of the <a href="../ci/testing/unit_test_reports.md">Unit test report</a> feature.</p>
+<p><code>plaintext
+GET /projects/:id/pipelines/:pipeline_id/test_report</code></p>
+<p>| Attribute     | Type           | Required | Description |
+|---------------|----------------|----------|-------------|
+| <code>id</code>          | integer/string | Yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> |
+| <code>pipeline_id</code> | integer        | Yes      | The ID of a pipeline |</p>
+<p>Sample request:</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/1/pipelines/46/test_report"</code></p>
+<p>Sample response:</p>
+<p><code>json
+{
+  "total_time": 5,
+  "total_count": 1,
+  "success_count": 1,
+  "failed_count": 0,
+  "skipped_count": 0,
+  "error_count": 0,
+  "test_suites": [
+    {
+      "name": "Secure",
+      "total_time": 5,
+      "total_count": 1,
+      "success_count": 1,
+      "failed_count": 0,
+      "skipped_count": 0,
+      "error_count": 0,
+      "test_cases": [
+        {
+          "status": "success",
+          "name": "Security Reports can create an auto-remediation MR",
+          "classname": "vulnerability_management_spec",
+          "execution_time": 5,
+          "system_output": null,
+          "stack_trace": null
+        }
+      ]
+    }
+  ]
+}</code></p>
+<h3>Get a pipeline's test report summary</h3>
+<p>NOTE:
+This API route is part of the <a href="../ci/testing/unit_test_reports.md">Unit test report</a> feature.</p>
+<p><code>plaintext
+GET /projects/:id/pipelines/:pipeline_id/test_report_summary</code></p>
+<p>| Attribute     | Type           | Required | Description |
+|---------------|----------------|----------|-------------|
+| <code>id</code>          | integer/string | Yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> |
+| <code>pipeline_id</code> | integer        | Yes      | The ID of a pipeline |</p>
+<p>Sample request:</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/1/pipelines/46/test_report_summary"</code></p>
+<p>Sample response:</p>
+<p><code>json
+{
+    "total": {
+        "time": 1904,
+        "count": 3363,
+        "success": 3351,
+        "failed": 0,
+        "skipped": 12,
+        "error": 0,
+        "suite_error": null
+    },
+    "test_suites": [
+        {
+            "name": "test",
+            "total_time": 1904,
+            "total_count": 3363,
+            "success_count": 3351,
+            "failed_count": 0,
+            "skipped_count": 12,
+            "error_count": 0,
+            "build_ids": [
+                66004
+            ],
+            "suite_error": null
+        }
+    ]
+}</code></p>
+<h2>Get the latest pipeline</h2>
+<blockquote>
+<ul>
+<li><code>name</code> in response <a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/115310">introduced</a> in GitLab 15.11 <a href="../administration/feature_flags.md">with a flag</a> named <code>pipeline_name_in_api</code>. Disabled by default.</li>
+<li><code>name</code> in response <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/398131">generally available</a> in GitLab 16.3. Feature flag <code>pipeline_name_in_api</code> removed.</li>
+</ul>
+</blockquote>
+<p>Get the latest pipeline for the most recent commit on a specific ref in a project. If no pipeline exists for the commit, a <code>403</code> status code is returned.</p>
+<p><code>plaintext
+GET /projects/:id/pipelines/latest</code></p>
+<p>| Attribute | Type   | Required | Description |
+|-----------|--------|----------|-------------|
+| <code>ref</code>     | string | No       | The branch or tag to check for the latest pipeline. Defaults to the default branch when not specified. |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/1/pipelines/latest"</code></p>
+<p>Example of response</p>
+<p><code>json
+{
+    "id": 287,
+    "iid": 144,
+    "project_id": 21,
+    "name": "Build pipeline",
+    "sha": "50f0acb76a40e34a4ff304f7347dcc6587da8a14",
+    "ref": "main",
+    "status": "success",
+    "source": "push",
+    "created_at": "2022-09-21T01:05:07.200Z",
+    "updated_at": "2022-09-21T01:05:50.185Z",
+    "web_url": "http://127.0.0.1:3000/test-group/test-project/-/pipelines/287",
+    "before_sha": "8a24fb3c5877a6d0b611ca41fc86edc174593e2b",
+    "tag": false,
+    "yaml_errors": null,
+    "user": {
+        "id": 1,
+        "username": "root",
+        "name": "Administrator",
+        "state": "active",
+        "avatar_url": "https://www.gravatar.com/avatar/e64c7d89f26bd1972efa854d13d7dd61?s=80&amp;d=identicon",
+        "web_url": "http://127.0.0.1:3000/root"
+    },
+    "started_at": "2022-09-21T01:05:14.197Z",
+    "finished_at": "2022-09-21T01:05:50.175Z",
+    "committed_at": null,
+    "duration": 34,
+    "queued_duration": 6,
+    "coverage": null,
+    "detailed_status": {
+        "icon": "status_success",
+        "text": "passed",
+        "label": "passed",
+        "group": "success",
+        "tooltip": "passed",
+        "has_details": false,
+        "details_path": "/test-group/test-project/-/pipelines/287",
+        "illustration": null,
+        "favicon": "/assets/ci_favicons/favicon_status_success-8451333011eee8ce9f2ab25dc487fe24a8758c694827a582f17f42b0a90446a2.png"
+    }
+}</code></p>
+<h2>Create a new pipeline</h2>
+<blockquote>
+<ul>
+<li><code>iid</code> in response <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/342223">introduced</a> in GitLab 14.6.</li>
+</ul>
+</blockquote>
+<p><code>plaintext
+POST /projects/:id/pipeline</code></p>
+<p>| Attribute   | Type           | Required | Description |
+|-------------|----------------|----------|-------------|
+| <code>id</code>        | integer/string | Yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> |
+| <code>ref</code>       | string         | Yes      | The branch or tag to run the pipeline on. |
+| <code>variables</code> | array          | No       | An <a href="rest/index.md#array-of-hashes">array of hashes</a> containing the variables available in the pipeline, matching the structure <code>[{ 'key': 'UPLOAD_TO_S3', 'variable_type': 'file', 'value': 'true' }, {'key': 'TEST', 'value': 'test variable'}]</code>. If <code>variable_type</code> is excluded, it defaults to <code>env_var</code>. |</p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/1/pipeline?ref=main"</code></p>
+<p>Example of response</p>
+<p><code>json
+{
+  "id": 61,
+  "iid": 21,
+  "project_id": 1,
+  "sha": "384c444e840a515b23f21915ee5766b87068a70d",
+  "ref": "main",
+  "status": "pending",
+  "before_sha": "0000000000000000000000000000000000000000",
+  "tag": false,
+  "yaml_errors": null,
+  "user": {
+    "name": "Administrator",
+    "username": "root",
+    "id": 1,
+    "state": "active",
+    "avatar_url": "http://www.gravatar.com/avatar/e64c7d89f26bd1972efa854d13d7dd61?s=80&amp;d=identicon",
+    "web_url": "http://localhost:3000/root"
+  },
+  "created_at": "2016-11-04T09:36:13.747Z",
+  "updated_at": "2016-11-04T09:36:13.977Z",
+  "started_at": null,
+  "finished_at": null,
+  "committed_at": null,
+  "duration": null,
+  "queued_duration": 0.010,
+  "coverage": null,
+  "web_url": "https://example.com/foo/bar/pipelines/61"
+}</code></p>
+<h2>Retry jobs in a pipeline</h2>
+<blockquote>
+<ul>
+<li><code>iid</code> in response <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/342223">introduced</a> in GitLab 14.6.</li>
+</ul>
+</blockquote>
+<p>Retry failed or canceled jobs in a pipeline. If there are no failed or canceled jobs in the pipeline, calling this endpoint has no effect.</p>
+<p><code>plaintext
+POST /projects/:id/pipelines/:pipeline_id/retry</code></p>
+<p>| Attribute     | Type           | Required | Description |
+|---------------|----------------|----------|-------------|
+| <code>id</code>          | integer/string | Yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> |
+| <code>pipeline_id</code> | integer        | Yes      | The ID of a pipeline |</p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/1/pipelines/46/retry"</code></p>
+<p>Response:</p>
+<p><code>json
+{
+  "id": 46,
+  "iid": 11,
+  "project_id": 1,
+  "status": "pending",
+  "ref": "main",
+  "sha": "a91957a858320c0e17f3a0eca7cfacbff50ea29a",
+  "before_sha": "a91957a858320c0e17f3a0eca7cfacbff50ea29a",
+  "tag": false,
+  "yaml_errors": null,
+  "user": {
+    "name": "Administrator",
+    "username": "root",
+    "id": 1,
+    "state": "active",
+    "avatar_url": "http://www.gravatar.com/avatar/e64c7d89f26bd1972efa854d13d7dd61?s=80&amp;d=identicon",
+    "web_url": "http://localhost:3000/root"
+  },
+  "created_at": "2016-08-11T11:28:34.085Z",
+  "updated_at": "2016-08-11T11:32:35.169Z",
+  "started_at": null,
+  "finished_at": "2016-08-11T11:32:35.145Z",
+  "committed_at": null,
+  "duration": null,
+  "queued_duration": 0.010,
+  "coverage": null,
+  "web_url": "https://example.com/foo/bar/pipelines/46"
+}</code></p>
+<h2>Cancel a pipeline's jobs</h2>
+<p><code>plaintext
+POST /projects/:id/pipelines/:pipeline_id/cancel</code></p>
+<p>| Attribute     | Type           | Required | Description |
+|---------------|----------------|----------|-------------|
+| <code>id</code>          | integer/string | Yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> |
+| <code>pipeline_id</code> | integer        | Yes      | The ID of a pipeline |</p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/1/pipelines/46/cancel"</code></p>
+<p>Response:</p>
+<p><code>json
+{
+  "id": 46,
+  "iid": 11,
+  "project_id": 1,
+  "status": "canceled",
+  "ref": "main",
+  "sha": "a91957a858320c0e17f3a0eca7cfacbff50ea29a",
+  "before_sha": "a91957a858320c0e17f3a0eca7cfacbff50ea29a",
+  "tag": false,
+  "yaml_errors": null,
+  "user": {
+    "name": "Administrator",
+    "username": "root",
+    "id": 1,
+    "state": "active",
+    "avatar_url": "http://www.gravatar.com/avatar/e64c7d89f26bd1972efa854d13d7dd61?s=80&amp;d=identicon",
+    "web_url": "http://localhost:3000/root"
+  },
+  "created_at": "2016-08-11T11:28:34.085Z",
+  "updated_at": "2016-08-11T11:32:35.169Z",
+  "started_at": null,
+  "finished_at": "2016-08-11T11:32:35.145Z",
+  "committed_at": null,
+  "duration": null,
+  "queued_duration": 0.010,
+  "coverage": null,
+  "web_url": "https://example.com/foo/bar/pipelines/46"
+}</code></p>
+<h2>Delete a pipeline</h2>
+<p>Deleting a pipeline expires all pipeline caches, and deletes all immediately
+related objects, such as builds, logs, artifacts, and triggers.
+<strong>This action cannot be undone.</strong></p>
+<p>Deleting a pipeline does not automatically delete its
+<a href="../ci/pipelines/downstream_pipelines.md#parent-child-pipelines">child pipelines</a>.
+See the <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/39503">related issue</a>
+for details.</p>
+<p><code>plaintext
+DELETE /projects/:id/pipelines/:pipeline_id</code></p>
+<p>| Attribute     | Type           | Required | Description |
+|---------------|----------------|----------|-------------|
+| <code>id</code>          | integer/string | Yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> |
+| <code>pipeline_id</code> | integer        | Yes      | The ID of a pipeline |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" --request "DELETE" "https://gitlab.example.com/api/v4/projects/1/pipelines/46"</code></p>
+<h2>Update pipeline metadata</h2>
+<p>You can update the metadata of a pipeline. The metadata contains the name of the pipeline.</p>
+<p><code>plaintext
+PUT /projects/:id/pipelines/:pipeline_id/metadata</code></p>
+<p>| Attribute     | Type           | Required | Description |
+|---------------|----------------|----------|-------------|
+| <code>id</code>          | integer/string | Yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> |
+| <code>name</code>        | string         | Yes      | The new name of the pipeline |
+| <code>pipeline_id</code> | integer        | Yes      | The ID of a pipeline |</p>
+<p>Sample request:</p>
+<p><code>shell
+curl --request PUT --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" --data "name=Some new pipeline name" "https://gitlab.example.com/api/v4/projects/1/pipelines/46/metadata"</code></p>
+<p>Sample response:</p>
+<p><code>json
+{
+  "id": 46,
+  "iid": 11,
+  "project_id": 1,
+  "status": "running",
+  "ref": "main",
+  "sha": "a91957a858320c0e17f3a0eca7cfacbff50ea29a",
+  "before_sha": "a91957a858320c0e17f3a0eca7cfacbff50ea29a",
+  "tag": false,
+  "yaml_errors": null,
+  "user": {
+    "name": "Administrator",
+    "username": "root",
+    "id": 1,
+    "state": "active",
+    "avatar_url": "http://www.gravatar.com/avatar/e64c7d89f26bd1972efa854d13d7dd61?s=80&amp;d=identicon",
+    "web_url": "http://localhost:3000/root"
+  },
+  "created_at": "2016-08-11T11:28:34.085Z",
+  "updated_at": "2016-08-11T11:32:35.169Z",
+  "started_at": null,
+  "finished_at": "2016-08-11T11:32:35.145Z",
+  "committed_at": null,
+  "duration": null,
+  "queued_duration": 0.010,
+  "coverage": null,
+  "web_url": "https://example.com/foo/bar/pipelines/46",
+  "name": "Some new pipeline name"
+}</code></p>
+</body>
+</html>

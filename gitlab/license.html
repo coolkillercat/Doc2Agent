@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>license API Documentation</title>
+</head>
+<body>
+<hr />
+<p>stage: Fulfillment
+group: Utilization
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments</p>
+<hr />
+<h1>License</h1>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> Self-managed</p>
+<p>To interact with license endpoints, you need to authenticate yourself as an
+administrator.</p>
+<h2>Retrieve information about the current license</h2>
+<p><code>plaintext
+GET /license</code></p>
+<p><code>json
+{
+  "id": 2,
+  "plan": "gold",
+  "created_at": "2018-02-27T23:21:58.674Z",
+  "starts_at": "2018-01-27",
+  "expires_at": "2022-01-27",
+  "historical_max": 300,
+  "maximum_user_count": 300,
+  "expired": false,
+  "overage": 200,
+  "user_limit": 100,
+  "active_users": 300,
+  "licensee": {
+    "Name": "John Doe1"
+  },
+  "add_ons": {
+    "GitLab_FileLocks": 1,
+    "GitLab_Auditor_User": 1
+  }
+}</code></p>
+<h2>Retrieve information about all licenses</h2>
+<p><code>plaintext
+GET /licenses</code></p>
+<p><code>json
+[
+  {
+    "id": 1,
+    "plan": "silver",
+    "created_at": "2018-02-27T23:21:58.674Z",
+    "starts_at": "2018-01-27",
+    "expires_at": "2022-01-27",
+    "historical_max": 300,
+    "maximum_user_count": 300,
+    "expired": false,
+    "overage": 200,
+    "user_limit": 100,
+    "licensee": {
+      "Name": "John Doe1"
+    },
+    "add_ons": {
+      "GitLab_FileLocks": 1,
+      "GitLab_Auditor_User": 1
+    }
+  },
+  {
+    "id": 2,
+    "plan": "gold",
+    "created_at": "2018-02-27T23:21:58.674Z",
+    "starts_at": "2018-01-27",
+    "expires_at": "2022-01-27",
+    "historical_max": 300,
+    "maximum_user_count": 300,
+    "expired": false,
+    "overage": 200,
+    "user_limit": 100,
+    "licensee": {
+      "Name": "Doe John"
+    },
+    "add_ons": {
+      "GitLab_FileLocks": 1
+    }
+  }
+]</code></p>
+<p>Overage is the difference between the number of billable users and the licensed number of users.
+This is calculated differently depending on whether the license has expired or not.</p>
+<ul>
+<li>If the license has expired, it uses the historical maximum billable user count (<code>historical_max</code>).</li>
+<li>If the license has not expired, it uses the current billable users count.</li>
+</ul>
+<p>Returns:</p>
+<ul>
+<li><code>200 OK</code> with response containing the licenses in JSON format. This is an empty JSON array if there are no licenses.</li>
+<li><code>403 Forbidden</code> if the current user in not permitted to read the licenses.</li>
+</ul>
+<h2>Retrieve information about a single license</h2>
+<p><code>plaintext
+GET /license/:id</code></p>
+<p>Supported attributes:</p>
+<p>| Attribute | Type    | Required | Description               |
+|-----------|---------|----------|---------------------------|
+| <code>id</code>      | integer | yes      | ID of the GitLab license. |</p>
+<p>Returns the following status codes:</p>
+<ul>
+<li><code>200 OK</code>: Response contains the licenses in JSON format.</li>
+<li><code>404 Not Found</code>: The requested license doesn't exist.</li>
+<li><code>403 Forbidden</code>: The current user is not permitted to read the licenses.</li>
+</ul>
+<p>Example request:</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/license/:id"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "id": 1,
+  "plan": "premium",
+  "created_at": "2018-02-27T23:21:58.674Z",
+  "starts_at": "2018-01-27",
+  "expires_at": "2022-01-27",
+  "historical_max": 300,
+  "maximum_user_count": 300,
+  "expired": false,
+  "overage": 200,
+  "user_limit": 100,
+  "active_users": 50,
+  "licensee": {
+    "Name": "John Doe1"
+  },
+  "add_ons": {
+    "GitLab_FileLocks": 1,
+    "GitLab_Auditor_User": 1
+  }
+}</code></p>
+<h2>Add a new license</h2>
+<p><code>plaintext
+POST /license</code></p>
+<p>| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| <code>license</code> | string | yes | The license string |</p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/license?license=eyJkYXRhIjoiMHM5Q...S01Udz09XG4ifQ=="</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "id": 1,
+  "plan": "gold",
+  "created_at": "2018-02-27T23:21:58.674Z",
+  "starts_at": "2018-01-27",
+  "expires_at": "2022-01-27",
+  "historical_max": 300,
+  "maximum_user_count": 300,
+  "expired": false,
+  "overage": 200,
+  "user_limit": 100,
+  "active_users": 300,
+  "licensee": {
+    "Name": "John Doe1"
+  },
+  "add_ons": {
+    "GitLab_FileLocks": 1,
+    "GitLab_Auditor_User": 1
+  }
+}</code></p>
+<p>Returns:</p>
+<ul>
+<li><code>201 Created</code> if the license is successfully added.</li>
+<li><code>400 Bad Request</code> if the license couldn't be added, with an error message explaining the reason.</li>
+</ul>
+<h2>Delete a license</h2>
+<p><code>plaintext
+DELETE /license/:id</code></p>
+<p>| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| <code>id</code> | integer | yes | ID of the GitLab license. |</p>
+<p><code>shell
+curl --request DELETE --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/license/:id"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "id": 2,
+  "plan": "gold",
+  "created_at": "2018-02-27T23:21:58.674Z",
+  "starts_at": "2018-01-27",
+  "expires_at": "2022-01-27",
+  "historical_max": 300,
+  "maximum_user_count": 300,
+  "expired": false,
+  "overage": 200,
+  "user_limit": 100,
+  "licensee": {
+    "Name": "John Doe"
+  },
+  "add_ons": {
+    "GitLab_FileLocks": 1,
+    "GitLab_Auditor_User": 1
+  }
+}</code></p>
+<p>Returns:</p>
+<ul>
+<li><code>204 No Content</code> if the license is successfully deleted.</li>
+<li><code>403 Forbidden</code> if the current user in not permitted to delete the license.</li>
+<li><code>404 Not Found</code> if the license to delete could not be found.</li>
+</ul>
+<h2>Trigger recalculation of billable users</h2>
+<p><code>plaintext
+PUT /license/:id/refresh_billable_users</code></p>
+<p>| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| <code>id</code> | integer | yes | ID of the GitLab license. |</p>
+<p><code>shell
+curl --request PUT --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/license/:id/refresh_billable_users"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "success": true
+}</code></p>
+<p>Returns:</p>
+<ul>
+<li><code>202 Accepted</code> if the request to refresh billable users is successfully initiated.</li>
+<li><code>403 Forbidden</code> if the current user in not permitted to refresh billable users for the license.</li>
+<li><code>404 Not Found</code> if the license could not be found.</li>
+</ul>
+<p>| Attribute                    | Type          | Description                               |
+|:-----------------------------|:--------------|:------------------------------------------|
+| <code>success</code>                    | boolean       | Whether the request succeeded or not.     |</p>
+<h2>Retrieve usage information about the current license</h2>
+<p>Gets usage information about the current license and exports it in CSV format.</p>
+<p><code>plaintext
+GET /license/usage_export.csv</code></p>
+<p><code>shell
+curl --request PUT --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/license/usage_export.csv"</code></p>
+<p>Example response:</p>
+<p>```csv
+License Key,"eyJkYXRhIjoib1EwRWZXU3RobDY2Yl=
+"
+Email,user@example.com
+License Start Date,2023-02-22
+License End Date,2024-02-22
+Company,Example Corp.
+Generated At,2023-09-05 06:56:23
+"",""
+Date,Billable User Count
+2023-07-11 12:00:05,21
+2023-07-13 12:00:06,21
+2023-08-16 12:00:02,21
+2023-09-04 12:00:12,21</p>
+<p>```</p>
+<p>Returns:</p>
+<ul>
+<li><code>202 Accepted</code> if the request to refresh billable users is successfully initiated.</li>
+<li><code>403 Forbidden</code> if the current user in not permitted to refresh billable users for the license.</li>
+<li><code>404 Not Found</code> if the license could not be found.</li>
+</ul>
+</body>
+</html>

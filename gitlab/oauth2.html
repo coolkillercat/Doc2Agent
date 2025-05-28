@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>oauth2 API Documentation</title>
+</head>
+<body>
+<hr />
+<p>stage: Govern
+group: Authentication
+description: Third-party authorization to GitLab.
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments</p>
+<hr />
+<h1>OAuth 2.0 identity provider API</h1>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> GitLab.com, Self-managed, GitLab Dedicated</p>
+<p>GitLab provides an API to allow third-party services to access GitLab resources on a user's behalf
+with the <a href="https://oauth.net/2/">OAuth 2.0</a> protocol.</p>
+<p>To configure GitLab for this, see
+<a href="../integration/oauth_provider.md">Configure GitLab as an OAuth 2.0 authentication identity provider</a>.</p>
+<p>This functionality is based on the <a href="https://github.com/doorkeeper-gem/doorkeeper">doorkeeper Ruby gem</a>.</p>
+<h2>Cross-origin resource sharing</h2>
+<blockquote>
+<ul>
+<li>CORS preflight request support <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/364680">introduced</a> in GitLab 15.1.</li>
+</ul>
+</blockquote>
+<p>Many <code>/oauth</code> endpoints support cross-origin resource sharing (CORS). From GitLab 15.1, the following endpoints also
+support <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS">CORS preflight requests</a>:</p>
+<ul>
+<li><code>/oauth/revoke</code></li>
+<li><code>/oauth/token</code></li>
+<li><code>/oauth/userinfo</code></li>
+</ul>
+<p>Only certain headers can be used for preflight requests:</p>
+<ul>
+<li>The headers listed for <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS#simple_requests">simple requests</a>.</li>
+<li>The <code>Authorization</code> header.</li>
+</ul>
+<p>For example, the <code>X-Requested-With</code> header can't be used for preflight requests.</p>
+<h2>Supported OAuth 2.0 flows</h2>
+<p>GitLab supports the following authorization flows:</p>
+<ul>
+<li><strong>Authorization code with <a href="https://www.rfc-editor.org/rfc/rfc7636">Proof Key for Code Exchange (PKCE)</a>:</strong>
+  Most secure. Without PKCE, you'd have to include client secrets on mobile clients,
+  and is recommended for both client and server apps.</li>
+<li><strong>Authorization code:</strong> Secure and common flow. Recommended option for secure
+  server-side apps.</li>
+<li><strong>Resource owner password credentials:</strong> To be used <strong>only</strong> for securely
+  hosted, first-party services. GitLab recommends against use of this flow.</li>
+</ul>
+<p>Device Authorization Grant is not supported. <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/332682">Issue 332682</a> proposes to add support.</p>
+<p>The draft specification for <a href="https://oauth.net/2.1/">OAuth 2.1</a> specifically omits both the
+Implicit grant and Resource Owner Password Credentials flows.</p>
+<p>Refer to the <a href="https://www.rfc-editor.org/rfc/rfc6749">OAuth RFC</a> to find out
+how all those flows work and pick the right one for your use case.</p>
+<p>Authorization code (with or without PKCE) flow requires <code>application</code> to be
+registered first via the <code>/user_settings/applications</code> page in your user's account.
+During registration, by enabling proper scopes, you can limit the range of
+resources which the <code>application</code> can access. Upon creation, you obtain the
+<code>application</code> credentials: <em>Application ID</em> and <em>Client Secret</em>. The <em>Client Secret</em>
+<strong>must be kept secure</strong>. It is also advantageous to keep the <em>Application ID</em>
+secret when your application architecture allows.</p>
+<p>For a list of scopes in GitLab, see <a href="../integration/oauth_provider.md#view-all-authorized-applications">the provider documentation</a>.</p>
+<h3>Prevent CSRF attacks</h3>
+<p>To <a href="https://datatracker.ietf.org/doc/html/draft-ietf-oauth-security-topics-13#section-3.1">protect redirect-based flows</a>,
+the OAuth specification recommends the use of "One-time use CSRF tokens carried in the state
+parameter, which are securely bound to the user agent", with each request to the
+<code>/oauth/authorize</code> endpoint. This can prevent
+<a href="https://wiki.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)">CSRF attacks</a>.</p>
+<h3>Use HTTPS in production</h3>
+<p>For production, use HTTPS for your <code>redirect_uri</code>.
+For development, GitLab allows insecure HTTP redirect URIs.</p>
+<p>As OAuth 2.0 bases its security entirely on the transport layer, you should not use unprotected
+URIs. For more information, see the <a href="https://www.rfc-editor.org/rfc/rfc6749#section-3.1.2.1">OAuth 2.0 RFC</a>
+and the <a href="https://www.rfc-editor.org/rfc/rfc6819#section-4.4.2.1">OAuth 2.0 Threat Model RFC</a>.</p>
+<p>In the following sections you can find detailed instructions on how to obtain
+authorization with each flow.</p>
+<h3>Authorization code with Proof Key for Code Exchange (PKCE)</h3>
+<p>The <a href="https://www.rfc-editor.org/rfc/rfc7636#section-1.1">PKCE RFC</a> includes a
+detailed flow description, from authorization request through access token.
+The following steps describe our implementation of the flow.</p>
+<p>The Authorization code with PKCE flow, PKCE for short, makes it possible to securely perform
+the OAuth exchange of client credentials for access tokens on public clients without
+requiring access to the <em>Client Secret</em> at all. This makes the PKCE flow advantageous
+for single page JavaScript applications or other client side apps where keeping secrets
+from the user is a technical impossibility.</p>
+<p>Before starting the flow, generate the <code>STATE</code>, the <code>CODE_VERIFIER</code> and the <code>CODE_CHALLENGE</code>.</p>
+<ul>
+<li>The <code>STATE</code> a value that can't be predicted used by the client to maintain
+  state between the request and callback. It should also be used as a CSRF token.</li>
+<li>The <code>CODE_VERIFIER</code> is a random string, between 43 and 128 characters in length,
+  which use the characters <code>A-Z</code>, <code>a-z</code>, <code>0-9</code>, <code>-</code>, <code>.</code>, <code>_</code>, and <code>~</code>.</li>
+<li>The <code>CODE_CHALLENGE</code> is an URL-safe base64-encoded string of the SHA256 hash of the
+  <code>CODE_VERIFIER</code></li>
+<li>The SHA256 hash must be in binary format before encoding.</li>
+<li>In Ruby, you can set that up with <code>Base64.urlsafe_encode64(Digest::SHA256.digest(CODE_VERIFIER), padding: false)</code>.</li>
+<li>
+<p>For reference, a <code>CODE_VERIFIER</code> string of <code>ks02i3jdikdo2k0dkfodf3m39rjfjsdk0wk349rj3jrhf</code> when hashed
+    and encoded using the Ruby snippet above produces a <code>CODE_CHALLENGE</code> string
+    of <code>2i0WFA-0AerkjQm4X4oDEhqA17QIAKNjXpagHBXmO_U</code>.</p>
+</li>
+<li>
+<p>Request authorization code. To do that, you should redirect the user to the
+   <code>/oauth/authorize</code> page with the following query parameters:</p>
+</li>
+</ul>
+<p><code>plaintext
+   https://gitlab.example.com/oauth/authorize?client_id=APP_ID&amp;redirect_uri=REDIRECT_URI&amp;response_type=code&amp;state=STATE&amp;scope=REQUESTED_SCOPES&amp;code_challenge=CODE_CHALLENGE&amp;code_challenge_method=S256</code></p>
+<p>This page asks the user to approve the request from the app to access their
+   account based on the scopes specified in <code>REQUESTED_SCOPES</code>. The user is then
+   redirected back to the specified <code>REDIRECT_URI</code>. The <a href="../integration/oauth_provider.md#view-all-authorized-applications">scope parameter</a>
+   is a space-separated list of scopes associated with the user.
+   For example,<code>scope=read_user+profile</code> requests the <code>read_user</code> and <code>profile</code> scopes.
+   The redirect includes the authorization <code>code</code>, for example:</p>
+<p><code>plaintext
+   https://example.com/oauth/redirect?code=1234567890&amp;state=STATE</code></p>
+<ol>
+<li>With the authorization <code>code</code> returned from the previous request (denoted as
+   <code>RETURNED_CODE</code> in the following example), you can request an <code>access_token</code>, with
+   any HTTP client. The following example uses Ruby's <code>rest-client</code>:</li>
+</ol>
+<p><code>ruby
+   parameters = 'client_id=APP_ID&amp;code=RETURNED_CODE&amp;grant_type=authorization_code&amp;redirect_uri=REDIRECT_URI&amp;code_verifier=CODE_VERIFIER'
+   RestClient.post 'https://gitlab.example.com/oauth/token', parameters</code></p>
+<p>Example response:</p>
+<p><code>json
+   {
+    "access_token": "de6780bc506a0446309bd9362820ba8aed28aa506c71eedbe1c5c4f9dd350e54",
+    "token_type": "bearer",
+    "expires_in": 7200,
+    "refresh_token": "8257e65c97202ed1726cf9571600918f3bffb2544b26e00a61df9897668c33a1",
+    "created_at": 1607635748
+   }</code></p>
+<ol>
+<li>To retrieve a new <code>access_token</code>, use the <code>refresh_token</code> parameter. Refresh tokens may
+   be used even after the <code>access_token</code> itself expires. This request:</li>
+<li>Invalidates the existing <code>access_token</code> and <code>refresh_token</code>.</li>
+<li>Sends new tokens in the response.</li>
+</ol>
+<p><code>ruby
+     parameters = 'client_id=APP_ID&amp;refresh_token=REFRESH_TOKEN&amp;grant_type=refresh_token&amp;redirect_uri=REDIRECT_URI&amp;code_verifier=CODE_VERIFIER'
+     RestClient.post 'https://gitlab.example.com/oauth/token', parameters</code></p>
+<p>Example response:</p>
+<p><code>json
+   {
+     "access_token": "c97d1fe52119f38c7f67f0a14db68d60caa35ddc86fd12401718b649dcfa9c68",
+     "token_type": "bearer",
+     "expires_in": 7200,
+     "refresh_token": "803c1fd487fec35562c205dac93e9d8e08f9d3652a24079d704df3039df1158f",
+     "created_at": 1628711391
+   }</code></p>
+<p>NOTE:
+The <code>redirect_uri</code> must match the <code>redirect_uri</code> used in the original
+authorization request.</p>
+<p>You can now make requests to the API with the access token.</p>
+<h3>Authorization code flow</h3>
+<p>NOTE:
+Check the <a href="https://www.rfc-editor.org/rfc/rfc6749#section-4.1">RFC spec</a> for a
+detailed flow description.</p>
+<p>The authorization code flow is essentially the same as
+<a href="#authorization-code-with-proof-key-for-code-exchange-pkce">authorization code flow with PKCE</a>,</p>
+<p>Before starting the flow, generate the <code>STATE</code>. It is a value that can't be predicted
+used by the client to maintain state between the request and callback. It should also
+be used as a CSRF token.</p>
+<ol>
+<li>Request authorization code. To do that, you should redirect the user to the
+   <code>/oauth/authorize</code> page with the following query parameters:</li>
+</ol>
+<p><code>plaintext
+   https://gitlab.example.com/oauth/authorize?client_id=APP_ID&amp;redirect_uri=REDIRECT_URI&amp;response_type=code&amp;state=STATE&amp;scope=REQUESTED_SCOPES</code></p>
+<p>This page asks the user to approve the request from the app to access their
+   account based on the scopes specified in <code>REQUESTED_SCOPES</code>. The user is then
+   redirected back to the specified <code>REDIRECT_URI</code>. The <a href="../integration/oauth_provider.md#view-all-authorized-applications">scope parameter</a>
+   is a space-separated list of scopes associated with the user.
+   For example,<code>scope=read_user+profile</code> requests the <code>read_user</code> and <code>profile</code> scopes.
+   The redirect includes the authorization <code>code</code>, for example:</p>
+<p><code>plaintext
+   https://example.com/oauth/redirect?code=1234567890&amp;state=STATE</code></p>
+<ol>
+<li>With the authorization <code>code</code> returned from the previous request (shown as
+   <code>RETURNED_CODE</code> in the following example), you can request an <code>access_token</code>, with
+   any HTTP client. The following example uses Ruby's <code>rest-client</code>:</li>
+</ol>
+<p><code>ruby
+   parameters = 'client_id=APP_ID&amp;client_secret=APP_SECRET&amp;code=RETURNED_CODE&amp;grant_type=authorization_code&amp;redirect_uri=REDIRECT_URI'
+   RestClient.post 'https://gitlab.example.com/oauth/token', parameters</code></p>
+<p>Example response:</p>
+<p><code>json
+   {
+    "access_token": "de6780bc506a0446309bd9362820ba8aed28aa506c71eedbe1c5c4f9dd350e54",
+    "token_type": "bearer",
+    "expires_in": 7200,
+    "refresh_token": "8257e65c97202ed1726cf9571600918f3bffb2544b26e00a61df9897668c33a1",
+    "created_at": 1607635748
+   }</code></p>
+<ol>
+<li>To retrieve a new <code>access_token</code>, use the <code>refresh_token</code> parameter. Refresh tokens may
+   be used even after the <code>access_token</code> itself expires. This request:</li>
+<li>Invalidates the existing <code>access_token</code> and <code>refresh_token</code>.</li>
+<li>Sends new tokens in the response.</li>
+</ol>
+<p><code>ruby
+     parameters = 'client_id=APP_ID&amp;client_secret=APP_SECRET&amp;refresh_token=REFRESH_TOKEN&amp;grant_type=refresh_token&amp;redirect_uri=REDIRECT_URI'
+     RestClient.post 'https://gitlab.example.com/oauth/token', parameters</code></p>
+<p>Example response:</p>
+<p><code>json
+   {
+     "access_token": "c97d1fe52119f38c7f67f0a14db68d60caa35ddc86fd12401718b649dcfa9c68",
+     "token_type": "bearer",
+     "expires_in": 7200,
+     "refresh_token": "803c1fd487fec35562c205dac93e9d8e08f9d3652a24079d704df3039df1158f",
+     "created_at": 1628711391
+   }</code></p>
+<p>NOTE:
+The <code>redirect_uri</code> must match the <code>redirect_uri</code> used in the original
+authorization request.</p>
+<p>You can now make requests to the API with the access token returned.</p>
+<h3>Resource owner password credentials flow</h3>
+<p>NOTE:
+Check the <a href="https://www.rfc-editor.org/rfc/rfc6749#section-4.3">RFC spec</a> for a
+detailed flow description.</p>
+<p>NOTE:
+The Resource Owner Password Credentials is disabled for users with
+<a href="../user/profile/account/two_factor_authentication.md">two-factor authentication</a> turned on.
+These users can access the API using <a href="../user/profile/personal_access_tokens.md">personal access tokens</a>
+instead.</p>
+<p>NOTE:
+Ensure the <a href="../administration/settings/sign_in_restrictions.md#password-authentication-enabled"><strong>Allow password authentication for Git over HTTP(S)</strong></a>
+checkbox is selected for the GitLab instance to support the password credentials flow.</p>
+<p>In this flow, a token is requested in exchange for the resource owner credentials
+(username and password).</p>
+<p>The credentials should only be used when:</p>
+<ul>
+<li>There is a high degree of trust between the resource owner and the client. For
+  example, the client is part of the device operating system or a highly
+  privileged application.</li>
+<li>Other authorization grant types are not available (such as an authorization code).</li>
+</ul>
+<p>WARNING:
+Never store the user's credentials and only use this grant type when your client
+is deployed to a trusted environment, in 99% of cases
+<a href="../user/profile/personal_access_tokens.md">personal access tokens</a> are a better
+choice.</p>
+<p>Even though this grant type requires direct client access to the resource owner
+credentials, the resource owner credentials are used for a single request and
+are exchanged for an access token. This grant type can eliminate the need for
+the client to store the resource owner credentials for future use, by exchanging
+the credentials with a long-lived access token or refresh token.</p>
+<p>To request an access token, you must make a POST request to <code>/oauth/token</code> with
+the following parameters:</p>
+<p><code>json
+{
+  "grant_type"    : "password",
+  "username"      : "user@example.com",
+  "password"      : "secret"
+}</code></p>
+<p>Example cURL request:</p>
+<p><code>shell
+echo 'grant_type=password&amp;username=&lt;your_username&gt;&amp;password=&lt;your_password&gt;' &gt; auth.txt
+curl --data "@auth.txt" --request POST "https://gitlab.example.com/oauth/token"</code></p>
+<p>You can also use this grant flow with registered OAuth applications, by using
+HTTP Basic Authentication with the application's <code>client_id</code> and <code>client_secret</code>:</p>
+<p><code>shell
+echo 'grant_type=password&amp;username=&lt;your_username&gt;&amp;password=&lt;your_password&gt;' &gt; auth.txt
+curl --data "@auth.txt" --user client_id:client_secret \
+     --request POST "https://gitlab.example.com/oauth/token"</code></p>
+<p>Then, you receive a response containing the access token:</p>
+<p><code>json
+{
+  "access_token": "1f0af717251950dbd4d73154fdf0a474a5c5119adad999683f5b450c460726aa",
+  "token_type": "bearer",
+  "expires_in": 7200
+}</code></p>
+<p>By default, the scope of the access token is <code>api</code>, which provides complete read/write access.</p>
+<p>For testing, you can use the <code>oauth2</code> Ruby gem:</p>
+<p><code>ruby
+client = OAuth2::Client.new('the_client_id', 'the_client_secret', :site =&gt; "https://example.com")
+access_token = client.password.get_token('user@example.com', 'secret')
+puts access_token.token</code></p>
+<h2>Access GitLab API with <code>access token</code></h2>
+<p>The <code>access token</code> allows you to make requests to the API on behalf of a user.
+You can pass the token either as GET parameter:</p>
+<p><code>plaintext
+GET https://gitlab.example.com/api/v4/user?access_token=OAUTH-TOKEN</code></p>
+<p>or you can put the token to the Authorization header:</p>
+<p><code>shell
+curl --header "Authorization: Bearer OAUTH-TOKEN" "https://gitlab.example.com/api/v4/user"</code></p>
+<h2>Access Git over HTTPS with <code>access token</code></h2>
+<p>A token with <a href="../integration/oauth_provider.md#view-all-authorized-applications">scope</a>
+<code>read_repository</code> or <code>write_repository</code> can access Git over HTTPS. Use the token as the password.
+The username must be <code>oauth2</code>, not your username:</p>
+<p><code>plaintext
+https://oauth2:&lt;your_access_token&gt;@gitlab.example.com/project_path/project_name.git</code></p>
+<p>Alternatively, you can use a <a href="../user/profile/account/two_factor_authentication.md#oauth-credential-helpers">Git credential helper</a>
+to authenticate to GitLab with OAuth. This handles OAuth token refresh
+automatically.</p>
+<h2>Retrieve the token information</h2>
+<p>To verify the details of a token, use the <code>token/info</code> endpoint provided by the
+Doorkeeper gem. For more information, see
+<a href="https://github.com/doorkeeper-gem/doorkeeper/wiki/API-endpoint-descriptions-and-examples#get----oauthtokeninfo"><code>/oauth/token/info</code></a>.</p>
+<p>You must supply the access token, either:</p>
+<ul>
+<li>As a parameter:</li>
+</ul>
+<p><code>plaintext
+   GET https://gitlab.example.com/oauth/token/info?access_token=&lt;OAUTH-TOKEN&gt;</code></p>
+<ul>
+<li>In the Authorization header:</li>
+</ul>
+<p><code>shell
+   curl --header "Authorization: Bearer &lt;OAUTH-TOKEN&gt;" "https://gitlab.example.com/oauth/token/info"</code></p>
+<p>The following is an example response:</p>
+<p><code>json
+{
+    "resource_owner_id": 1,
+    "scope": ["api"],
+    "expires_in": null,
+    "application": {"uid": "1cb242f495280beb4291e64bee2a17f330902e499882fe8e1e2aa875519cab33"},
+    "created_at": 1575890427
+}</code></p>
+<h3>Deprecated fields</h3>
+<p>The fields <code>scopes</code> and <code>expires_in_seconds</code> are included in the response but are now deprecated. The <code>scopes</code> field is an alias for <code>scope</code>, and the <code>expires_in_seconds</code> field is an alias for <code>expires_in</code>. For more information, see <a href="https://github.com/doorkeeper-gem/doorkeeper/wiki/Migration-from-old-versions#api-changes-5">Doorkeeper API changes</a>.</p>
+<h2>Revoke a token</h2>
+<p>To revoke a token, use the <code>revoke</code> endpoint. The API returns a 200 response code and an empty
+JSON hash to indicate success.</p>
+<p><code>ruby
+parameters = 'client_id=APP_ID&amp;client_secret=APP_SECRET&amp;token=TOKEN'
+RestClient.post 'https://gitlab.example.com/oauth/revoke', parameters</code></p>
+<h2>OAuth 2.0 tokens and GitLab registries</h2>
+<p>Standard OAuth 2.0 tokens support different degrees of access to GitLab
+registries, as they:</p>
+<ul>
+<li>Do not allow users to authenticate to:</li>
+<li>The GitLab <a href="../user/packages/container_registry/authenticate_with_container_registry.md">container registry</a>.</li>
+<li>Packages listed in the GitLab <a href="../user/packages/package_registry/index.md">Package registry</a>.</li>
+<li>Allow users to get, list, and delete registries through
+  the <a href="container_registry.md">container registry API</a>.</li>
+</ul>
+</body>
+</html>
