@@ -6,8 +6,10 @@ def address_lookup(osm_ids=None, format='jsonv2', json_callback='unset', address
     api_url = f"https://nominatim.openstreetmap.org/lookup?osm_ids=[N|W|R]{value},…,…,&{params}"
     querystring = {'osm_ids': osm_ids, 'format': format, 'json_callback': json_callback, 'addressdetails': addressdetails, 'extratags': extratags, 'namedetails': namedetails, 'accept_language': accept_language, 'polygon_geojson': polygon_geojson, 'polygon_kml': polygon_kml, 'polygon_svg': polygon_svg, 'polygon_text': polygon_text, 'polygon_threshold': polygon_threshold, 'email': email, 'debug': debug, }
     assert osm_ids is not None, 'Missing required parameter: osm_ids'
-    
-    response = requests.get(url=api_url, params=querystring, timeout=50, verify=False)
+    headers = {
+        'User-Agent': 'Nominatim-API-Client/1.0',
+    }
+    response = requests.get(url=api_url, params=querystring, headers=headers, timeout=50, verify=False)
     if response.status_code != 200:
         response2 = requests.get(url=api_url, timeout=50) # in case API can't handle redundant params
         response = response2
