@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>snippets API Documentation</title>
+</head>
+<body>
+<hr />
+<p>stage: Create
+group: Source Code
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments</p>
+<hr />
+<h1>Snippets API</h1>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> GitLab.com, Self-managed, GitLab Dedicated</p>
+<p>Snippets API operates on <a href="../user/snippets.md">snippets</a>. Related APIs exist for
+<a href="project_snippets.md">project snippets</a> and
+<a href="snippet_repository_storage_moves.md">moving snippets between storages</a>.</p>
+<h2>Snippet visibility level</h2>
+<p>Snippets in GitLab can be either private, internal, or public.
+You can set it with the <code>visibility</code> field in the snippet.</p>
+<p>Valid values for snippet visibility levels are:</p>
+<p>| Visibility | Description                                         |
+|:-----------|:----------------------------------------------------|
+| <code>private</code>  | Snippet is visible only to the snippet creator.     |
+| <code>internal</code> | Snippet is visible for any authenticated user except <a href="../administration/external_users.md">external users</a>.          |
+| <code>public</code>   | Snippet can be accessed without any authentication. |</p>
+<h2>List all snippets for current user</h2>
+<p>Get a list of the current user's snippets.</p>
+<p><code>plaintext
+GET /snippets</code></p>
+<p>Parameters:</p>
+<p>| Attribute        | Type     | Required | Description                                                                                         |
+|------------------|----------|----------|-----------------------------------------------------------------------------------------------------|
+| <code>per_page</code>       | integer  | no       | Number of snippets to return per page.                                                              |
+| <code>page</code>           | integer  | no       | Page to retrieve.                                                                                   |
+| <code>created_after</code>  | datetime | no       | Return snippets created after the given time. Expected in ISO 8601 format (<code>2019-03-15T08:00:00Z</code>)  |
+| <code>created_before</code> | datetime | no       | Return snippets created before the given time. Expected in ISO 8601 format (<code>2019-03-15T08:00:00Z</code>) |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/snippets"</code></p>
+<p>Example response:</p>
+<p><code>json
+[
+    {
+        "id": 42,
+        "title": "Voluptatem iure ut qui aut et consequatur quaerat.",
+        "file_name": "mclaughlin.rb",
+        "description": null,
+        "visibility": "internal",
+        "imported": false,
+        "imported_from": "none",
+        "author": {
+            "id": 22,
+            "name": "User 0",
+            "username": "user0",
+            "state": "active",
+            "avatar_url": "https://www.gravatar.com/avatar/52e4ce24a915fb7e51e1ad3b57f4b00a?s=80&amp;d=identicon",
+            "web_url": "http://example.com/user0"
+        },
+        "updated_at": "2018-09-18T01:12:26.383Z",
+        "created_at": "2018-09-18T01:12:26.383Z",
+        "project_id": null,
+        "web_url": "http://example.com/snippets/42",
+        "raw_url": "http://example.com/snippets/42/raw"
+    },
+    {
+        "id": 41,
+        "title": "Ut praesentium non et atque.",
+        "file_name": "ondrickaemard.rb",
+        "description": null,
+        "visibility": "internal",
+        "imported": false,
+        "imported_from": "none",
+        "author": {
+            "id": 22,
+            "name": "User 0",
+            "username": "user0",
+            "state": "active",
+            "avatar_url": "https://www.gravatar.com/avatar/52e4ce24a915fb7e51e1ad3b57f4b00a?s=80&amp;d=identicon",
+            "web_url": "http://example.com/user0"
+        },
+        "updated_at": "2018-09-18T01:12:26.360Z",
+        "created_at": "2018-09-18T01:12:26.360Z",
+        "project_id": 1,
+        "web_url": "http://example.com/gitlab-org/gitlab-test/snippets/41",
+        "raw_url": "http://example.com/gitlab-org/gitlab-test/snippets/41/raw"
+    }
+]</code></p>
+<h2>Get a single snippet</h2>
+<p>Get a single snippet.</p>
+<p><code>plaintext
+GET /snippets/:id</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type    | Required | Description                |
+|:----------|:--------|:---------|:---------------------------|
+| <code>id</code>      | integer | yes      | ID of snippet to retrieve. |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/snippets/1"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "id": 1,
+  "title": "test",
+  "file_name": "add.rb",
+  "description": "Ruby test snippet",
+  "visibility": "private",
+  "imported": false,
+  "imported_from": "none",
+  "author": {
+    "id": 1,
+    "username": "john_smith",
+    "email": "john@example.com",
+    "name": "John Smith",
+    "state": "active",
+    "created_at": "2012-05-23T08:00:58Z"
+  },
+  "expires_at": null,
+  "updated_at": "2012-06-28T10:52:04Z",
+  "created_at": "2012-06-28T10:52:04Z",
+  "project_id": null,
+  "web_url": "http://example.com/snippets/1",
+  "raw_url": "http://example.com/snippets/1/raw"
+}</code></p>
+<h2>Single snippet contents</h2>
+<p>Get a single snippet's raw contents.</p>
+<p><code>plaintext
+GET /snippets/:id/raw</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type    | Required | Description                |
+|:----------|:--------|:---------|:---------------------------|
+| <code>id</code>      | integer | yes      | ID of snippet to retrieve. |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/snippets/1/raw"</code></p>
+<p>Example response:</p>
+<p><code>plaintext
+Hello World snippet</code></p>
+<h2>Snippet repository file content</h2>
+<p>Returns the raw file content as plain text.</p>
+<p><code>plaintext
+GET /snippets/:id/files/:ref/:file_path/raw</code></p>
+<p>Parameters:</p>
+<p>| Attribute   | Type    | Required | Description                                                        |
+|:------------|:--------|:---------|:-------------------------------------------------------------------|
+| <code>id</code>        | integer | yes      | ID of snippet to retrieve.                                         |
+| <code>ref</code>       | string  | yes      | Reference to a tag, branch or commit.                              |
+| <code>file_path</code> | string  | yes      | URL-encoded path to the file.                                      |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/snippets/1/files/main/snippet%2Erb/raw"</code></p>
+<p>Example response:</p>
+<p><code>plaintext
+Hello World snippet</code></p>
+<h2>Create new snippet</h2>
+<p>Create a new snippet.</p>
+<p>NOTE:
+The user must have permission to create new snippets.</p>
+<p><code>plaintext
+POST /snippets</code></p>
+<p>Parameters:</p>
+<p>| Attribute         | Type            | Required | Description                                             |
+|:------------------|:----------------|:---------|:--------------------------------------------------------|
+| <code>title</code>           | string          | yes      | Title of a snippet                                      |
+| <code>file_name</code>       | string          | no       | Deprecated: Use <code>files</code> instead. Name of a snippet file |
+| <code>content</code>         | string          | no       | Deprecated: Use <code>files</code> instead. Content of a snippet   |
+| <code>description</code>     | string          | no       | Description of a snippet                                |
+| <code>visibility</code>      | string          | no       | Snippet's <a href="#snippet-visibility-level">visibility</a>       |
+| <code>files</code>           | array of hashes | no       | An array of snippet files                               |
+| <code>files:file_path</code> | string          | yes      | File path of the snippet file                           |
+| <code>files:content</code>   | string          | yes      | Content of the snippet file                             |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --request POST "https://gitlab.example.com/api/v4/snippets" \
+     --header 'Content-Type: application/json' \
+     --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+     -d @snippet.json</code></p>
+<p><code>snippet.json</code> used in the above example request:</p>
+<p><code>json
+{
+  "title": "This is a snippet",
+  "description": "Hello World snippet",
+  "visibility": "internal",
+  "files": [
+    {
+      "content": "Hello world",
+      "file_path": "test.txt"
+    }
+  ]
+}</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "id": 1,
+  "title": "This is a snippet",
+  "description": "Hello World snippet",
+  "visibility": "internal",
+  "imported": false,
+  "imported_from": "none",
+  "author": {
+    "id": 1,
+    "username": "john_smith",
+    "email": "john@example.com",
+    "name": "John Smith",
+    "state": "active",
+    "created_at": "2012-05-23T08:00:58Z"
+  },
+  "expires_at": null,
+  "updated_at": "2012-06-28T10:52:04Z",
+  "created_at": "2012-06-28T10:52:04Z",
+  "project_id": null,
+  "web_url": "http://example.com/snippets/1",
+  "raw_url": "http://example.com/snippets/1/raw",
+  "ssh_url_to_repo": "ssh://git@gitlab.example.com:snippets/1.git",
+  "http_url_to_repo": "https://gitlab.example.com/snippets/1.git",
+  "file_name": "test.txt",
+  "files": [
+    {
+      "path": "text.txt",
+      "raw_url": "https://gitlab.example.com/-/snippets/1/raw/main/renamed.md"
+    }
+  ]
+}</code></p>
+<h2>Update snippet</h2>
+<p>Update an existing snippet.</p>
+<p>NOTE:
+The user must have permission to change an existing snippet.</p>
+<p><code>plaintext
+PUT /snippets/:id</code></p>
+<p>Parameters:</p>
+<p>| Attribute             | Type            | Required | Description                                                                         |
+|:----------------------|:----------------|:---------|:------------------------------------------------------------------------------------|
+| <code>id</code>                  | integer         | yes      | ID of snippet to update                                                             |
+| <code>title</code>               | string          | no       | Title of a snippet                                                                  |
+| <code>file_name</code>           | string          | no       | Deprecated: Use <code>files</code> instead. Name of a snippet file                             |
+| <code>content</code>             | string          | no       | Deprecated: Use <code>files</code> instead. Content of a snippet                               |
+| <code>description</code>         | string          | no       | Description of a snippet                                                            |
+| <code>visibility</code>          | string          | no       | Snippet's <a href="#snippet-visibility-level">visibility</a>                                   |
+| <code>files</code>               | array of hashes | sometimes | An array of snippet files. Required when updating snippets with multiple files. |
+| <code>files:action</code>        | string          | yes      | Type of action to perform on the file, one of: <code>create</code>, <code>update</code>, <code>delete</code>, <code>move</code> |
+| <code>files:file_path</code>     | string          | no       | File path of the snippet file                                                       |
+| <code>files:previous_path</code> | string          | no       | Previous path of the snippet file                                                   |
+| <code>files:content</code>       | string          | no       | Content of the snippet file                                                         |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --request PUT "https://gitlab.example.com/api/v4/snippets/1" \
+     --header 'Content-Type: application/json' \
+     --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+     -d @snippet.json</code></p>
+<p><code>snippet.json</code> used in the above example request:</p>
+<p><code>json
+{
+  "title": "foo",
+  "files": [
+    {
+      "action": "move",
+      "previous_path": "test.txt",
+      "file_path": "renamed.md"
+    }
+  ]
+}</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "id": 1,
+  "title": "test",
+  "description": "description of snippet",
+  "visibility": "internal",
+  "imported": false,
+  "imported_from": "none",
+  "author": {
+    "id": 1,
+    "username": "john_smith",
+    "email": "john@example.com",
+    "name": "John Smith",
+    "state": "active",
+    "created_at": "2012-05-23T08:00:58Z"
+  },
+  "expires_at": null,
+  "updated_at": "2012-06-28T10:52:04Z",
+  "created_at": "2012-06-28T10:52:04Z",
+  "project_id": null,
+  "web_url": "http://example.com/snippets/1",
+  "raw_url": "http://example.com/snippets/1/raw",
+  "ssh_url_to_repo": "ssh://git@gitlab.example.com:snippets/1.git",
+  "http_url_to_repo": "https://gitlab.example.com/snippets/1.git",
+  "file_name": "renamed.md",
+  "files": [
+    {
+      "path": "renamed.md",
+      "raw_url": "https://gitlab.example.com/-/snippets/1/raw/main/renamed.md"
+    }
+  ]
+}</code></p>
+<h2>Delete snippet</h2>
+<p>Delete an existing snippet.</p>
+<p><code>plaintext
+DELETE /snippets/:id</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type    | Required | Description              |
+|:----------|:--------|:---------|:-------------------------|
+| <code>id</code>      | integer | yes      | ID of snippet to delete. |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --request DELETE --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/snippets/1"</code></p>
+<p>The following are possible return codes:</p>
+<p>| Code  | Description                                 |
+|:------|:--------------------------------------------|
+| <code>204</code> | Delete was successful. No data is returned. |
+| <code>404</code> | The snippet wasn't found.                   |</p>
+<h2>List all public snippets</h2>
+<p>List all public snippets.</p>
+<p><code>plaintext
+GET /snippets/public</code></p>
+<p>Parameters:</p>
+<p>| Attribute        | Type     | Required | Description                                                                                         |
+|------------------|----------|----------|-----------------------------------------------------------------------------------------------------|
+| <code>per_page</code>       | integer  | no       | Number of snippets to return per page.                                                              |
+| <code>page</code>           | integer  | no       | Page to retrieve.                                                                                   |
+| <code>created_after</code>  | datetime | no       | Return snippets created after the given time. Expected in ISO 8601 format (<code>2019-03-15T08:00:00Z</code>)  |
+| <code>created_before</code> | datetime | no       | Return snippets created before the given time. Expected in ISO 8601 format (<code>2019-03-15T08:00:00Z</code>) |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/snippets/public?per_page=2&amp;page=1"</code></p>
+<p>Example response:</p>
+<p><code>json
+[
+    {
+        "author": {
+            "avatar_url": "http://www.gravatar.com/avatar/edaf55a9e363ea263e3b981d09e0f7f7?s=80&amp;d=identicon",
+            "id": 12,
+            "name": "Libby Rolfson",
+            "state": "active",
+            "username": "elton_wehner",
+            "web_url": "http://example.com/elton_wehner"
+        },
+        "created_at": "2016-11-25T16:53:34.504Z",
+        "file_name": "oconnerrice.rb",
+        "id": 49,
+        "title": "Ratione cupiditate et laborum temporibus.",
+        "updated_at": "2016-11-25T16:53:34.504Z",
+        "project_id": null,
+        "web_url": "http://example.com/snippets/49",
+        "raw_url": "http://example.com/snippets/49/raw"
+    },
+    {
+        "author": {
+            "avatar_url": "http://www.gravatar.com/avatar/36583b28626de71061e6e5a77972c3bd?s=80&amp;d=identicon",
+            "id": 16,
+            "name": "Llewellyn Flatley",
+            "state": "active",
+            "username": "adaline",
+            "web_url": "http://example.com/adaline"
+        },
+        "created_at": "2016-11-25T16:53:34.479Z",
+        "file_name": "muellershields.rb",
+        "id": 48,
+        "title": "Minus similique nesciunt vel fugiat qui ullam sunt.",
+        "updated_at": "2016-11-25T16:53:34.479Z",
+        "project_id": null,
+        "web_url": "http://example.com/snippets/48",
+        "raw_url": "http://example.com/snippets/49/raw",
+        "visibility": "public"
+    }
+]</code></p>
+<h2>List all snippets</h2>
+<blockquote>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/issues/419640">Introduced</a> in GitLab 16.3.</li>
+</ul>
+</blockquote>
+<p>List all snippets the current user has access to.
+Users with the Administrator or Auditor access levels can see all snippets
+(both personal and project).</p>
+<p><code>plaintext
+GET /snippets/all</code></p>
+<p>Parameters:</p>
+<p>| Attribute        | Type     | Required | Description                            |
+|------------------|----------|----------|----------------------------------------|
+| <code>created_after</code>  | datetime | no       | Return snippets created after the given time. Expected in ISO 8601 format (<code>2019-03-15T08:00:00Z</code>).  |
+| <code>created_before</code> | datetime | no       | Return snippets created before the given time. Expected in ISO 8601 format (<code>2019-03-15T08:00:00Z</code>). |
+| <code>page</code>           | integer  | no       | Page to retrieve.                      |
+| <code>per_page</code>       | integer  | no       | Number of snippets to return per page. |
+| <code>repository_storage</code> | string            | no       | Filter by repository storage used by the snippet <em>(administrators only)</em>. <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/419640">Introduced</a> in GitLab 16.3 |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/snippets/all?per_page=2&amp;page=1"</code></p>
+<p>Example response:</p>
+<p><code>json
+[
+  {
+    "id": 113,
+    "title": "Internal Project Snippet",
+    "description": null,
+    "visibility": "internal",
+    "imported": false,
+    "imported_from": "none",
+    "author": {
+      "id": 17,
+      "username": "tim_kreiger",
+      "name": "Tim Kreiger",
+      "state": "active",
+      "avatar_url": "http://www.gravatar.com/avatar/edaf55a9e363ea263e3b981d09e0f7f7?s=80&amp;d=identicon",
+      "web_url": "http://example.com/tim_kreiger"
+    },
+    "created_at": "2023-08-03T10:21:02.480Z",
+    "updated_at": "2023-08-03T10:21:02.480Z",
+    "project_id": 35,
+    "web_url": "http://example.com/tim_kreiger/internal_project/-/snippets/113",
+    "raw_url": "http://example.com/tim_kreiger/internal_project/-/snippets/113/raw",
+    "file_name": "",
+    "files": [],
+    "repository_storage": "default"
+  },
+  {
+    "id": 112,
+    "title": "Private Personal Snippet",
+    "description": null,
+    "visibility": "private",
+    "imported": false,
+    "imported_from": "none",
+    "author": {
+      "id": 1,
+      "username": "root",
+      "name": "Administrator",
+      "state": "active",
+      "avatar_url": "http://www.gravatar.com/avatar/edaf55a9e363ea263e3b981d09e0f7f7?s=80&amp;d=identicon",
+      "web_url": "http://example.com/root"
+    },
+    "created_at": "2023-08-03T10:20:59.994Z",
+    "updated_at": "2023-08-03T10:20:59.994Z",
+    "project_id": null,
+    "web_url": "http://example.com/-/snippets/112",
+    "raw_url": "http://example.com/-/snippets/112/raw",
+    "file_name": "",
+    "files": [],
+    "repository_storage": "default"
+  },
+  {
+    "id": 111,
+    "title": "Public Personal Snippet",
+    "description": null,
+    "visibility": "public",
+    "imported": false,
+    "imported_from": "none",
+    "author": {
+      "id": 17,
+      "username": "tim_kreiger",
+      "name": "Tim Kreiger",
+      "state": "active",
+      "avatar_url": "http://www.gravatar.com/avatar/edaf55a9e363ea263e3b981d09e0f7f7?s=80&amp;d=identicon",
+      "web_url": "http://example.com/tim_kreiger"
+    },
+    "created_at": "2023-08-03T10:21:01.312Z",
+    "updated_at": "2023-08-03T10:21:01.312Z",
+    "project_id": null,
+    "web_url": "http://example.com/-/snippets/111",
+    "raw_url": "http://example.com/-/snippets/111/raw",
+    "file_name": "",
+    "files": [],
+    "repository_storage": "default"
+  },
+]</code></p>
+<h2>Get user agent details</h2>
+<p>NOTE:
+Available only for administrators.</p>
+<p><code>plaintext
+GET /snippets/:id/user_agent_detail</code></p>
+<p>| Attribute | Type    | Required | Description    |
+|:----------|:--------|:---------|:---------------|
+| <code>id</code>      | integer | yes      | ID of snippet. |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/snippets/1/user_agent_detail"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "user_agent": "AppleWebKit/537.36",
+  "ip_address": "127.0.0.1",
+  "akismet_submitted": false
+}</code></p>
+</body>
+</html>

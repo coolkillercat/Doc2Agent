@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>dependency_list_export API Documentation</title>
+</head>
+<body>
+<hr />
+<p>stage: Govern
+group: Threat Insights
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments</p>
+<hr />
+<h1>Dependency list export API</h1>
+<p>DETAILS:
+<strong>Tier:</strong> Ultimate
+<strong>Offering:</strong> GitLab.com, Self-managed, GitLab Dedicated</p>
+<p>Every call to this endpoint requires authentication.</p>
+<h2>Create a pipeline-level dependency list export</h2>
+<blockquote>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/issues/333463">Introduced</a> in GitLab 16.4 <a href="../administration/feature_flags.md">with a flag</a> named <code>merge_sbom_api</code>. Enabled by default.</li>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/issues/425312">Generally available</a> in GitLab 16.7. Feature flag <code>merge_sbom_api</code> removed.</li>
+</ul>
+</blockquote>
+<p>Create a new CycloneDX JSON export for all the project dependencies detected in a pipeline.</p>
+<p>If an authenticated user does not have permission to <a href="../user/custom_roles.md#available-permissions">read_dependency</a>,
+this request returns a <code>403 Forbidden</code> status code.</p>
+<p>SBOM exports can be only accessed by the export's author.</p>
+<p><code>plaintext
+POST /pipelines/:id/dependency_list_exports</code></p>
+<p>| Attribute           | Type              | Required   | Description                                                                                                                  |
+| ------------------- | ----------------- | ---------- | -----------------------------------------------------------------------------------------------------------------------------|
+| <code>id</code>                | integer           | yes        | The ID of the pipeline which the authenticated user has access to. |
+| <code>export_type</code>       | string            | yes        | This must be set to <code>sbom</code>. |</p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;private_token&gt;" "https://gitlab.example.com/api/v4/pipelines/1/dependency_list_exports" --data "export_type=sbom"</code></p>
+<p>The created dependency list export is automatically deleted after 1 hour.</p>
+<p>Example response:</p>
+<p><code>json
+{
+  "id": 2,
+  "has_finished": false,
+  "self": "http://gitlab.example.com/api/v4/dependency_list_exports/2",
+  "download": "http://gitlab.example.com/api/v4/dependency_list_exports/2/download"
+}</code></p>
+<h2>Get single dependency list export</h2>
+<p>Get a single dependency list export.</p>
+<p><code>plaintext
+GET /dependency_list_exports/:id</code></p>
+<p>| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| <code>id</code> | integer | yes | The ID of the dependency list export. |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;private_token&gt;" "https://gitlab.example.com/api/v4/dependency_list_exports/2"</code></p>
+<p>The status code is <code>202 Accepted</code> when the dependency list export is being generated, and <code>200 OK</code> when it's ready.</p>
+<p>Example response:</p>
+<p><code>json
+{
+  "id": 4,
+  "has_finished": true,
+  "self": "http://gitlab.example.com/api/v4/dependency_list_exports/4",
+  "download": "http://gitlab.example.com/api/v4/dependency_list_exports/4/download"
+}</code></p>
+<h2>Download dependency list export</h2>
+<p>Download a single dependency list export.</p>
+<p><code>plaintext
+GET /dependency_list_exports/:id/download</code></p>
+<p>| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| <code>id</code> | integer | yes | The ID of the dependency list export. |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;private_token&gt;" "https://gitlab.example.com/api/v4/dependency_list_exports/2/download"</code></p>
+<p>The response is <code>404 Not Found</code> if the dependency list export is not finished yet or was not found.</p>
+<p>Example response:</p>
+<p>```json
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.4",
+  "serialNumber": "urn:uuid:aec33827-20ae-40d0-ae83-18ee846364d2",
+  "version": 1,
+  "metadata": {
+    "tools": [
+      {
+        "vendor": "Gitlab",
+        "name": "Gemnasium",
+        "version": "2.34.0"
+      }
+    ],
+    "authors": [
+      {
+        "name": "Gitlab",
+        "email": "support@gitlab.com"
+      }
+    ],
+    "properties": [
+      {
+        "name": "gitlab:dependency_scanning:input_file",
+        "value": "package-lock.json"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "com.fasterxml.jackson.core/jackson-core",
+      "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.9.2",
+      "version": "2.9.2",
+      "type": "library",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "url": "https://spdx.org/licenses/MIT.html"
+          }
+        },
+        {
+          "license": {
+            "id": "BSD-3-Clause",
+            "url": "https://spdx.org/licenses/BSD-3-Clause.html"
+          }
+        }
+      ]
+    }
+  ]
+}</p>
+<p>```</p>
+</body>
+</html>

@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>feature_flags API Documentation</title>
+</head>
+<body>
+<hr />
+<p>stage: Deploy
+group: Environments
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments</p>
+<hr />
+<h1>Feature flags API</h1>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> GitLab.com, Self-managed, GitLab Dedicated</p>
+<blockquote>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/issues/9566">Introduced</a> in GitLab Premium 12.5.</li>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/issues/212318">Moved</a> to GitLab Free in 13.5.</li>
+</ul>
+</blockquote>
+<p>API for accessing resources of <a href="../operations/feature_flags.md">GitLab feature flags</a>.</p>
+<p>Users with at least the Developer <a href="../user/permissions.md">role</a> can access the feature flag API.</p>
+<h2>Feature flags pagination</h2>
+<p>By default, <code>GET</code> requests return 20 results at a time because the API results
+are <a href="rest/index.md#pagination">paginated</a>.</p>
+<h2>List feature flags for a project</h2>
+<p>Gets all feature flags of the requested project.</p>
+<p><code>plaintext
+GET /projects/:id/feature_flags</code></p>
+<p>| Attribute           | Type             | Required   | Description                                                                                                                 |
+| ------------------- | ---------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------- |
+| <code>id</code>                | integer/string   | yes        | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>.                                            |
+| <code>scope</code>             | string           | no         | The condition of feature flags, one of: <code>enabled</code>, <code>disabled</code>.                                                              |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/1/feature_flags"</code></p>
+<p>Example response:</p>
+<p><code>json
+[
+   {
+      "name":"merge_train",
+      "description":"This feature is about merge train",
+      "active": true,
+      "version": "new_version_flag",
+      "created_at":"2019-11-04T08:13:51.423Z",
+      "updated_at":"2019-11-04T08:13:51.423Z",
+      "scopes":[],
+      "strategies": [
+        {
+          "id": 1,
+          "name": "userWithId",
+          "parameters": {
+            "userIds": "user1"
+          },
+          "scopes": [
+            {
+              "id": 1,
+              "environment_scope": "production"
+            }
+          ],
+          "user_list": null
+        }
+      ]
+   },
+   {
+      "name":"new_live_trace",
+      "description":"This is a new live trace feature",
+      "active": true,
+      "version": "new_version_flag",
+      "created_at":"2019-11-04T08:13:10.507Z",
+      "updated_at":"2019-11-04T08:13:10.507Z",
+      "scopes":[],
+      "strategies": [
+        {
+          "id": 2,
+          "name": "default",
+          "parameters": {},
+          "scopes": [
+            {
+              "id": 2,
+              "environment_scope": "staging"
+            }
+          ],
+          "user_list": null
+        }
+      ]
+   },
+   {
+      "name":"user_list",
+      "description":"This feature is about user list",
+      "active": true,
+      "version": "new_version_flag",
+      "created_at":"2019-11-04T08:13:10.507Z",
+      "updated_at":"2019-11-04T08:13:10.507Z",
+      "scopes":[],
+      "strategies": [
+        {
+          "id": 2,
+          "name": "gitlabUserList",
+          "parameters": {},
+          "scopes": [
+            {
+              "id": 2,
+              "environment_scope": "staging"
+            }
+          ],
+          "user_list": {
+            "id": 1,
+            "iid": 1,
+            "name": "My user list",
+            "user_xids": "user1,user2,user3"
+          }
+        }
+      ]
+   }
+]</code></p>
+<h2>Get a single feature flag</h2>
+<p>Gets a single feature flag.</p>
+<p><code>plaintext
+GET /projects/:id/feature_flags/:feature_flag_name</code></p>
+<p>| Attribute           | Type             | Required   | Description                                                                            |
+| ------------------- | ---------------- | ---------- | ---------------------------------------------------------------------------------------|
+| <code>id</code>                | integer/string   | yes        | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>.       |
+| <code>feature_flag_name</code> | string           | yes        | The name of the feature flag.                                                          |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/1/feature_flags/awesome_feature"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "name": "awesome_feature",
+  "description": null,
+  "active": true,
+  "version": "new_version_flag",
+  "created_at": "2020-05-13T19:56:33.119Z",
+  "updated_at": "2020-05-13T19:56:33.119Z",
+  "scopes": [],
+  "strategies": [
+    {
+      "id": 36,
+      "name": "default",
+      "parameters": {},
+      "scopes": [
+        {
+          "id": 37,
+          "environment_scope": "production"
+        }
+      ],
+      "user_list": null
+    }
+  ]
+}</code></p>
+<h2>Create a feature flag</h2>
+<p>Creates a new feature flag.</p>
+<p><code>plaintext
+POST /projects/:id/feature_flags</code></p>
+<p>| Attribute           | Type             | Required   | Description                                                                                                                                                                                                                                                                              |
+| ------------------- | ---------------- | ---------- |------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| <code>id</code>                | integer/string   | yes        | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>.                                                                                                                                                                                                     |
+| <code>name</code>              | string           | yes        | The name of the feature flag.                                                                                                                                                                                                                                                            |
+| <code>version</code>           | string           | yes        | <strong>Deprecated</strong> The version of the feature flag. Must be <code>new_version_flag</code>. Omit to create a Legacy feature flag.                                                                                                                                                                        |
+| <code>description</code>       | string           | no         | The description of the feature flag.                                                                                                                                                                                                                                                     |
+| <code>active</code>            | boolean          | no         | The active state of the flag. Defaults to true.                                                                                                                                                                                                                                          |
+| <code>strategies</code>        | array of strategy JSON objects | no         | The feature flag <a href="../operations/feature_flags.md#feature-flag-strategies">strategies</a>.                                                                                                                                                                                     |
+| <code>strategies:name</code>   | JSON             | no         | The strategy name. Can be <code>default</code>, <code>gradualRolloutUserId</code>, <code>userWithId</code>, or <code>gitlabUserList</code>. In <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/36380">GitLab 13.5</a> and later, can be <a href="https://docs.getunleash.io/user_guide/activation_strategy/#gradual-rollout"><code>flexibleRollout</code></a>. |
+| <code>strategies:parameters</code> | JSON         | no         | The strategy parameters.                                                                                                                                                                                                                                                                 |
+| <code>strategies:scopes</code> | JSON             | no         | The scopes for the strategy.                                                                                                                                                                                                                                                             |
+| <code>strategies:scopes:environment_scope</code> | string | no | The environment scope of the scope.                                                                                                                                                                                                                                                      |
+| <code>strategies:user_list_id</code> | integer/string | no     | The ID of the feature flag user list. If strategy is <code>gitlabUserList</code>.                                                                                                                                                                                                                   |</p>
+<p><code>shell
+curl "https://gitlab.example.com/api/v4/projects/1/feature_flags" \
+     --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+     --header "Content-type: application/json" \
+     --data @- &lt;&lt; EOF
+{
+  "name": "awesome_feature",
+  "version": "new_version_flag",
+  "strategies": [{ "name": "default", "parameters": {}, "scopes": [{ "environment_scope": "production" }] }]
+}
+EOF</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "name": "awesome_feature",
+  "description": null,
+  "active": true,
+  "version": "new_version_flag",
+  "created_at": "2020-05-13T19:56:33.119Z",
+  "updated_at": "2020-05-13T19:56:33.119Z",
+  "scopes": [],
+  "strategies": [
+    {
+      "id": 36,
+      "name": "default",
+      "parameters": {},
+      "scopes": [
+        {
+          "id": 37,
+          "environment_scope": "production"
+        }
+      ]
+    }
+  ]
+}</code></p>
+<h2>Update a feature flag</h2>
+<p>Updates a feature flag.</p>
+<p><code>plaintext
+PUT /projects/:id/feature_flags/:feature_flag_name</code></p>
+<p>| Attribute           | Type             | Required   | Description                                                                            |
+| ------------------- | ---------------- | ---------- | ---------------------------------------------------------------------------------------|
+| <code>id</code>                | integer/string   | yes        | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>.   |
+| <code>feature_flag_name</code> | string           | yes        | The current name of the feature flag.                                                  |
+| <code>description</code>       | string           | no         | The description of the feature flag.                                                   |
+| <code>active</code>            | boolean          | no         | The active state of the flag.                                                          |
+| <code>name</code>              | string           | no         | The new name of the feature flag.                                                      |
+| <code>strategies</code>        | array of strategy JSON objects | no         | The feature flag <a href="../operations/feature_flags.md#feature-flag-strategies">strategies</a>. |
+| <code>strategies:id</code>     | JSON             | no         | The feature flag strategy ID.                                                          |
+| <code>strategies:name</code>   | JSON             | no         | The strategy name.                                                                     |
+| <code>strategies:_destroy</code> | boolean         | no         | Delete the strategy when true.                                                        |
+| <code>strategies:parameters</code> | JSON         | no         | The strategy parameters.                                                               |
+| <code>strategies:scopes</code> | JSON             | no         | The scopes for the strategy.                                                           |
+| <code>strategies:scopes:id</code> | JSON          | no         | The environment scope ID.                                                              |
+| <code>strategies:scopes:environment_scope</code> | string | no | The environment scope of the scope.                                                    |
+| <code>strategies:scopes:_destroy</code> | boolean | no | Delete the scope when true.                                                                    |
+| <code>strategies:user_list_id</code> | integer/string | no     | The ID of the feature flag user list. If strategy is <code>gitlabUserList</code>.                 |</p>
+<p><code>shell
+curl "https://gitlab.example.com/api/v4/projects/1/feature_flags/awesome_feature" \
+     --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+     --header "Content-type: application/json" \
+     --data @- &lt;&lt; EOF
+{
+  "strategies": [{ "name": "gradualRolloutUserId", "parameters": { "groupId": "default", "percentage": "25" }, "scopes": [{ "environment_scope": "staging" }] }]
+}
+EOF</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "name": "awesome_feature",
+  "description": null,
+  "active": true,
+  "version": "new_version_flag",
+  "created_at": "2020-05-13T20:10:32.891Z",
+  "updated_at": "2020-05-13T20:10:32.891Z",
+  "scopes": [],
+  "strategies": [
+    {
+      "id": 38,
+      "name": "gradualRolloutUserId",
+      "parameters": {
+        "groupId": "default",
+        "percentage": "25"
+      },
+      "scopes": [
+        {
+          "id": 40,
+          "environment_scope": "staging"
+        }
+      ]
+    },
+    {
+      "id": 37,
+      "name": "default",
+      "parameters": {},
+      "scopes": [
+        {
+          "id": 39,
+          "environment_scope": "production"
+        }
+      ]
+    }
+  ]
+}</code></p>
+<h2>Delete a feature flag</h2>
+<p>Deletes a feature flag.</p>
+<p><code>plaintext
+DELETE /projects/:id/feature_flags/:feature_flag_name</code></p>
+<p>| Attribute           | Type             | Required   | Description                                                                            |
+| ------------------- | ---------------- | ---------- | ---------------------------------------------------------------------------------------|
+| <code>id</code>                | integer/string   | yes        | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>.       |
+| <code>feature_flag_name</code> | string           | yes        | The name of the feature flag.                                                          |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" --request DELETE "https://gitlab.example.com/api/v4/projects/1/feature_flags/awesome_feature"</code></p>
+</body>
+</html>

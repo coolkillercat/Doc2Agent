@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>pipeline_triggers API Documentation</title>
+</head>
+<body>
+<hr />
+<p>stage: Verify
+group: Pipeline Execution
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments</p>
+<hr />
+<h1>Pipeline trigger tokens API</h1>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> GitLab.com, Self-managed, GitLab Dedicated</p>
+<p>You can read more about <a href="../ci/triggers/index.md">triggering pipelines through the API</a>.</p>
+<h2>List project trigger tokens</h2>
+<p>Get a list of a project's pipeline trigger tokens.</p>
+<p><code>plaintext
+GET /projects/:id/triggers</code></p>
+<p>| Attribute | Type           | Required | Description |
+|-----------|----------------|----------|-------------|
+| <code>id</code>      | integer/string | Yes      | ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/1/triggers"</code></p>
+<p><code>json
+[
+    {
+        "id": 10,
+        "description": "my trigger",
+        "created_at": "2016-01-07T09:53:58.235Z",
+        "last_used": null,
+        "token": "6d056f63e50fe6f8c5f8f4aa10edb7",
+        "updated_at": "2016-01-07T09:53:58.235Z",
+        "owner": null
+    }
+]</code></p>
+<p>The trigger token is displayed in full if the trigger token was created by the authenticated
+user. Trigger tokens created by other users are shortened to four characters.</p>
+<h2>Get trigger token details</h2>
+<p>Get details of a project's pipeline trigger token.</p>
+<p><code>plaintext
+GET /projects/:id/triggers/:trigger_id</code></p>
+<p>| Attribute    | Type           | Required | Description |
+|--------------|----------------|----------|-------------|
+| <code>id</code>         | integer/string | Yes      | ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> |
+| <code>trigger_id</code> | integer        | Yes      | The trigger ID |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/1/triggers/5"</code></p>
+<p><code>json
+{
+    "id": 10,
+    "description": "my trigger",
+    "created_at": "2016-01-07T09:53:58.235Z",
+    "last_used": null,
+    "token": "6d056f63e50fe6f8c5f8f4aa10edb7",
+    "updated_at": "2016-01-07T09:53:58.235Z",
+    "owner": null
+}</code></p>
+<h2>Create a trigger token</h2>
+<p>Create a pipeline trigger token for a project.</p>
+<p><code>plaintext
+POST /projects/:id/triggers</code></p>
+<p>| Attribute     | Type           | Required | Description |
+|---------------|----------------|----------|-------------|
+| <code>description</code> | string         | Yes      | The trigger name |
+| <code>id</code>          | integer/string | Yes      | ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> |</p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+     --form description="my description" "https://gitlab.example.com/api/v4/projects/1/triggers"</code></p>
+<p><code>json
+{
+    "id": 10,
+    "description": "my trigger",
+    "created_at": "2016-01-07T09:53:58.235Z",
+    "last_used": null,
+    "token": "6d056f63e50fe6f8c5f8f4aa10edb7",
+    "updated_at": "2016-01-07T09:53:58.235Z",
+    "owner": null
+}</code></p>
+<h2>Update a pipeline trigger token</h2>
+<p>Update a project's pipeline trigger token.</p>
+<p><code>plaintext
+PUT /projects/:id/triggers/:trigger_id</code></p>
+<p>| Attribute     | Type           | Required | Description |
+|---------------|----------------|----------|-------------|
+| <code>id</code>          | integer/string | Yes      | ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> |
+| <code>trigger_id</code>  | integer        | Yes      | The trigger ID |
+| <code>description</code> | string         | No       | The trigger name |</p>
+<p><code>shell
+curl --request PUT --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+     --form description="my description" "https://gitlab.example.com/api/v4/projects/1/triggers/10"</code></p>
+<p><code>json
+{
+    "id": 10,
+    "description": "my trigger",
+    "created_at": "2016-01-07T09:53:58.235Z",
+    "last_used": null,
+    "token": "6d056f63e50fe6f8c5f8f4aa10edb7",
+    "updated_at": "2016-01-07T09:53:58.235Z",
+    "owner": null
+}</code></p>
+<h2>Remove a pipeline trigger token</h2>
+<p>Remove a project's pipeline trigger token.</p>
+<p><code>plaintext
+DELETE /projects/:id/triggers/:trigger_id</code></p>
+<p>| Attribute    | Type           | Required | Description |
+|--------------|----------------|----------|-------------|
+| <code>id</code>         | integer/string | Yes      | ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> |
+| <code>trigger_id</code> | integer        | Yes      | The trigger ID |</p>
+<p><code>shell
+curl --request DELETE --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/1/triggers/5"</code></p>
+<h2>Trigger a pipeline with a token</h2>
+<p>Trigger a pipeline by using a <a href="../ci/triggers/index.md#create-a-pipeline-trigger-token">pipeline trigger token</a>
+or a <a href="../ci/jobs/ci_job_token.md">CI/CD job token</a> for authentication.</p>
+<p>With a CI/CD job token, the <a href="../ci/pipelines/downstream_pipelines.md#trigger-a-multi-project-pipeline-by-using-the-api">triggered pipeline is a multi-project pipeline</a>.
+The job that authenticates the request becomes associated with the upstream pipeline,
+which is visible on the pipeline graph.</p>
+<p>If you use a trigger token in a job, the job is not associated with the upstream pipeline.</p>
+<p><code>plaintext
+POST /projects/:id/trigger/pipeline</code></p>
+<p>Supported attributes:</p>
+<p>| Attribute   | Type           | Required | Description |
+|-------------|----------------|----------|-------------|
+| <code>id</code>        | integer/string | Yes      | ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>. |
+| <code>ref</code>       | string         | Yes      | The branch or tag to run the pipeline on. |
+| <code>token</code>     | string         | Yes      | The trigger token or CI/CD job token. |
+| <code>variables</code> | hash           | No       | A map of key-valued strings containing the pipeline variables. For example: <code>{ VAR1: "value1", VAR2: "value2" }</code>. |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --request POST --form "variables[VAR1]=value1" --form "variables[VAR2]=value2" "https://gitlab.example.com/api/v4/projects/123/trigger/pipeline?token=2cb1840fb9dfc9fb0b7b1609cd29cb&amp;ref=main"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "id": 257,
+  "iid": 118,
+  "project_id": 123,
+  "sha": "91e2711a93e5d9e8dddfeb6d003b636b25bf6fc9",
+  "ref": "main",
+  "status": "created",
+  "source": "trigger",
+  "created_at": "2022-03-31T01:12:49.068Z",
+  "updated_at": "2022-03-31T01:12:49.068Z",
+  "web_url": "http://127.0.0.1:3000/test-group/test-project/-/pipelines/257",
+  "before_sha": "0000000000000000000000000000000000000000",
+  "tag": false,
+  "yaml_errors": null,
+  "user": {
+    "id": 1,
+    "username": "root",
+    "name": "Administrator",
+    "state": "active",
+    "avatar_url": "https://www.gravatar.com/avatar/e64c7d89f26bd1972efa854d13d7dd61?s=80&amp;d=identicon",
+    "web_url": "http://127.0.0.1:3000/root"
+  },
+  "started_at": null,
+  "finished_at": null,
+  "committed_at": null,
+  "duration": null,
+  "queued_duration": null,
+  "coverage": null,
+  "detailed_status": {
+    "icon": "status_created",
+    "text": "created",
+    "label": "created",
+    "group": "created",
+    "tooltip": "created",
+    "has_details": true,
+    "details_path": "/test-group/test-project/-/pipelines/257",
+    "illustration": null,
+    "favicon": "/assets/ci_favicons/favicon_status_created-4b975aa976d24e5a3ea7cd9a5713e6ce2cd9afd08b910415e96675de35f64955.png"
+  }
+}</code></p>
+</body>
+</html>

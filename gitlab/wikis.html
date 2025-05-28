@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>wikis API Documentation</title>
+</head>
+<body>
+<hr />
+<p>stage: Plan
+group: Knowledge
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments</p>
+<hr />
+<h1>Project wikis API</h1>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> GitLab.com, Self-managed, GitLab Dedicated</p>
+<p>The project <a href="../user/project/wiki/index.md">wikis</a> API is available only in APIv4.
+An API for <a href="group_wikis.md">group wikis</a> is also available.</p>
+<h2>List wiki pages</h2>
+<p>Get all wiki pages for a given project.</p>
+<p><code>plaintext
+GET /projects/:id/wikis</code></p>
+<p>| Attribute      | Type           | Required | Description |
+| -------------- | -------------- | -------- | ----------- |
+| <code>id</code>           | integer/string | Yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>. |
+| <code>with_content</code> | boolean        | No       | Include pages' content. |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/1/wikis?with_content=1"</code></p>
+<p>Example response:</p>
+<p><code>json
+[
+  {
+    "content" : "Here is an instruction how to deploy this project.",
+    "format" : "markdown",
+    "slug" : "deploy",
+    "title" : "deploy",
+    "encoding": "UTF-8"
+  },
+  {
+    "content" : "Our development process is described here.",
+    "format" : "markdown",
+    "slug" : "development",
+    "title" : "development",
+    "encoding": "UTF-8"
+  },{
+    "content" : "*  [Deploy](deploy)\n*  [Development](development)",
+    "format" : "markdown",
+    "slug" : "home",
+    "title" : "home",
+    "encoding": "UTF-8"
+  }
+]</code></p>
+<h2>Get a wiki page</h2>
+<p>Get a wiki page for a given project.</p>
+<p><code>plaintext
+GET /projects/:id/wikis/:slug</code></p>
+<p>| Attribute     | Type           | Required | Description |
+| ------------- | -------------- | -------- | ----------- |
+| <code>id</code>          | integer/string | Yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>. |
+| <code>slug</code>        | string         | Yes      | URL encoded slug (a unique string) of the wiki page, such as <code>dir%2Fpage_name</code>. |
+| <code>render_html</code> | boolean        | No       | Return the rendered HTML of the wiki page. |
+| <code>version</code>     | string         | No       | Wiki page version SHA. |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/1/wikis/home"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "content" : "home page",
+  "format" : "markdown",
+  "slug" : "home",
+  "title" : "home",
+  "encoding": "UTF-8"
+}</code></p>
+<h2>Create a new wiki page</h2>
+<p>Creates a new wiki page for the given repository with the given title, slug, and content.</p>
+<p><code>plaintext
+POST /projects/:id/wikis</code></p>
+<p>| Attribute | Type           | Required | Description |
+| ----------| -------------- | -------- | ----------- |
+| <code>id</code>      | integer/string | Yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>. |
+| <code>content</code> | string         | Yes      | The content of the wiki page. |
+| <code>title</code>   | string         | Yes      | The title of the wiki page. |
+| <code>format</code>  | string         | No       | The format of the wiki page. Available formats are: <code>markdown</code> (default), <code>rdoc</code>, <code>asciidoc</code>, and <code>org</code>. |</p>
+<p><code>shell
+curl --data "format=rdoc&amp;title=Hello&amp;content=Hello world" \
+     --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/1/wikis"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "content" : "Hello world",
+  "format" : "markdown",
+  "slug" : "Hello",
+  "title" : "Hello",
+  "encoding": "UTF-8"
+}</code></p>
+<h2>Edit an existing wiki page</h2>
+<p>Updates an existing wiki page. At least one parameter is required to update the wiki page.</p>
+<p><code>plaintext
+PUT /projects/:id/wikis/:slug</code></p>
+<p>| Attribute | Type           | Required                          | Description |
+| --------- | -------        | --------------------------------- | ----------- |
+| <code>id</code>      | integer/string | Yes                               | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>. |
+| <code>content</code> | string         | Yes, if <code>title</code> is not provided   | The content of the wiki page. |
+| <code>title</code>   | string         | Yes, if <code>content</code> is not provided | The title of the wiki page. |
+| <code>format</code>  | string         | No                                | The format of the wiki page. Available formats are: <code>markdown</code> (default), <code>rdoc</code>, <code>asciidoc</code>, and <code>org</code>. |
+| <code>slug</code>    | string         | Yes                               | URL-encoded slug (a unique string) of the wiki page, such as <code>dir%2Fpage_name</code>. |</p>
+<p><code>shell
+curl --request PUT --data "format=rdoc&amp;content=documentation&amp;title=Docs" \
+     --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/1/wikis/foo"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "content" : "documentation",
+  "format" : "markdown",
+  "slug" : "Docs",
+  "title" : "Docs",
+  "encoding": "UTF-8"
+}</code></p>
+<h2>Delete a wiki page</h2>
+<p>Deletes a wiki page with a given slug.</p>
+<p><code>plaintext
+DELETE /projects/:id/wikis/:slug</code></p>
+<p>| Attribute | Type           | Required | Description |
+| --------- | -------------- | -------- | ----------- |
+| <code>id</code>      | integer/string | Yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>. |
+| <code>slug</code>    | string         | Yes      | URL-encoded slug (a unique string) of the wiki page, such as <code>dir%2Fpage_name</code>. |</p>
+<p><code>shell
+curl --request DELETE --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/1/wikis/foo"</code></p>
+<p>If successful, a <code>204 No Content</code> HTTP response with an empty body is expected.</p>
+<h2>Upload an attachment to the wiki repository</h2>
+<p>Uploads a file to the attachment folder inside the wiki's repository. The
+ attachment folder is the <code>uploads</code> folder.</p>
+<p><code>plaintext
+POST /projects/:id/wikis/attachments</code></p>
+<p>| Attribute | Type           | Required | Description |
+| --------- | -------------- | -------- | ----------- |
+| <code>id</code>      | integer/string | Yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>. |
+| <code>file</code>    | string         | Yes      | The attachment to be uploaded. |
+| <code>branch</code>  | string         | No       | The name of the branch. Defaults to the wiki repository default branch. |</p>
+<p>To upload a file from your file system, use the <code>--form</code> argument. This causes
+cURL to post data using the header <code>Content-Type: multipart/form-data</code>.
+The <code>file=</code> parameter must point to a file on your file system and be preceded
+by <code>@</code>. For example:</p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+     --form "file=@dk.png" "https://gitlab.example.com/api/v4/projects/1/wikis/attachments"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "file_name" : "dk.png",
+  "file_path" : "uploads/6a061c4cf9f1c28cb22c384b4b8d4e3c/dk.png",
+  "branch" : "main",
+  "link" : {
+    "url" : "uploads/6a061c4cf9f1c28cb22c384b4b8d4e3c/dk.png",
+    "markdown" : "![dk](uploads/6a061c4cf9f1c28cb22c384b4b8d4e3c/dk.png)"
+  }
+}</code></p>
+</body>
+</html>

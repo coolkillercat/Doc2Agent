@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>runners API Documentation</title>
+</head>
+<body>
+<hr />
+<p>stage: Verify
+group: Runner
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments</p>
+<hr />
+<h1>Runners API</h1>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> GitLab.com, Self-managed, GitLab Dedicated</p>
+<p>This page describes endpoints for runners registered to an instance. To create a runner linked to the current user, see <a href="users.md#create-a-runner-linked-to-a-user">Create a runner</a>.</p>
+<p><a href="rest/index.md#pagination">Pagination</a> is available on the following API endpoints (they return 20 items by default):</p>
+<p><code>plaintext
+GET /runners
+GET /runners/all
+GET /runners/:id/jobs
+GET /runners/:id/managers/:system_id/jobs
+GET /projects/:id/runners
+GET /groups/:id/runners</code></p>
+<h2>Registration and authentication tokens</h2>
+<p>There are two tokens to take into account when connecting a runner with GitLab.</p>
+<p>| Token | Description |
+| ----- | ----------- |
+| Registration token | Token used to <a href="https://docs.gitlab.com/runner/register/">register the runner</a>. It can be <a href="../ci/runners/index.md">obtained through GitLab</a>. |
+| Authentication token | Token used to authenticate the runner with the GitLab instance. It is obtained automatically when you <a href="https://docs.gitlab.com/runner/register/">register a runner</a> or by the Runner API when you manually <a href="#create-an-instance-runner">register a runner</a> or <a href="#reset-runners-authentication-token-by-using-the-runner-id">reset the authentication token</a>. You can also obtain the authentication token using <a href="users.md#create-a-runner-linked-to-a-user">Create a runner</a> API method. |</p>
+<p>Here's an example of how the two tokens are used in runner registration:</p>
+<ol>
+<li>You register the runner via the GitLab API using a registration token, and an
+   authentication token is returned.</li>
+<li>You use that authentication token and add it to the
+   <a href="https://docs.gitlab.com/runner/commands/#configuration-file">runner's configuration file</a>:</li>
+</ol>
+<p><code>toml
+   [[runners]]
+     token = "&lt;authentication_token&gt;"</code></p>
+<p>GitLab and the runner are then connected.</p>
+<h2>List owned runners</h2>
+<p>Get a list of runners available to the user.</p>
+<p><code>plaintext
+GET /runners
+GET /runners?scope=active
+GET /runners?type=project_type
+GET /runners?status=online
+GET /runners?paused=true
+GET /runners?tag_list=tag1,tag2</code></p>
+<p>| Attribute        | Type         | Required | Description                                                                                                                                                                                                          |
+|------------------|--------------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| <code>scope</code>          | string       | no       | Deprecated: Use <code>type</code> or <code>status</code> instead. The scope of runners to return, one of: <code>active</code>, <code>paused</code>, <code>online</code> and <code>offline</code>; showing all runners if none provided                                                 |
+| <code>type</code>           | string       | no       | The type of runners to return, one of: <code>instance_type</code>, <code>group_type</code>, <code>project_type</code>                                                                                                                                 |
+| <code>status</code>         | string       | no       | The status of runners to return, one of: <code>online</code>, <code>offline</code>, <code>stale</code>, and <code>never_contacted</code>. <code>active</code> and <code>paused</code> are also possible values which were deprecated and will be removed in a future version of the REST API |
+| <code>paused</code>         | boolean      | no       | Whether to include only runners that are accepting or ignoring new jobs                                                                                                                                              |
+| <code>tag_list</code>       | string array | no       | A list of runner tags                                                                                                                                                                                                |
+| <code>version_prefix</code> | string       | no       | The prefix of the version of the runners to return. For example, <code>15.0</code>, <code>14</code>, <code>16.1.241</code>                                                                                                                            |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/runners"</code></p>
+<p>NOTE:
+The <code>active</code> and <code>paused</code> values in the <code>status</code> query parameter were deprecated
+and will be removed in <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/351109">a future version of the REST API</a>. They are replaced by the <code>paused</code> query parameter.</p>
+<p>NOTE:
+The <code>active</code> attribute in the response was deprecated
+and will be removed in <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/351109">a future version of the REST API</a>. It is replaced by the <code>paused</code> attribute.</p>
+<p>NOTE:
+The <code>ip_address</code> attribute in the response was deprecated
+<a href="https://gitlab.com/gitlab-org/gitlab/-/issues/415159">in GitLab 16.1</a> and will be removed in
+<a href="https://gitlab.com/gitlab-org/gitlab/-/issues/351109">a future version of the REST API</a>.
+This attribute will start returning an empty string in GitLab 17.0.
+The <code>ipAddress</code> attribute can be found inside the respective runner manager, currently only available through the GraphQL
+<a href="graphql/reference/index.md#cirunnermanager"><code>CiRunnerManager</code> type</a>.</p>
+<p>Example response:</p>
+<p><code>json
+[
+    {
+        "active": true,
+        "paused": false,
+        "description": "test-1-20150125",
+        "id": 6,
+        "ip_address": "",
+        "is_shared": false,
+        "runner_type": "project_type",
+        "name": null,
+        "online": true,
+        "status": "online"
+    },
+    {
+        "active": true,
+        "paused": false,
+        "description": "test-2-20150125",
+        "id": 8,
+        "ip_address": "",
+        "is_shared": false,
+        "runner_type": "group_type",
+        "name": null,
+        "online": false,
+        "status": "offline"
+    }
+]</code></p>
+<h2>List all runners</h2>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> Self-managed, GitLab Dedicated</p>
+<p>Get a list of all runners in the GitLab instance (project and shared). Access
+is restricted to users with administrator access.</p>
+<p><code>plaintext
+GET /runners/all
+GET /runners/all?scope=online
+GET /runners/all?type=project_type
+GET /runners/all?status=online
+GET /runners/all?paused=true
+GET /runners/all?tag_list=tag1,tag2</code></p>
+<p>| Attribute        | Type         | Required | Description                                                                                                                                                                                                             |
+|------------------|--------------|----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| <code>scope</code>          | string       | no       | Deprecated: Use <code>type</code> or <code>status</code> instead. The scope of runners to return, one of: <code>specific</code>, <code>shared</code>, <code>active</code>, <code>paused</code>, <code>online</code> and <code>offline</code>; showing all runners if none provided                              |
+| <code>type</code>           | string       | no       | The type of runners to return, one of: <code>instance_type</code>, <code>group_type</code>, <code>project_type</code>                                                                                                                                    |
+| <code>status</code>         | string       | no       | The status of runners to return, one of: <code>online</code>, <code>offline</code>, <code>stale</code>, and <code>never_contacted</code>. <code>active</code> and <code>paused</code> are also possible values which were deprecated and will be removed in a future version of the REST API    |
+| <code>paused</code>         | boolean      | no       | Whether to include only runners that are accepting or ignoring new jobs                                                                                                                                                 |
+| <code>tag_list</code>       | string array | no       | A list of runner tags                                                                                                                                                                                                   |
+| <code>version_prefix</code> | string       | no       | The prefix of the version of the runners to return. For example, <code>15.0</code>, <code>16.1.241</code>                                                                                                                               |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/runners/all"</code></p>
+<p>NOTE:
+The <code>active</code> and <code>paused</code> values in the <code>status</code> query parameter were deprecated 
+and will be removed in <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/351109">a future version of the REST API</a>. They are replaced by the <code>paused</code> query parameter.</p>
+<p>NOTE:
+The <code>active</code> attribute in the response was deprecated 
+and will be removed in <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/351109">a future version of the REST API</a>. It is replaced by the <code>paused</code> attribute.</p>
+<p>NOTE:
+The <code>ip_address</code> attribute in the response was deprecated
+<a href="https://gitlab.com/gitlab-org/gitlab/-/issues/415159">in GitLab 16.1</a> and will be removed in
+<a href="https://gitlab.com/gitlab-org/gitlab/-/issues/351109">a future version of the REST API</a>.
+This attribute will start returning an empty string in GitLab 17.0.
+The <code>ipAddress</code> attribute can be found inside the respective runner manager, currently only available through the GraphQL
+<a href="graphql/reference/index.md#cirunnermanager"><code>CiRunnerManager</code> type</a>.</p>
+<p>Example response:</p>
+<p><code>json
+[
+    {
+        "active": true,
+        "paused": false,
+        "description": "shared-runner-1",
+        "id": 1,
+        "ip_address": "",
+        "is_shared": true,
+        "runner_type": "instance_type",
+        "name": null,
+        "online": true,
+        "status": "online"
+    },
+    {
+        "active": true,
+        "paused": false,
+        "description": "shared-runner-2",
+        "id": 3,
+        "ip_address": "",
+        "is_shared": true,
+        "runner_type": "instance_type",
+        "name": null,
+        "online": false,
+        "status": "offline"
+    },
+    {
+        "active": true,
+        "paused": false,
+        "description": "test-1-20150125",
+        "id": 6,
+        "ip_address": "",
+        "is_shared": false,
+        "runner_type": "project_type",
+        "name": null,
+        "online": true,
+        "status": "paused"
+    },
+    {
+        "active": true,
+        "paused": false,
+        "description": "test-2-20150125",
+        "id": 8,
+        "ip_address": "",
+        "is_shared": false,
+        "runner_type": "group_type",
+        "name": null,
+        "online": false,
+        "status": "offline"
+    }
+]</code></p>
+<p>To view more than the first 20 runners, use <a href="rest/index.md#pagination">pagination</a>.</p>
+<h2>Get runner's details</h2>
+<p>Get details of a runner.</p>
+<p>At least the Maintainer role is required to get runner details at the
+project and group level.</p>
+<p>Instance-level runner details via this endpoint are available to all authenticated users.</p>
+<p><code>plaintext
+GET /runners/:id</code></p>
+<p>| Attribute | Type    | Required | Description         |
+|-----------|---------|----------|---------------------|
+| <code>id</code>      | integer | yes      | The ID of a runner  |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/runners/6"</code></p>
+<p>NOTE:
+The <code>token</code> attribute in the response was deprecated <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/214320">in GitLab 12.10</a>
+and removed in <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/214322">GitLab 13.0</a>.</p>
+<p>NOTE:
+The <code>active</code> attribute in the response was deprecated 
+and will be removed in <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/351109">a future version of the REST API</a>. It is replaced by the <code>paused</code> attribute.</p>
+<p>NOTE:
+The <code>ip_address</code> attribute in the response was deprecated
+<a href="https://gitlab.com/gitlab-org/gitlab/-/issues/415159">in GitLab 16.1</a> and will be removed in
+<a href="https://gitlab.com/gitlab-org/gitlab/-/issues/351109">a future version of the REST API</a>.
+This attribute will start returning an empty string in GitLab 17.0.
+The <code>ipAddress</code> attribute can be found inside the respective runner manager, currently only available through the GraphQL
+<a href="graphql/reference/index.md#cirunnermanager"><code>CiRunnerManager</code> type</a>.</p>
+<p>NOTE:
+The <code>version</code>, <code>revision</code>, <code>platform</code>, and <code>architecture</code> attributes in the response were deprecated
+<a href="https://gitlab.com/gitlab-org/gitlab/-/issues/457128">in GitLab 17.0</a> and will be removed in
+<a href="https://gitlab.com/gitlab-org/gitlab/-/issues/351109">a future version of the REST API</a>.
+These attributes will start returning an empty string in GitLab 18.0.
+The same attributes can be found inside the respective runner manager, currently only available through the GraphQL
+<a href="graphql/reference/index.md#cirunnermanager"><code>CiRunnerManager</code> type</a>.</p>
+<p>Example response:</p>
+<p><code>json
+{
+    "active": true,
+    "paused": false,
+    "architecture": null,
+    "description": "test-1-20150125",
+    "id": 6,
+    "ip_address": "",
+    "is_shared": false,
+    "runner_type": "project_type",
+    "contacted_at": "2016-01-25T16:39:48.066Z",
+    "maintenance_note": null,
+    "name": null,
+    "online": true,
+    "status": "online",
+    "platform": null,
+    "projects": [
+        {
+            "id": 1,
+            "name": "GitLab Community Edition",
+            "name_with_namespace": "GitLab.org / GitLab Community Edition",
+            "path": "gitlab-foss",
+            "path_with_namespace": "gitlab-org/gitlab-foss"
+        }
+    ],
+    "revision": null,
+    "tag_list": [
+        "ruby",
+        "mysql"
+    ],
+    "version": null,
+    "access_level": "ref_protected",
+    "maximum_timeout": 3600
+}</code></p>
+<h2>Update runner's details</h2>
+<p>Update details of a runner.</p>
+<p><code>plaintext
+PUT /runners/:id</code></p>
+<p>| Attribute          | Type    | Required | Description                                                                                     |
+|--------------------|---------|----------|-------------------------------------------------------------------------------------------------|
+| <code>id</code>               | integer | yes      | The ID of a runner                                                                              |
+| <code>description</code>      | string  | no       | The description of the runner                                                                   |
+| <code>active</code>           | boolean | no       | Deprecated: Use <code>paused</code> instead. Flag indicating whether the runner is allowed to receive jobs |
+| <code>paused</code>           | boolean | no       | Specifies if the runner should ignore new jobs                                             |
+| <code>tag_list</code>         | array   | no       | The list of tags for the runner                                                                 |
+| <code>run_untagged</code>     | boolean | no       | Specifies if the runner can execute untagged jobs                                          |
+| <code>locked</code>           | boolean | no       | Specifies if the runner is locked                                                          |
+| <code>access_level</code>     | string  | no       | The access level of the runner; <code>not_protected</code> or <code>ref_protected</code>                              |
+| <code>maximum_timeout</code>  | integer | no       | Maximum timeout that limits the amount of time (in seconds) that runners can run jobs           |
+| <code>maintenance_note</code> | string  | no       | Free-form maintenance notes for the runner (1024 characters)                                    |</p>
+<p><code>shell
+curl --request PUT --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/runners/6" \
+     --form "description=test-1-20150125-test" --form "tag_list=ruby,mysql,tag1,tag2"</code></p>
+<p>NOTE:
+The <code>token</code> attribute in the response was <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/214320">deprecated</a> in GitLab 12.10
+and <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/214322">removed</a> in GitLab 13.0.</p>
+<p>NOTE:
+The <code>active</code> query parameter was deprecated 
+and will be removed in <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/351109">a future version of the REST API</a>. It is replaced by the <code>paused</code> attribute.</p>
+<p>NOTE:
+The <code>ip_address</code> attribute in the response was deprecated
+<a href="https://gitlab.com/gitlab-org/gitlab/-/issues/415159">in GitLab 16.1</a> and will be removed in
+<a href="https://gitlab.com/gitlab-org/gitlab/-/issues/351109">a future version of the REST API</a>.
+This attribute will start returning an empty string in GitLab 17.0.
+The <code>ipAddress</code> attribute can be found inside the respective runner manager, currently only available through the GraphQL
+<a href="graphql/reference/index.md#cirunnermanager"><code>CiRunnerManager</code> type</a>.</p>
+<p>Example response:</p>
+<p><code>json
+{
+    "active": true,
+    "architecture": null,
+    "description": "test-1-20150125-test",
+    "id": 6,
+    "ip_address": "",
+    "is_shared": false,
+    "runner_type": "group_type",
+    "contacted_at": "2016-01-25T16:39:48.066Z",
+    "maintenance_note": null,
+    "name": null,
+    "online": true,
+    "status": "online",
+    "platform": null,
+    "projects": [
+        {
+            "id": 1,
+            "name": "GitLab Community Edition",
+            "name_with_namespace": "GitLab.org / GitLab Community Edition",
+            "path": "gitlab-foss",
+            "path_with_namespace": "gitlab-org/gitlab-foss"
+        }
+    ],
+    "revision": null,
+    "tag_list": [
+        "ruby",
+        "mysql",
+        "tag1",
+        "tag2"
+    ],
+    "version": null,
+    "access_level": "ref_protected",
+    "maximum_timeout": null
+}</code></p>
+<h3>Pause a runner</h3>
+<p>Pause a runner.</p>
+<p>```plaintext
+PUT --form "paused=true" /runners/:runner_id</p>
+<h1>--or--</h1>
+<h1>Deprecated: removal planned in 16.0</h1>
+<p>PUT --form "active=false" /runners/:runner_id
+```</p>
+<p>| Attribute   | Type    | Required | Description         |
+|-------------|---------|----------|---------------------|
+| <code>runner_id</code> | integer | yes      | The ID of a runner  |</p>
+<p>```shell
+curl --request PUT --header "PRIVATE-TOKEN: <your_access_token>" \
+     --form "paused=true"  "https://gitlab.example.com/api/v4/runners/6"</p>
+<h1>--or--</h1>
+<h1>Deprecated: removal planned in 16.0</h1>
+<p>curl --request PUT --header "PRIVATE-TOKEN: <your_access_token>" \
+     --form "active=false"  "https://gitlab.example.com/api/v4/runners/6"
+```</p>
+<p>NOTE:
+The <code>active</code> form attribute was deprecated 
+and will be removed in <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/351109">a future version of the REST API</a>. It is replaced by the <code>paused</code> attribute.</p>
+<h2>List jobs processed by a runner</h2>
+<blockquote>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab-foss/-/merge_requests/15432">Introduced</a> in GitLab 10.3.</li>
+</ul>
+</blockquote>
+<p>List jobs that are being processed or were processed by the specified runner. The list of jobs is limited
+to projects where the user has at least the Reporter role.</p>
+<p><code>plaintext
+GET /runners/:id/jobs</code></p>
+<p>| Attribute   | Type    | Required | Description         |
+|-------------|---------|----------|---------------------|
+| <code>id</code>        | integer | yes      | The ID of a runner  |
+| <code>system_id</code> | string  | no       | System ID of the machine where the runner manager is running |
+| <code>status</code>    | string  | no       | Status of the job; one of: <code>running</code>, <code>success</code>, <code>failed</code>, <code>canceled</code> |
+| <code>order_by</code>  | string  | no       | Order jobs by <code>id</code> |
+| <code>sort</code>      | string  | no       | Sort jobs in <code>asc</code> or <code>desc</code> order (default: <code>desc</code>). If <code>sort</code> is specified, <code>order_by</code> must be specified as well |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/runners/1/jobs?status=running"</code></p>
+<p>Example response:</p>
+<p><code>json
+[
+    {
+        "id": 2,
+        "status": "running",
+        "stage": "test",
+        "name": "test",
+        "ref": "main",
+        "tag": false,
+        "coverage": null,
+        "created_at": "2017-11-16T08:50:29.000Z",
+        "started_at": "2017-11-16T08:51:29.000Z",
+        "finished_at": "2017-11-16T08:53:29.000Z",
+        "duration": 120,
+        "queued_duration": 2,
+        "user": {
+            "id": 1,
+            "name": "John Doe2",
+            "username": "user2",
+            "state": "active",
+            "avatar_url": "http://www.gravatar.com/avatar/c922747a93b40d1ea88262bf1aebee62?s=80&amp;d=identicon",
+            "web_url": "http://localhost/user2",
+            "created_at": "2017-11-16T18:38:46.000Z",
+            "bio": null,
+            "location": null,
+            "public_email": "",
+            "skype": "",
+            "linkedin": "",
+            "twitter": "",
+            "website_url": "",
+            "organization": null
+        },
+        "commit": {
+            "id": "97de212e80737a608d939f648d959671fb0a0142",
+            "short_id": "97de212e",
+            "title": "Update configuration\r",
+            "created_at": "2017-11-16T08:50:28.000Z",
+            "parent_ids": [
+                "1b12f15a11fc6e62177bef08f47bc7b5ce50b141",
+                "498214de67004b1da3d820901307bed2a68a8ef6"
+            ],
+            "message": "See merge request !123",
+            "author_name": "John Doe2",
+            "author_email": "user2@example.org",
+            "authored_date": "2017-11-16T08:50:27.000Z",
+            "committer_name": "John Doe2",
+            "committer_email": "user2@example.org",
+            "committed_date": "2017-11-16T08:50:27.000Z"
+        },
+        "pipeline": {
+            "id": 2,
+            "sha": "97de212e80737a608d939f648d959671fb0a0142",
+            "ref": "main",
+            "status": "running"
+        },
+        "project": {
+            "id": 1,
+            "description": null,
+            "name": "project1",
+            "name_with_namespace": "John Doe2 / project1",
+            "path": "project1",
+            "path_with_namespace": "namespace1/project1",
+            "created_at": "2017-11-16T18:38:46.620Z"
+        }
+    }
+]</code></p>
+<h2>List project's runners</h2>
+<p>List all runners available in the project, including from ancestor groups and <a href="../ci/runners/runners_scope.md#enable-instance-runners-for-a-project">any allowed shared runners</a>.</p>
+<p><code>plaintext
+GET /projects/:id/runners
+GET /projects/:id/runners?scope=active
+GET /projects/:id/runners?type=project_type
+GET /projects/:id/runners/all?status=online
+GET /projects/:id/runners/all?paused=true
+GET /projects/:id/runners?tag_list=tag1,tag2</code></p>
+<p>| Attribute        | Type           | Required | Description                                                                                                                                                                                                          |
+|------------------|----------------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| <code>id</code>             | integer/string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user                                                                                                  |
+| <code>scope</code>          | string         | no       | Deprecated: Use <code>type</code> or <code>status</code> instead. The scope of runners to return, one of: <code>active</code>, <code>paused</code>, <code>online</code> and <code>offline</code>; showing all runners if none provided                                                 |
+| <code>type</code>           | string         | no       | The type of runners to return, one of: <code>instance_type</code>, <code>group_type</code>, <code>project_type</code>                                                                                                                                 |
+| <code>status</code>         | string       | no       | The status of runners to return, one of: <code>online</code>, <code>offline</code>, <code>stale</code>, and <code>never_contacted</code>. <code>active</code> and <code>paused</code> are also possible values which were deprecated and will be removed in a future version of the REST API    |
+| <code>paused</code>         | boolean        | no       | Whether to include only runners that are accepting or ignoring new jobs                                                                                                                                              |
+| <code>tag_list</code>       | string array   | no       | A list of runner tags                                                                                                                                                                                                |
+| <code>version_prefix</code> | string         | no       | The prefix of the version of the runners to return. For example, <code>15.0</code>, <code>14</code>, <code>16.1.241</code>                                                                                                                            |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/9/runners"</code></p>
+<p>NOTE:
+The <code>active</code> and <code>paused</code> values in the <code>status</code> query parameter were deprecated 
+and will be removed in <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/351109">a future version of the REST API</a>. They are replaced by the <code>paused</code> query parameter.</p>
+<p>NOTE:
+The <code>active</code> attribute in the response was deprecated 
+and will be removed in <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/351109">a future version of the REST API</a>. It is replaced by the <code>paused</code> attribute.</p>
+<p>NOTE:
+The <code>ip_address</code> attribute in the response was deprecated
+<a href="https://gitlab.com/gitlab-org/gitlab/-/issues/415159">in GitLab 16.1</a> and will be removed in
+<a href="https://gitlab.com/gitlab-org/gitlab/-/issues/351109">a future version of the REST API</a>.
+This attribute will start returning an empty string in GitLab 17.0.
+The <code>ipAddress</code> attribute can be found inside the respective runner manager, currently only available through the GraphQL
+<a href="graphql/reference/index.md#cirunnermanager"><code>CiRunnerManager</code> type</a>.</p>
+<p>Example response:</p>
+<p><code>json
+[
+    {
+        "active": true,
+        "paused": false,
+        "description": "test-2-20150125",
+        "id": 8,
+        "ip_address": "",
+        "is_shared": false,
+        "runner_type": "project_type",
+        "name": null,
+        "online": false,
+        "status": "offline"
+    },
+    {
+        "active": true,
+        "paused": false,
+        "description": "development_runner",
+        "id": 5,
+        "ip_address": "",
+        "is_shared": true,
+        "runner_type": "instance_type",
+        "name": null,
+        "online": true,
+        "status": "online"
+    }
+]</code></p>
+<h2>Enable a runner in project</h2>
+<p>Enable an available project runner in the project.</p>
+<p><code>plaintext
+POST /projects/:id/runners</code></p>
+<p>| Attribute   | Type    | Required | Description         |
+|-------------|---------|----------|---------------------|
+| <code>id</code>        | integer/string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user |
+| <code>runner_id</code> | integer | yes      | The ID of a runner  |</p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/9/runners" \
+     --form "runner_id=9"</code></p>
+<p>NOTE:
+The <code>ip_address</code> attribute in the response was deprecated
+<a href="https://gitlab.com/gitlab-org/gitlab/-/issues/415159">in GitLab 16.1</a> and will be removed in
+<a href="https://gitlab.com/gitlab-org/gitlab/-/issues/351109">a future version of the REST API</a>.
+This attribute will start returning an empty string in GitLab 17.0.
+The <code>ipAddress</code> attribute can be found inside the respective runner manager, currently only available through the GraphQL
+<a href="graphql/reference/index.md#cirunnermanager"><code>CiRunnerManager</code> type</a>.</p>
+<p>Example response:</p>
+<p><code>json
+{
+    "active": true,
+    "description": "test-2016-02-01",
+    "id": 9,
+    "ip_address": "",
+    "is_shared": false,
+    "runner_type": "project_type",
+    "name": null,
+    "online": true,
+    "status": "online"
+}</code></p>
+<h2>Disable a runner from project</h2>
+<p>Disable a project runner from the project. It works only if the project isn't
+the only project associated with the specified runner. If so, an error is
+returned. Use the call to <a href="#delete-a-runner">delete a runner</a> instead.</p>
+<p><code>plaintext
+DELETE /projects/:id/runners/:runner_id</code></p>
+<p>| Attribute   | Type    | Required | Description         |
+|-------------|---------|----------|---------------------|
+| <code>id</code>        | integer/string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user |
+| <code>runner_id</code> | integer | yes      | The ID of a runner  |</p>
+<p><code>shell
+curl --request DELETE --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/9/runners/9"</code></p>
+<h2>List group's runners</h2>
+<p>List all runners available in the group as well as its ancestor groups, including <a href="../ci/runners/runners_scope.md#enable-instance-runners-for-a-group">any allowed shared runners</a>.</p>
+<p><code>plaintext
+GET /groups/:id/runners
+GET /groups/:id/runners?type=group_type
+GET /groups/:id/runners/all?status=online
+GET /groups/:id/runners/all?paused=true
+GET /groups/:id/runners?tag_list=tag1,tag2</code></p>
+<p>| Attribute        | Type           | Required | Description                                                                                                                                                                                                             |
+|------------------|----------------|----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| <code>id</code>             | integer        | yes      | The ID of the group owned by the authenticated user                                                                                                                                                                     |
+| <code>type</code>           | string         | no       | The type of runners to return, one of: <code>instance_type</code>, <code>group_type</code>, <code>project_type</code>. The <code>project_type</code> value is <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/351466">deprecated</a> and will be removed in GitLab 15.0 |
+| <code>status</code>         | string         | no       | The status of runners to return, one of: <code>online</code>, <code>offline</code>, <code>stale</code>, and <code>never_contacted</code>. <code>active</code> and <code>paused</code> are also possible values which were deprecated and will be removed in a future version of the REST API    |
+| <code>paused</code>         | boolean        | no       | Whether to include only runners that are accepting or ignoring new jobs                                                                                                                                                 |
+| <code>tag_list</code>       | string array   | no       | A list of runner tags                                                                                                                                                                                                   |
+| <code>version_prefix</code> | string         | no       | The prefix of the version of the runners to return. For example, <code>15.0</code>, <code>14</code>, <code>16.1.241</code>                                                                                                                               |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/groups/9/runners"</code></p>
+<p>NOTE:
+The <code>active</code> and <code>paused</code> values in the <code>status</code> query parameter were deprecated 
+and will be removed in <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/351109">a future version of the REST API</a>. They are replaced by the <code>paused</code> query parameter.</p>
+<p>NOTE:
+The <code>active</code> attribute in the response was deprecated 
+and will be removed in <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/351109">a future version of the REST API</a>. It is replaced by the <code>paused</code> attribute.</p>
+<p>NOTE:
+The <code>ip_address</code> attribute in the response was deprecated
+<a href="https://gitlab.com/gitlab-org/gitlab/-/issues/415159">in GitLab 16.1</a> and will be removed in
+<a href="https://gitlab.com/gitlab-org/gitlab/-/issues/351109">a future version of the REST API</a>.
+This attribute will start returning an empty string in GitLab 17.0.
+The <code>ipAddress</code> attribute can be found inside the respective runner manager, currently only available through the GraphQL
+<a href="graphql/reference/index.md#cirunnermanager"><code>CiRunnerManager</code> type</a>.</p>
+<p>Example response:</p>
+<p><code>json
+[
+  {
+    "id": 3,
+    "description": "Shared",
+    "ip_address": "",
+    "active": true,
+    "paused": false,
+    "is_shared": true,
+    "runner_type": "instance_type",
+    "name": "gitlab-runner",
+    "online": null,
+    "status": "never_contacted"
+  },
+  {
+    "id": 6,
+    "description": "Test",
+    "ip_address": "",
+    "active": true,
+    "paused": false,
+    "is_shared": true,
+    "runner_type": "instance_type",
+    "name": "gitlab-runner",
+    "online": false,
+    "status": "offline"
+  },
+  {
+    "id": 8,
+    "description": "Test 2",
+    "ip_address": "",
+    "active": true,
+    "paused": false,
+    "is_shared": false,
+    "runner_type": "group_type",
+    "name": "gitlab-runner",
+    "online": null,
+    "status": "never_contacted"
+  }
+]</code></p>
+<h2>Create an instance runner</h2>
+<p>Create a runner for the instance.</p>
+<p><code>plaintext
+POST /runners</code></p>
+<p>| Attribute          | Type         | Required | Description                                                                                                                                                                                    |
+|--------------------|--------------|----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| <code>token</code>            | string       | yes      | <a href="#registration-and-authentication-tokens">Registration token</a>                                                                                                                                  |
+| <code>description</code>      | string       | no       | Description of the runner                                                                                                                                                                      |
+| <code>info</code>             | hash         | no       | Runner's metadata. You can include <code>name</code>, <code>version</code>, <code>revision</code>, <code>platform</code>, and <code>architecture</code>, but only <code>version</code>, <code>platform</code>, and <code>architecture</code> are displayed in the Admin Area of the UI |
+| <code>active</code>           | boolean      | no       | Deprecated: Use <code>paused</code> instead. Specifies if the runner is allowed to receive new jobs                                                                                                       |
+| <code>paused</code>           | boolean      | no       | Specifies if the runner should ignore new jobs                                                                                                                                                 |
+| <code>locked</code>           | boolean      | no       | Specifies if the runner should be locked for the current project                                                                                                                               |
+| <code>run_untagged</code>     | boolean      | no       | Specifies if the runner should handle untagged jobs                                                                                                                                            |
+| <code>tag_list</code>         | string array | no       | A list of runner tags                                                                                                                                                                          |
+| <code>access_level</code>     | string       | no       | The access level of the runner; <code>not_protected</code> or <code>ref_protected</code>                                                                                                                             |
+| <code>maximum_timeout</code>  | integer      | no       | Maximum timeout that limits the amount of time (in seconds) that runners can run jobs                                                                                                          |
+| <code>maintainer_note</code>  | string       | no       | <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/350730">Deprecated</a>, see <code>maintenance_note</code>                                                                                                     |
+| <code>maintenance_note</code> | string       | no       | Free-form maintenance notes for the runner (1024 characters)                                                                                                                                   |</p>
+<p><code>shell
+curl --request POST "https://gitlab.example.com/api/v4/runners" \
+     --form "token=&lt;registration_token&gt;" --form "description=test-1-20150125-test" \
+     --form "tag_list=ruby,mysql,tag1,tag2"</code></p>
+<p>Response:</p>
+<p>| Status    | Description                       |
+|-----------|-----------------------------------|
+| 201       | Runner was created                |
+| 403       | Invalid runner registration token |
+| 410       | Runner registration disabled      |</p>
+<p>Example response:</p>
+<p><code>json
+{
+    "id": 12345,
+    "token": "6337ff461c94fd3fa32ba3b1ff4125",
+    "token_expires_at": "2021-09-27T21:05:03.203Z"
+}</code></p>
+<h2>Delete a runner</h2>
+<p>There are two ways to delete a runner:</p>
+<ul>
+<li>By specifying the runner ID.</li>
+<li>By specifying the runner's authentication token.</li>
+</ul>
+<h3>Delete a runner by ID</h3>
+<p>To delete the runner by ID, use your access token with the runner's ID:</p>
+<p><code>plaintext
+DELETE /runners/:id</code></p>
+<p>| Attribute   | Type    | Required | Description         |
+|-------------|---------|----------|---------------------|
+| <code>id</code>        | integer | yes      | The ID of a runner. The ID is visible in the UI under <strong>Settings &gt; CI/CD</strong>. Expand <strong>Runners</strong>, and below the <strong>Remove Runner</strong> button is an ID preceded by the pound sign, for example, <code>#6</code>. |</p>
+<p><code>shell
+curl --request DELETE --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/runners/6"</code></p>
+<h3>Delete a runner by authentication token</h3>
+<p>To delete the runner by using its authentication token:</p>
+<p><code>plaintext
+DELETE /runners</code></p>
+<p>| Attribute   | Type    | Required | Description         |
+|-------------|---------|----------|---------------------|
+| <code>token</code>     | string  | yes      | The runner's <a href="#registration-and-authentication-tokens">authentication token</a>. |</p>
+<p><code>shell
+curl --request DELETE "https://gitlab.example.com/api/v4/runners" \
+     --form "token=&lt;authentication_token&gt;"</code></p>
+<p>Response:</p>
+<p>| Status    | Description                     |
+|-----------|---------------------------------|
+| 204       | Runner was deleted              |</p>
+<h2>Verify authentication for a registered runner</h2>
+<p>Validates authentication credentials for a registered runner.</p>
+<p><code>plaintext
+POST /runners/verify</code></p>
+<p>| Attribute   | Type    | Required | Description                                                                                    |
+|-------------|---------|----------|------------------------------------------------------------------------------------------------|
+| <code>token</code>     | string  | yes      | The runner's <a href="#registration-and-authentication-tokens">authentication token</a>.                  |
+| <code>system_id</code> | string  | no       | The runner's system identifier. This attribute is required if the <code>token</code> starts with <code>glrt-</code>. |</p>
+<p><code>shell
+curl --request POST "https://gitlab.example.com/api/v4/runners/verify" \
+     --form "token=&lt;authentication_token&gt;"</code></p>
+<p>Response:</p>
+<p>| Status    | Description                     |
+|-----------|---------------------------------|
+| 200       | Credentials are valid           |
+| 403       | Credentials are invalid         |</p>
+<p>Example response:</p>
+<p><code>json
+{
+    "id": 12345,
+    "token": "glrt-6337ff461c94fd3fa32ba3b1ff4125",
+    "token_expires_at": "2021-09-27T21:05:03.203Z"
+}</code></p>
+<h2>Reset instance's runner registration token</h2>
+<p>WARNING:
+Runner registration tokens, and support for certain configuration arguments, were <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/380872">deprecated</a> in GitLab 15.6 and will be removed in GitLab 17.0. After GitLab 17.0, you will no longer be able to reset runner registration tokens and the <code>reset_registration_token</code> endpoint will not function.</p>
+<p>Reset the runner registration token for the GitLab instance.</p>
+<p><code>plaintext
+POST /runners/reset_registration_token</code></p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+     "https://gitlab.example.com/api/v4/runners/reset_registration_token"</code></p>
+<h2>Reset project's runner registration token</h2>
+<p>WARNING:
+Runner registration tokens, and support for certain configuration arguments, were <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/380872">deprecated</a> in GitLab 15.6 and will be removed in GitLab 17.0. After GitLab 17.0, you will no longer be able to reset runner registration tokens and the <code>reset_registration_token</code> endpoint will not function.</p>
+<p>Reset the runner registration token for a project.</p>
+<p><code>plaintext
+POST /projects/:id/runners/reset_registration_token</code></p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+     "https://gitlab.example.com/api/v4/projects/9/runners/reset_registration_token"</code></p>
+<h2>Reset group's runner registration token</h2>
+<p>WARNING:
+Runner registration tokens, and support for certain configuration arguments, were <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/380872">deprecated</a> in GitLab 15.6 and will be removed in GitLab 17.0. After GitLab 17.0, you will no longer be able to reset runner registration tokens and the <code>reset_registration_token</code> endpoint will not function.</p>
+<p>Reset the runner registration token for a group.</p>
+<p><code>plaintext
+POST /groups/:id/runners/reset_registration_token</code></p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+     "https://gitlab.example.com/api/v4/groups/9/runners/reset_registration_token"</code></p>
+<h2>Reset runner's authentication token by using the runner ID</h2>
+<p>Reset the runner's authentication token by using its runner ID.</p>
+<p><code>plaintext
+POST /runners/:id/reset_authentication_token</code></p>
+<p>| Attribute | Type    | Required | Description         |
+|-----------|---------|----------|---------------------|
+| <code>id</code>      | integer | yes      | The ID of a runner  |</p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+     "https://gitlab.example.com/api/v4/runners/1/reset_authentication_token"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+    "token": "6337ff461c94fd3fa32ba3b1ff4125",
+    "token_expires_at": "2021-09-27T21:05:03.203Z"
+}</code></p>
+<h2>Reset runner's authentication token by using the current token</h2>
+<p>Reset the runner's authentication token by using the current token's value as an input.</p>
+<p><code>plaintext
+POST /runners/reset_authentication_token</code></p>
+<p>| Attribute | Type    | Required | Description                            |
+|-----------|---------|----------|----------------------------------------|
+| <code>token</code>   | string  | yes      | The authentication token of the runner |</p>
+<p><code>shell
+curl --request POST --form "token=&lt;current token&gt;" \
+     "https://gitlab.example.com/api/v4/runners/reset_authentication_token"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+    "token": "6337ff461c94fd3fa32ba3b1ff4125",
+    "token_expires_at": "2021-09-27T21:05:03.203Z"
+}</code></p>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>group_ssh_certificates API Documentation</title>
+</head>
+<body>
+<hr />
+<p>stage: Create
+group: Source Code
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments</p>
+<hr />
+<h1>Group SSH certificates API</h1>
+<p>DETAILS:
+<strong>Tier:</strong> Premium, Ultimate
+<strong>Offering:</strong> GitLab.com</p>
+<blockquote>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/issues/421915">Introduced</a> in GitLab 16.4 <a href="../user/feature_flags.md">with a flag</a> named <code>ssh_certificates_rest_endpoints</code>. Disabled by default.</li>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/issues/424501">Enabled on GitLab.com</a> in GitLab 16.9.</li>
+</ul>
+</blockquote>
+<p>FLAG:
+On GitLab.com, this feature is available. On GitLab Dedicated, this feature is not available.</p>
+<p>Use this API to create, read and delete SSH certificates for a group.
+Only top-level groups can store SSH certificates.
+To use this API, you must <a href="rest/index.md#authentication">authenticate yourself</a> as user assigned the Owner role.</p>
+<h2>Get all SSH certificates for a particular group</h2>
+<p><code>plaintext
+GET groups/:id/ssh_certificates</code></p>
+<p>Parameters:</p>
+<p>| Attribute  | Type   | Required | Description          |
+| ---------- | ------ | -------- |----------------------|
+| <code>id</code>      | integer | Yes       | The ID of the group. |</p>
+<p>By default, <code>GET</code> requests return 20 results at a time because the API results are paginated.
+Read more on <a href="rest/index.md#pagination">pagination</a>.</p>
+<p>Example request:</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://primary.example.com/api/v4/groups/90/ssh_certificates"</code></p>
+<p>Example response:</p>
+<p><code>json
+[
+  {
+    "id": 12345,
+    "title": "SSH Title 1",
+    "key": "ssh-rsa AAAAB3NzaC1ea2dAAAADAQABAAAAgQDGbLkF44ScxRQi2FfA7VsHgGqptguSbmW26jkJhEiRZpGS4/+UzaaSqc8Psw2OhSsKc5QwfrB/ANpO4LhOjDzhf2FuD8ACkv3R7XtaJ+rN6PlyzoBfLAiSyzxhEoMFDBprTgaiZKgg2yQ9dRH55w3f6XMZ4hnaUae53nQgfQLxFw== example@gitlab.com",
+    "created_at": "2023-09-08T12:39:00.172Z"
+  },
+  {
+    "id":12346,
+    "title":"SSH Title 2",
+    "key": "ssh-rsa AAAAB3NzaC1ac2EAAAADAQABAAAAgQDTl/hHfu1F/KlR+QfgM2wUmyxcN5YeiaWluEGIrfXUeJuI+bK6xjpE3+2afHDYtE9VQkeL32KRjefX2d72Jeoa68ewt87Vn8CcGkUTOTpHNzeL8pHMKFs3m7ArSBxNg5vTdgAsq5dbDGNtat7b2WCHTNvtWoON1Jetne30uW2EwQ== example@gitlab.com",
+    "created_at": "2023-09-08T12:39:00.244Z"
+  }
+]</code></p>
+<h2>Create SSH Certificate</h2>
+<p>Create a new SSH certificate in the group.</p>
+<p><code>plaintext
+POST /groups/:id/ssh_certificates</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type       | Required | Description                           |
+|-----------|------------| -------- |---------------------------------------|
+| <code>id</code>      | integer    | Yes       | The ID of the group.                  |
+| <code>key</code>     | string     | Yes       | The public key of the SSH certificate.|
+| <code>title</code>   | string     | Yes       | The title of the SSH certificate.     |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --request POST \
+  --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  --url "https://gitlab.example.com/api/v4/groups/5/ssh_certificates?title=newtitle&amp;key=ssh-rsa+REDACTED+example%40gitlab.com"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "id": 54321,
+  "title": "newtitle",
+  "key": "ssh-rsa ssh-rsa AAAAB3NzaC1ea2dAAAADAQABAAAAgQDGbLkF44ScxRQi2FfA7VsHgGqptguSbmW26jkJhEiRZpGS4/+UzaaSqc8Psw2OhSsKc5QwfrB/ANpO4LhOjDzhf2FuD8ACkv3R7XtaJ+rN6PlyzoBfLAiSyzxhEoMFDBprTgaiZKgg2yQ9dRH55w3f6XMZ4hnaUae53nQgfQLxFw== example@gitlab.com",
+  "created_at": "2023-09-08T12:39:00.172Z"
+}</code></p>
+<h2>Delete group SSH certificate</h2>
+<p>Delete a SSH certificate from a group.</p>
+<p><code>plaintext
+DELETE /groups/:id/ssh_certificate/:id</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type    | Required | Description                   |
+|-----------|---------| -------- |-------------------------------|
+| <code>id</code>      | integer | Yes       | The ID of the group           |
+| <code>id</code>      | integer | Yes       | The ID of the SSH certificate |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --request DELETE \
+  --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  --url "https://gitlab.example.com/api/v4/groups/5/ssh_certificates/12345"</code></p>
+</body>
+</html>

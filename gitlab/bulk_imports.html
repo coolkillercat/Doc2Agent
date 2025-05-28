@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>bulk_imports API Documentation</title>
+</head>
+<body>
+<hr />
+<p>stage: Manage
+group: Import and Integrate
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments</p>
+<hr />
+<h1>Group and project migration by direct transfer API</h1>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> GitLab.com, Self-managed, GitLab Dedicated</p>
+<blockquote>
+<ul>
+<li>Project migration <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/390515">introduced</a> in GitLab 15.11.</li>
+</ul>
+</blockquote>
+<p>With the group migration by direct transfer API, you can start and view the progress of migrations initiated with
+<a href="../user/group/import/index.md">group migration by direct transfer</a>.</p>
+<p>WARNING:
+Migrating projects with this API is in <a href="../policy/experiment-beta-support.md#beta">Beta</a>. This feature is not
+ready for production use.</p>
+<h2>Prerequisites</h2>
+<p>For information on prerequisites for group migration by direct transfer API, see
+prerequisites for <a href="../user/group/import/index.md#prerequisites">migrating groups by direct transfer</a>.</p>
+<h2>Start a new group or project migration</h2>
+<blockquote>
+<ul>
+<li><code>project_entity</code> source type <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/390515">introduced</a> in GitLab 15.11.</li>
+</ul>
+</blockquote>
+<p>Use this endpoint to start a new group or project migration. Specify:</p>
+<ul>
+<li><code>entities[group_entity]</code> to migrate a group.</li>
+<li><code>entities[project_entity]</code> to migrate a project. (<strong>Status:</strong> Beta)</li>
+</ul>
+<p><code>plaintext
+POST /bulk_imports</code></p>
+<p>| Attribute                         | Type   | Required | Description |
+| --------------------------------- | ------ | -------- | ----------- |
+| <code>configuration</code>                   | Hash   | yes      | The source GitLab instance configuration. |
+| <code>configuration[url]</code>              | String | yes      | Source GitLab instance URL. |
+| <code>configuration[access_token]</code>     | String | yes      | Access token to the source GitLab instance. |
+| <code>entities</code>                        | Array  | yes      | List of entities to import. |
+| <code>entities[source_type]</code>           | String | yes      | Source entity type. Valid values are <code>group_entity</code> and <code>project_entity</code> (GitLab 15.11 and later). |
+| <code>entities[source_full_path]</code>      | String | yes      | Source full path of the entity to import. For example, <code>gitlab-org/gitlab</code>. |
+| <code>entities[destination_slug]</code>      | String | yes      | Destination slug for the entity. GitLab uses the slug as the URL path to the entity. The name of the imported entity is copied from the name of the source entity and not the slug. |
+| <code>entities[destination_name]</code>      | String | no       | Deprecated: Use <code>destination_slug</code> instead. Destination slug for the entity. |
+| <code>entities[destination_namespace]</code> | String | yes      | Full path of the destination group <a href="../user/namespace/index.md">namespace</a> for the entity. Must be an existing group in the destination instance. |
+| <code>entities[migrate_projects]</code>      | Boolean | no      | Also import all nested projects of the group (if <code>source_type</code> is <code>group_entity</code>). Defaults to <code>true</code>. |</p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token_for_destination_gitlab_instance&gt;" "https://destination-gitlab-instance.example.com/api/v4/bulk_imports" \
+  --header "Content-Type: application/json" \
+  --data '{
+    "configuration": {
+      "url": "https://source-gitlab-instance.example.com",
+      "access_token": "&lt;your_access_token_for_source_gitlab_instance&gt;"
+    },
+    "entities": [
+      {
+        "source_full_path": "source/full/path",
+        "source_type": "group_entity",
+        "destination_slug": "destination_slug",
+        "destination_namespace": "destination/namespace/path"
+      }
+    ]
+  }'</code></p>
+<p><code>json
+{ "id": 1, "status": "created", "source_type": "gitlab", "created_at": "2021-06-18T09:45:55.358Z", "updated_at": "2021-06-18T09:46:27.003Z" }</code></p>
+<h2>List all group or project migrations</h2>
+<p><code>plaintext
+GET /bulk_imports</code></p>
+<p>| Attribute  | Type    | Required | Description                                                                        |
+|:-----------|:--------|:---------|:-----------------------------------------------------------------------------------|
+| <code>per_page</code> | integer | no       | Number of records to return per page.                                              |
+| <code>page</code>     | integer | no       | Page to retrieve.                                                                  |
+| <code>sort</code>     | string  | no       | Return records sorted in <code>asc</code> or <code>desc</code> order by creation date. Default is <code>desc</code> |
+| <code>status</code>   | string  | no       | Import status.                                                                     |</p>
+<p>The status can be one of the following:</p>
+<ul>
+<li><code>created</code></li>
+<li><code>started</code></li>
+<li><code>finished</code></li>
+<li><code>failed</code></li>
+</ul>
+<p><code>shell
+curl --request GET --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/bulk_imports?per_page=2&amp;page=1"</code></p>
+<p><code>json
+[
+    {
+        "id": 1,
+        "status": "finished",
+        "source_type": "gitlab",
+        "created_at": "2021-06-18T09:45:55.358Z",
+        "updated_at": "2021-06-18T09:46:27.003Z"
+    },
+    {
+        "id": 2,
+        "status": "started",
+        "source_type": "gitlab",
+        "created_at": "2021-06-18T09:47:36.581Z",
+        "updated_at": "2021-06-18T09:47:58.286Z"
+    }
+]</code></p>
+<h2>List all group or project migrations' entities</h2>
+<p><code>plaintext
+GET /bulk_imports/entities</code></p>
+<p>| Attribute  | Type    | Required | Description                                                                        |
+|:-----------|:--------|:---------|:-----------------------------------------------------------------------------------|
+| <code>per_page</code> | integer | no       | Number of records to return per page.                                              |
+| <code>page</code>     | integer | no       | Page to retrieve.                                                                  |
+| <code>sort</code>     | string  | no       | Return records sorted in <code>asc</code> or <code>desc</code> order by creation date. Default is <code>desc</code> |
+| <code>status</code>   | string  | no       | Import status.                                                                     |</p>
+<p>The status can be one of the following:</p>
+<ul>
+<li><code>created</code></li>
+<li><code>started</code></li>
+<li><code>finished</code></li>
+<li><code>failed</code></li>
+</ul>
+<p><code>shell
+curl --request GET --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/bulk_imports/entities?per_page=2&amp;page=1&amp;status=started"</code></p>
+<p><code>json
+[
+    {
+        "id": 1,
+        "bulk_import_id": 1,
+        "status": "finished",
+        "source_full_path": "source_group",
+        "destination_slug": "destination_slug",
+        "destination_namespace": "destination_path",
+        "parent_id": null,
+        "namespace_id": 1,
+        "project_id": null,
+        "created_at": "2021-06-18T09:47:37.390Z",
+        "updated_at": "2021-06-18T09:47:51.867Z",
+        "failures": [],
+        "stats": {
+            "labels": {
+                "source": 10,
+                "fetched": 10,
+                "imported": 10
+            },
+            "milestones": {
+                "source": 10,
+                "fetched": 10,
+                "imported": 10
+            }
+        }
+    },
+    {
+        "id": 2,
+        "bulk_import_id": 2,
+        "status": "failed",
+        "source_full_path": "another_group",
+        "destination_slug": "another_slug",
+        "destination_namespace": "another_namespace",
+        "parent_id": null,
+        "namespace_id": null,
+        "project_id": null,
+        "created_at": "2021-06-24T10:40:20.110Z",
+        "updated_at": "2021-06-24T10:40:46.590Z",
+        "failures": [
+            {
+                "relation": "group",
+                "step": "extractor",
+                "exception_message": "Error!",
+                "exception_class": "Exception",
+                "correlation_id_value": "dfcf583058ed4508e4c7c617bd7f0edd",
+                "created_at": "2021-06-24T10:40:46.495Z",
+                "pipeline_class": "BulkImports::Groups::Pipelines::GroupPipeline",
+                "pipeline_step": "extractor"
+            }
+        ]
+    }
+]</code></p>
+<h2>Get group or project migration details</h2>
+<p><code>plaintext
+GET /bulk_imports/:id</code></p>
+<p><code>shell
+curl --request GET --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/bulk_imports/1"</code></p>
+<p><code>json
+{
+  "id": 1,
+  "status": "finished",
+  "source_type": "gitlab",
+  "created_at": "2021-06-18T09:45:55.358Z",
+  "updated_at": "2021-06-18T09:46:27.003Z"
+}</code></p>
+<h2>List group or project migration entities</h2>
+<p><code>plaintext
+GET /bulk_imports/:id/entities</code></p>
+<p>| Attribute  | Type    | Required | Description                                                                        |
+|:-----------|:--------|:---------|:-----------------------------------------------------------------------------------|
+| <code>per_page</code> | integer | no       | Number of records to return per page.                                              |
+| <code>page</code>     | integer | no       | Page to retrieve.                                                                  |
+| <code>sort</code>     | string  | no       | Return records sorted in <code>asc</code> or <code>desc</code> order by creation date. Default is <code>desc</code> |
+| <code>status</code>   | string  | no       | Import status.                                                                     |</p>
+<p>The status can be one of the following:</p>
+<ul>
+<li><code>created</code></li>
+<li><code>started</code></li>
+<li><code>finished</code></li>
+<li><code>failed</code></li>
+</ul>
+<p><code>shell
+curl --request GET --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/bulk_imports/1/entities?per_page=2&amp;page=1&amp;status=finished"</code></p>
+<p><code>json
+[
+    {
+        "id": 1,
+        "status": "finished",
+        "source_type": "gitlab",
+        "created_at": "2021-06-18T09:45:55.358Z",
+        "updated_at": "2021-06-18T09:46:27.003Z",
+        "stats": {
+            "labels": {
+                "source": 10,
+                "fetched": 10,
+                "imported": 10
+            },
+            "milestones": {
+                "source": 10,
+                "fetched": 10,
+                "imported": 10
+            }
+        }
+    }
+]</code></p>
+<h2>Get group or project migration entity details</h2>
+<p><code>plaintext
+GET /bulk_imports/:id/entities/:entity_id</code></p>
+<p><code>shell
+curl --request GET --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/bulk_imports/1/entities/2"</code></p>
+<p><code>json
+{
+  "id": 2,
+  "status": "finished",
+  "source_type": "gitlab",
+  "created_at": "2021-06-18T09:45:55.358Z",
+  "updated_at": "2021-06-18T09:46:27.003Z"
+}</code></p>
+<h2>Get list of failed import records for group or project migration entity</h2>
+<blockquote>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/issues/428016">Introduced</a> in GitLab 16.6.</li>
+</ul>
+</blockquote>
+<p><code>plaintext
+GET /bulk_imports/:id/entities/:entity_id/failures</code></p>
+<p><code>shell
+curl --request GET --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/bulk_imports/1/entities/2/failures"</code></p>
+<p><code>json
+{
+  "relation": "issues",
+  "exception_message": "Error!",
+  "exception_class": "StandardError",
+  "correlation_id_value": "06289e4b064329a69de7bb2d7a1b5a97",
+  "source_url": "https://gitlab.example/project/full/path/-/issues/1",
+  "source_title": "Issue title"
+}</code></p>
+</body>
+</html>

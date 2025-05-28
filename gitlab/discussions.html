@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>discussions API Documentation</title>
+</head>
+<body>
+<hr />
+<p>stage: Create
+group: Source Code
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments</p>
+<hr />
+<h1>Discussions API</h1>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> GitLab.com, Self-managed, GitLab Dedicated</p>
+<p>Discussions are a set of related notes on:</p>
+<ul>
+<li>Snippets</li>
+<li>Issues</li>
+<li><a href="../user/group/epics/index.md">Epics</a></li>
+<li>Merge requests</li>
+<li>Commits</li>
+</ul>
+<p>This includes <a href="../user/discussions/index.md">comments and threads</a> and system notes.
+System notes are notes about changes to the object (for example, when a milestone changes).
+Label notes are not part of this API, but recorded as separate events in
+<a href="resource_label_events.md">resource label events</a>.</p>
+<h2>Discussions pagination</h2>
+<p>By default, <code>GET</code> requests return 20 results at a time because the API results are paginated.</p>
+<p>Read more on <a href="rest/index.md#pagination">pagination</a>.</p>
+<h2>Issues</h2>
+<h3>List project issue discussion items</h3>
+<p>Gets a list of all discussion items for a single issue.</p>
+<p><code>plaintext
+GET /projects/:id/issues/:issue_iid/discussions</code></p>
+<p>| Attribute           | Type             | Required   | Description  |
+| ------------------- | ---------------- | ---------- | ------------ |
+| <code>id</code>                | integer/string   | yes        | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>. |
+| <code>issue_iid</code>         | integer          | yes        | The IID of an issue. |</p>
+<p><code>json
+[
+  {
+    "id": "6a9c1750b37d513a43987b574953fceb50b03ce7",
+    "individual_note": false,
+    "notes": [
+      {
+        "id": 1126,
+        "type": "DiscussionNote",
+        "body": "discussion text",
+        "attachment": null,
+        "author": {
+          "id": 1,
+          "name": "root",
+          "username": "root",
+          "state": "active",
+          "avatar_url": "https://www.gravatar.com/avatar/00afb8fb6ab07c3ee3e9c1f38777e2f4?s=80&amp;d=identicon",
+          "web_url": "http://localhost:3000/root"
+        },
+        "created_at": "2018-03-03T21:54:39.668Z",
+        "updated_at": "2018-03-03T21:54:39.668Z",
+        "system": false,
+        "noteable_id": 3,
+        "noteable_type": "Issue",
+        "project_id": 5,
+        "noteable_iid": null
+      },
+      {
+        "id": 1129,
+        "type": "DiscussionNote",
+        "body": "reply to the discussion",
+        "attachment": null,
+        "author": {
+          "id": 1,
+          "name": "root",
+          "username": "root",
+          "state": "active",
+          "avatar_url": "https://www.gravatar.com/avatar/00afb8fb6ab07c3ee3e9c1f38777e2f4?s=80&amp;d=identicon",
+          "web_url": "http://localhost:3000/root"
+        },
+        "created_at": "2018-03-04T13:38:02.127Z",
+        "updated_at": "2018-03-04T13:38:02.127Z",
+        "system": false,
+        "noteable_id": 3,
+        "noteable_type": "Issue",
+        "project_id": 5,
+        "noteable_iid": null,
+        "resolvable": false
+      }
+    ]
+  },
+  {
+    "id": "87805b7c09016a7058e91bdbe7b29d1f284a39e6",
+    "individual_note": true,
+    "notes": [
+      {
+        "id": 1128,
+        "type": null,
+        "body": "a single comment",
+        "attachment": null,
+        "author": {
+          "id": 1,
+          "name": "root",
+          "username": "root",
+          "state": "active",
+          "avatar_url": "https://www.gravatar.com/avatar/00afb8fb6ab07c3ee3e9c1f38777e2f4?s=80&amp;d=identicon",
+          "web_url": "http://localhost:3000/root"
+        },
+        "created_at": "2018-03-04T09:17:22.520Z",
+        "updated_at": "2018-03-04T09:17:22.520Z",
+        "system": false,
+        "noteable_id": 3,
+        "noteable_type": "Issue",
+        "project_id": 5,
+        "noteable_iid": null,
+        "resolvable": false
+      }
+    ]
+  }
+]</code></p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;"\
+  "https://gitlab.example.com/api/v4/projects/5/issues/11/discussions"</code></p>
+<h3>Get single issue discussion item</h3>
+<p>Returns a single discussion item for a specific project issue.</p>
+<p><code>plaintext
+GET /projects/:id/issues/:issue_iid/discussions/:discussion_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute       | Type           | Required | Description |
+| --------------- | -------------- | -------- | ----------- |
+| <code>id</code>            | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>. |
+| <code>issue_iid</code>     | integer        | yes      | The IID of an issue. |
+| <code>discussion_id</code> | integer        | yes      | The ID of a discussion item. |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  "https://gitlab.example.com/api/v4/projects/5/issues/11/discussions/&lt;discussion_id&gt;"</code></p>
+<h3>Create new issue thread</h3>
+<p>Creates a new thread to a single project issue. Similar to creating a note, but other comments (replies) can be added to it later.</p>
+<p><code>plaintext
+POST /projects/:id/issues/:issue_iid/discussions</code></p>
+<p>Parameters:</p>
+<p>| Attribute       | Type           | Required | Description |
+| --------------- | -------------- | -------- | ----------- |
+| <code>body</code>          | string         | yes      | The content of the thread. |
+| <code>id</code>            | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>. |
+| <code>issue_iid</code>     | integer        | yes      | The IID of an issue. |
+| <code>created_at</code>    | string         | no       | Date time string, ISO 8601 formatted, such as <code>2016-03-11T03:45:40Z</code>. Requires administrator or project/group owner rights. |</p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  "https://gitlab.example.com/api/v4/projects/5/issues/11/discussions?body=comment"</code></p>
+<h3>Add note to existing issue thread</h3>
+<p>Adds a new note to the thread. This can also <a href="../user/discussions/index.md#create-a-thread-by-replying-to-a-standard-comment">create a thread from a single comment</a>.</p>
+<p>WARNING:
+Notes can be added to other items than comments, such as system notes, making them threads.</p>
+<p><code>plaintext
+POST /projects/:id/issues/:issue_iid/discussions/:discussion_id/notes</code></p>
+<p>Parameters:</p>
+<p>| Attribute       | Type           | Required | Description |
+| --------------- | -------------- | -------- | ----------- |
+| <code>body</code>          | string         | yes      | The content of the note or reply. |
+| <code>discussion_id</code> | integer        | yes      | The ID of a thread. |
+| <code>id</code>            | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>. |
+| <code>issue_iid</code>     | integer        | yes      | The IID of an issue. |
+| <code>note_id</code>       | integer        | yes      | The ID of a thread note. |
+| <code>created_at</code>    | string         | no       | Date time string, ISO 8601 formatted, such as <code>2016-03-11T03:45:40Z</code>. Requires administrator or project/group owner rights. |</p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  "https://gitlab.example.com/api/v4/projects/5/issues/11/discussions/&lt;discussion_id&gt;/notes?body=comment"</code></p>
+<h3>Modify existing issue thread note</h3>
+<p>Modify existing thread note of an issue.</p>
+<p><code>plaintext
+PUT /projects/:id/issues/:issue_iid/discussions/:discussion_id/notes/:note_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute       | Type           | Required | Description |
+| --------------- | -------------- | -------- | ----------- |
+| <code>body</code>          | string         | yes      | The content of the note or reply. |
+| <code>discussion_id</code> | integer        | yes      | The ID of a thread. |
+| <code>id</code>            | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>. |
+| <code>issue_iid</code>     | integer        | yes      | The IID of an issue. |
+| <code>note_id</code>       | integer        | yes      | The ID of a thread note. |</p>
+<p><code>shell
+curl --request PUT --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  "https://gitlab.example.com/api/v4/projects/5/issues/11/discussions/&lt;discussion_id&gt;/notes/1108?body=comment"</code></p>
+<h3>Delete an issue thread note</h3>
+<p>Deletes an existing thread note of an issue.</p>
+<p><code>plaintext
+DELETE /projects/:id/issues/:issue_iid/discussions/:discussion_id/notes/:note_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute       | Type           | Required | Description |
+| --------------- | -------------- | -------- | ----------- |
+| <code>discussion_id</code> | integer        | yes      | The ID of a discussion. |
+| <code>id</code>            | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>. |
+| <code>issue_iid</code>     | integer        | yes      | The IID of an issue. |
+| <code>note_id</code>       | integer        | yes      | The ID of a discussion note. |</p>
+<p><code>shell
+curl --request DELETE --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  "https://gitlab.example.com/api/v4/projects/5/issues/11/discussions/636"</code></p>
+<h2>Snippets</h2>
+<h3>List project snippet discussion items</h3>
+<p>Gets a list of all discussion items for a single snippet.</p>
+<p><code>plaintext
+GET /projects/:id/snippets/:snippet_id/discussions</code></p>
+<p>| Attribute           | Type             | Required   | Description |
+| ------------------- | ---------------- | ---------- | ------------|
+| <code>id</code>                | integer/string   | yes        | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>. |
+| <code>snippet_id</code>        | integer          | yes        | The ID of an snippet. |</p>
+<p><code>json
+[
+  {
+    "id": "6a9c1750b37d513a43987b574953fceb50b03ce7",
+    "individual_note": false,
+    "notes": [
+      {
+        "id": 1126,
+        "type": "DiscussionNote",
+        "body": "discussion text",
+        "attachment": null,
+        "author": {
+          "id": 1,
+          "name": "root",
+          "username": "root",
+          "state": "active",
+          "avatar_url": "https://www.gravatar.com/avatar/00afb8fb6ab07c3ee3e9c1f38777e2f4?s=80&amp;d=identicon",
+          "web_url": "http://localhost:3000/root"
+        },
+        "created_at": "2018-03-03T21:54:39.668Z",
+        "updated_at": "2018-03-03T21:54:39.668Z",
+        "system": false,
+        "noteable_id": 3,
+        "noteable_type": "Snippet",
+        "project_id": 5,
+        "noteable_iid": null
+      },
+      {
+        "id": 1129,
+        "type": "DiscussionNote",
+        "body": "reply to the discussion",
+        "attachment": null,
+        "author": {
+          "id": 1,
+          "name": "root",
+          "username": "root",
+          "state": "active",
+          "avatar_url": "https://www.gravatar.com/avatar/00afb8fb6ab07c3ee3e9c1f38777e2f4?s=80&amp;d=identicon",
+          "web_url": "http://localhost:3000/root"
+        },
+        "created_at": "2018-03-04T13:38:02.127Z",
+        "updated_at": "2018-03-04T13:38:02.127Z",
+        "system": false,
+        "noteable_id": 3,
+        "noteable_type": "Snippet",
+        "project_id": 5,
+        "noteable_iid": null,
+        "resolvable": false
+      }
+    ]
+  },
+  {
+    "id": "87805b7c09016a7058e91bdbe7b29d1f284a39e6",
+    "individual_note": true,
+    "notes": [
+      {
+        "id": 1128,
+        "type": null,
+        "body": "a single comment",
+        "attachment": null,
+        "author": {
+          "id": 1,
+          "name": "root",
+          "username": "root",
+          "state": "active",
+          "avatar_url": "https://www.gravatar.com/avatar/00afb8fb6ab07c3ee3e9c1f38777e2f4?s=80&amp;d=identicon",
+          "web_url": "http://localhost:3000/root"
+        },
+        "created_at": "2018-03-04T09:17:22.520Z",
+        "updated_at": "2018-03-04T09:17:22.520Z",
+        "system": false,
+        "noteable_id": 3,
+        "noteable_type": "Snippet",
+        "project_id": 5,
+        "noteable_iid": null,
+        "resolvable": false
+      }
+    ]
+  }
+]</code></p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  "https://gitlab.example.com/api/v4/projects/5/snippets/11/discussions"</code></p>
+<h3>Get single snippet discussion item</h3>
+<p>Returns a single discussion item for a specific project snippet.</p>
+<p><code>plaintext
+GET /projects/:id/snippets/:snippet_id/discussions/:discussion_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute       | Type           | Required | Description |
+| --------------- | -------------- | -------- | ----------- |
+| <code>discussion_id</code> | integer        | yes      | The ID of a discussion item. |
+| <code>id</code>            | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>. |
+| <code>snippet_id</code>    | integer        | yes      | The ID of an snippet. |</p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  "https://gitlab.example.com/api/v4/projects/5/snippets/11/discussions/&lt;discussion_id&gt;"</code></p>
+<h3>Create new snippet thread</h3>
+<p>Creates a new thread to a single project snippet. Similar to creating
+a note, but other comments (replies) can be added to it later.</p>
+<p><code>plaintext
+POST /projects/:id/snippets/:snippet_id/discussions</code></p>
+<p>Parameters:</p>
+<p>| Attribute       | Type           | Required | Description |
+| --------------- | -------------- | -------- | ----------- |
+| <code>body</code>          | string         | yes      | The content of a discussion. |
+| <code>id</code>            | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>. |
+| <code>snippet_id</code>    | integer        | yes      | The ID of an snippet. |
+| <code>created_at</code>    | string         | no       | Date time string, ISO 8601 formatted, such as <code>2016-03-11T03:45:40Z</code>. Requires administrator or project/group owner rights. |</p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;"\
+  "https://gitlab.example.com/api/v4/projects/5/snippets/11/discussions?body=comment"</code></p>
+<h3>Add note to existing snippet thread</h3>
+<p>Adds a new note to the thread.</p>
+<p><code>plaintext
+POST /projects/:id/snippets/:snippet_id/discussions/:discussion_id/notes</code></p>
+<p>Parameters:</p>
+<p>| Attribute       | Type           | Required | Description |
+| --------------- | -------------- | -------- | ----------- |
+| <code>body</code>          | string         | yes      | The content of the note or reply. |
+| <code>discussion_id</code> | integer        | yes      | The ID of a thread. |
+| <code>id</code>            | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>. |
+| <code>note_id</code>       | integer        | yes      | The ID of a thread note. |
+| <code>snippet_id</code>    | integer        | yes      | The ID of an snippet. |
+| <code>created_at</code>    | string         | no       | Date time string, ISO 8601 formatted, such as <code>2016-03-11T03:45:40Z</code>. Requires administrator or project/group owner rights. |</p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  "https://gitlab.example.com/api/v4/projects/5/snippets/11/discussions/&lt;discussion_id&gt;/notes?body=comment"</code></p>
+<h3>Modify existing snippet thread note</h3>
+<p>Modify existing thread note of a snippet.</p>
+<p><code>plaintext
+PUT /projects/:id/snippets/:snippet_id/discussions/:discussion_id/notes/:note_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute       | Type           | Required | Description |
+| --------------- | -------------- | -------- | ----------- |
+| <code>body</code>          | string         | yes      | The content of the note or reply. |
+| <code>discussion_id</code> | integer        | yes      | The ID of a thread. |
+| <code>id</code>            | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>. |
+| <code>note_id</code>       | integer        | yes      | The ID of a thread note. |
+| <code>snippet_id</code>    | integer        | yes      | The ID of an snippet. |</p>
+<p><code>shell
+curl --request PUT --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  "https://gitlab.example.com/api/v4/projects/5/snippets/11/discussions/&lt;discussion_id&gt;/notes/1108?body=comment"</code></p>
+<h3>Delete a snippet thread note</h3>
+<p>Deletes an existing thread note of a snippet.</p>
+<p><code>plaintext
+DELETE /projects/:id/snippets/:snippet_id/discussions/:discussion_id/notes/:note_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute       | Type           | Required | Description |
+| --------------- | -------------- | -------- | ----------- |
+| <code>discussion_id</code> | integer        | yes      | The ID of a discussion. |
+| <code>id</code>            | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>. |
+| <code>note_id</code>       | integer        | yes      | The ID of a discussion note. |
+| <code>snippet_id</code>    | integer        | yes      | The ID of an snippet. |</p>
+<p><code>shell
+curl --request DELETE --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  "https://gitlab.example.com/api/v4/projects/5/snippets/11/discussions/636"</code></p>
+<h2>Epics</h2>
+<p>DETAILS:
+<strong>Tier:</strong> Ultimate
+<strong>Offering:</strong> GitLab.com, Self-managed, GitLab Dedicated</p>
+<h3>List group epic discussion items</h3>
+<p>Gets a list of all discussion items for a single epic.</p>
+<p><code>plaintext
+GET /groups/:id/epics/:epic_id/discussions</code></p>
+<p>| Attribute           | Type             | Required   | Description  |
+| ------------------- | ---------------- | ---------- | ------------ |
+| <code>epic_id</code>           | integer          | yes        | The ID of an epic. |
+| <code>id</code>                | integer or string   | yes        | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the group</a>. |</p>
+<p><code>json
+[
+  {
+    "id": "6a9c1750b37d513a43987b574953fceb50b03ce7",
+    "individual_note": false,
+    "notes": [
+      {
+        "id": 1126,
+        "type": "DiscussionNote",
+        "body": "discussion text",
+        "attachment": null,
+        "author": {
+          "id": 1,
+          "name": "root",
+          "username": "root",
+          "state": "active",
+          "avatar_url": "https://www.gravatar.com/avatar/00afb8fb6ab07c3ee3e9c1f38777e2f4?s=80&amp;d=identicon",
+          "web_url": "http://localhost:3000/root"
+        },
+        "created_at": "2018-03-03T21:54:39.668Z",
+        "updated_at": "2018-03-03T21:54:39.668Z",
+        "system": false,
+        "noteable_id": 3,
+        "noteable_type": "Epic",
+        "project_id": 5,
+        "noteable_iid": null,
+        "resolvable": false
+      },
+      {
+        "id": 1129,
+        "type": "DiscussionNote",
+        "body": "reply to the discussion",
+        "attachment": null,
+        "author": {
+          "id": 1,
+          "name": "root",
+          "username": "root",
+          "state": "active",
+          "avatar_url": "https://www.gravatar.com/avatar/00afb8fb6ab07c3ee3e9c1f38777e2f4?s=80&amp;d=identicon",
+          "web_url": "http://localhost:3000/root"
+        },
+        "created_at": "2018-03-04T13:38:02.127Z",
+        "updated_at": "2018-03-04T13:38:02.127Z",
+        "system": false,
+        "noteable_id": 3,
+        "noteable_type": "Epic",
+        "project_id": 5,
+        "noteable_iid": null,
+        "resolvable": false
+      }
+    ]
+  },
+  {
+    "id": "87805b7c09016a7058e91bdbe7b29d1f284a39e6",
+    "individual_note": true,
+    "notes": [
+      {
+        "id": 1128,
+        "type": null,
+        "body": "a single comment",
+        "attachment": null,
+        "author": {
+          "id": 1,
+          "name": "root",
+          "username": "root",
+          "state": "active",
+          "avatar_url": "https://www.gravatar.com/avatar/00afb8fb6ab07c3ee3e9c1f38777e2f4?s=80&amp;d=identicon",
+          "web_url": "http://localhost:3000/root"
+        },
+        "created_at": "2018-03-04T09:17:22.520Z",
+        "updated_at": "2018-03-04T09:17:22.520Z",
+        "system": false,
+        "noteable_id": 3,
+        "noteable_type": "Epic",
+        "project_id": 5,
+        "noteable_iid": null,
+        "resolvable": false
+      }
+    ]
+  }
+]</code></p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;"\
+  "https://gitlab.example.com/api/v4/groups/5/epics/11/discussions"</code></p>
+<h3>Get single epic discussion item</h3>
+<p>Returns a single discussion item for a specific group epic.</p>
+<p><code>plaintext
+GET /groups/:id/epics/:epic_id/discussions/:discussion_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute       | Type           | Required | Description |
+| --------------- | -------------- | -------- | ----------- |
+| <code>discussion_id</code> | integer        | yes      | The ID of a discussion item. |
+| <code>epic_id</code>       | integer        | yes      | The ID of an epic. |
+| <code>id</code>            | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the group</a>. |</p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  "https://gitlab.example.com/api/v4/groups/5/epics/11/discussions/&lt;discussion_id&gt;"</code></p>
+<h3>Create new epic thread</h3>
+<p>Creates a new thread to a single group epic. Similar to creating
+a note, but other comments (replies) can be added to it later.</p>
+<p><code>plaintext
+POST /groups/:id/epics/:epic_id/discussions</code></p>
+<p>Parameters:</p>
+<p>| Attribute       | Type           | Required | Description |
+| --------------- | -------------- | -------- | ----------- |
+| <code>body</code>          | string         | yes      | The content of the thread. |
+| <code>epic_id</code>       | integer        | yes      | The ID of an epic. |
+| <code>id</code>            | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the group</a>. |
+| <code>created_at</code>    | string         | no       | Date time string, ISO 8601 formatted, such as <code>2016-03-11T03:45:40Z</code>. Requires administrator or project/group owner rights. |</p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  "https://gitlab.example.com/api/v4/groups/5/epics/11/discussions?body=comment"</code></p>
+<h3>Add note to existing epic thread</h3>
+<p>Adds a new note to the thread. This can also
+<a href="../user/discussions/index.md#create-a-thread-by-replying-to-a-standard-comment">create a thread from a single comment</a>.</p>
+<p><code>plaintext
+POST /groups/:id/epics/:epic_id/discussions/:discussion_id/notes</code></p>
+<p>Parameters:</p>
+<p>| Attribute       | Type           | Required | Description |
+| --------------- | -------------- | -------- | ----------- |
+| <code>body</code>          | string         | yes      | The content of the note or reply. |
+| <code>discussion_id</code> | integer        | yes      | The ID of a thread. |
+| <code>epic_id</code>       | integer        | yes      | The ID of an epic. |
+| <code>id</code>            | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the group</a>. |
+| <code>note_id</code>       | integer        | yes      | The ID of a thread note. |
+| <code>created_at</code>    | string         | no       | Date time string, ISO 8601 formatted, such as <code>2016-03-11T03:45:40Z</code>. Requires administrator or project/group owner rights. |</p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  "https://gitlab.example.com/api/v4/groups/5/epics/11/discussions/&lt;discussion_id&gt;/notes?body=comment"</code></p>
+<h3>Modify existing epic thread note</h3>
+<p>Modify existing thread note of an epic.</p>
+<p><code>plaintext
+PUT /groups/:id/epics/:epic_id/discussions/:discussion_id/notes/:note_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute       | Type           | Required | Description |
+| --------------- | -------------- | -------- | ----------- |
+| <code>body</code>          | string         | yes      | The content of note or reply. |
+| <code>discussion_id</code> | integer        | yes      | The ID of a thread. |
+| <code>epic_id</code>       | integer        | yes      | The ID of an epic. |
+| <code>id</code>            | integer/string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the group</a>. |
+| <code>note_id</code>       | integer        | yes      | The ID of a thread note. |</p>
+<p><code>shell
+curl --request PUT --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  "https://gitlab.example.com/api/v4/groups/5/epics/11/discussions/&lt;discussion_id&gt;/notes/1108?body=comment"</code></p>
+<h3>Delete an epic thread note</h3>
+<p>Deletes an existing thread note of an epic.</p>
+<p><code>plaintext
+DELETE /groups/:id/epics/:epic_id/discussions/:discussion_id/notes/:note_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute       | Type           | Required | Description |
+| --------------- | -------------- | -------- | ----------- |
+| <code>discussion_id</code> | integer        | yes      | The ID of a thread. |
+| <code>epic_id</code>       | integer        | yes      | The ID of an epic. |
+| <code>id</code>            | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the group</a>. |
+| <code>note_id</code>       | integer        | yes      | The ID of a thread note. |</p>
+<p><code>shell
+curl --request DELETE --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  "https://gitlab.example.com/api/v4/groups/5/epics/11/discussions/636"</code></p>
+<h2>Merge requests</h2>
+<h3>List project merge request discussion items</h3>
+<p>Gets a list of all discussion items for a single merge request.</p>
+<p><code>plaintext
+GET /projects/:id/merge_requests/:merge_request_iid/discussions</code></p>
+<p>| Attribute           | Type             | Required   | Description  |
+| ------------------- | ---------------- | ---------- | ------------ |
+| <code>id</code>                | integer or string   | yes        | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>. |
+| <code>merge_request_iid</code> | integer          | yes        | The IID of a merge request. |</p>
+<p><code>json
+[
+  {
+    "id": "6a9c1750b37d513a43987b574953fceb50b03ce7",
+    "individual_note": false,
+    "notes": [
+      {
+        "id": 1126,
+        "type": "DiscussionNote",
+        "body": "discussion text",
+        "attachment": null,
+        "author": {
+          "id": 1,
+          "name": "root",
+          "username": "root",
+          "state": "active",
+          "avatar_url": "https://www.gravatar.com/avatar/00afb8fb6ab07c3ee3e9c1f38777e2f4?s=80&amp;d=identicon",
+          "web_url": "http://localhost:3000/root"
+        },
+        "created_at": "2018-03-03T21:54:39.668Z",
+        "updated_at": "2018-03-03T21:54:39.668Z",
+        "system": false,
+        "noteable_id": 3,
+        "noteable_type": "MergeRequest",
+        "project_id": 5,
+        "noteable_iid": null,
+        "resolved": false,
+        "resolvable": true,
+        "resolved_by": null,
+        "resolved_at": null
+      },
+      {
+        "id": 1129,
+        "type": "DiscussionNote",
+        "body": "reply to the discussion",
+        "attachment": null,
+        "author": {
+          "id": 1,
+          "name": "root",
+          "username": "root",
+          "state": "active",
+          "avatar_url": "https://www.gravatar.com/avatar/00afb8fb6ab07c3ee3e9c1f38777e2f4?s=80&amp;d=identicon",
+          "web_url": "http://localhost:3000/root"
+        },
+        "created_at": "2018-03-04T13:38:02.127Z",
+        "updated_at": "2018-03-04T13:38:02.127Z",
+        "system": false,
+        "noteable_id": 3,
+        "noteable_type": "MergeRequest",
+        "project_id": 5,
+        "noteable_iid": null,
+        "resolved": false,
+        "resolvable": true,
+        "resolved_by": null
+      }
+    ]
+  },
+  {
+    "id": "87805b7c09016a7058e91bdbe7b29d1f284a39e6",
+    "individual_note": true,
+    "notes": [
+      {
+        "id": 1128,
+        "type": null,
+        "body": "a single comment",
+        "attachment": null,
+        "author": {
+          "id": 1,
+          "name": "root",
+          "username": "root",
+          "state": "active",
+          "avatar_url": "https://www.gravatar.com/avatar/00afb8fb6ab07c3ee3e9c1f38777e2f4?s=80&amp;d=identicon",
+          "web_url": "http://localhost:3000/root"
+        },
+        "created_at": "2018-03-04T09:17:22.520Z",
+        "updated_at": "2018-03-04T09:17:22.520Z",
+        "system": false,
+        "noteable_id": 3,
+        "noteable_type": "MergeRequest",
+        "project_id": 5,
+        "noteable_iid": null,
+        "resolved": false,
+        "resolvable": true,
+        "resolved_by": null
+      }
+    ]
+  }
+]</code></p>
+<p>Diff comments also contain position:</p>
+<p><code>json
+[
+  {
+    "id": "87805b7c09016a7058e91bdbe7b29d1f284a39e6",
+    "individual_note": false,
+    "notes": [
+      {
+        "id": 1128,
+        "type": "DiffNote",
+        "body": "diff comment",
+        "attachment": null,
+        "author": {
+          "id": 1,
+          "name": "root",
+          "username": "root",
+          "state": "active",
+          "avatar_url": "https://www.gravatar.com/avatar/00afb8fb6ab07c3ee3e9c1f38777e2f4?s=80&amp;d=identicon",
+          "web_url": "http://localhost:3000/root"
+        },
+        "created_at": "2018-03-04T09:17:22.520Z",
+        "updated_at": "2018-03-04T09:17:22.520Z",
+        "system": false,
+        "noteable_id": 3,
+        "noteable_type": "MergeRequest",
+        "project_id": 5,
+        "noteable_iid": null,
+        "commit_id": "4803c71e6b1833ca72b8b26ef2ecd5adc8a38031",
+        "position": {
+          "base_sha": "b5d6e7b1613fca24d250fa8e5bc7bcc3dd6002ef",
+          "start_sha": "7c9c2ead8a320fb7ba0b4e234bd9529a2614e306",
+          "head_sha": "4803c71e6b1833ca72b8b26ef2ecd5adc8a38031",
+          "old_path": "package.json",
+          "new_path": "package.json",
+          "position_type": "text",
+          "old_line": 27,
+          "new_line": 27,
+          "line_range": {
+            "start": {
+              "line_code": "588440f66559714280628a4f9799f0c4eb880a4a_10_10",
+              "type": "new"
+            },
+            "end": {
+              "line_code": "588440f66559714280628a4f9799f0c4eb880a4a_11_11",
+              "type": "old"
+            }
+          }
+        },
+        "resolved": false,
+        "resolvable": true,
+        "resolved_by": null
+      }
+    ]
+  }
+]</code></p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  "https://gitlab.example.com/api/v4/projects/5/merge_requests/11/discussions"</code></p>
+<h3>Get single merge request discussion item</h3>
+<p>Returns a single discussion item for a specific project merge request.</p>
+<p><code>plaintext
+GET /projects/:id/merge_requests/:merge_request_iid/discussions/:discussion_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute           | Type           | Required | Description |
+| ------------------- | -------------- | -------- | ----------- |
+| <code>discussion_id</code>     | string        | yes      | The ID of a discussion item. |
+| <code>id</code>                | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>. |
+| <code>merge_request_iid</code> | integer        | yes      | The IID of a merge request. |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  "https://gitlab.example.com/api/v4/projects/5/merge_requests/11/discussions/&lt;discussion_id&gt;"</code></p>
+<h3>Create new merge request thread</h3>
+<p>Creates a new thread to a single project merge request. Similar to creating
+a note but other comments (replies) can be added to it later. For other approaches,
+see <a href="commits.md#post-comment-to-commit">Post comment to commit</a> in the Commits API,
+and <a href="notes.md#create-new-merge-request-note">Create new merge request note</a> in the Notes API.</p>
+<p><code>plaintext
+POST /projects/:id/merge_requests/:merge_request_iid/discussions</code></p>
+<p>Parameters for all comments:</p>
+<p>| Attribute                                | Type           | Required                             | Description |
+| ---------------------------------------- | -------------- |--------------------------------------| ----------- |
+| <code>body</code>                                   | string         | yes                                  | The content of the thread. |
+| <code>id</code>                                     | integer/string | yes                                  | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>. |
+| <code>merge_request_iid</code>                      | integer        | yes                                  | The IID of a merge request. |
+| <code>position[base_sha]</code>                     | string         | yes (if <code>position*</code> is supplied)     | Base commit SHA in the source branch. |
+| <code>position[head_sha]</code>                     | string         | yes (if <code>position*</code> is supplied)     | SHA referencing HEAD of this merge request. |
+| <code>position[start_sha]</code>                    | string         | yes (if <code>position*</code> is supplied)     | SHA referencing commit in target branch. |
+| <code>position[new_path]</code>                     | string         | yes (if the position type is <code>text</code>) | File path after change. |
+| <code>position[old_path]</code>                     | string         | yes (if the position type is <code>text</code>) | File path before change. |
+| <code>position[position_type]</code>                | string         | yes (if position* is supplied)       | Type of the position reference. Allowed values: <code>text</code> or <code>image</code>. |
+| <code>commit_id</code>                              | string         | no                                   | SHA referencing commit to start this thread on. |
+| <code>created_at</code>                             | string         | no                                   | Date time string, ISO 8601 formatted, such as <code>2016-03-11T03:45:40Z</code>. Requires administrator or project/group owner rights. |
+| <code>position</code>                               | hash           | no                                   | Position when creating a diff note. |
+| <code>position[new_line]</code>                     | integer        | no                                   | For <code>text</code> diff notes, the line number after change. |
+| <code>position[old_line]</code>                     | integer        | no                                   | For <code>text</code> diff notes, the line number before change. |
+| <code>position[line_range]</code>                   | hash           | no                                   | Line range for a multi-line diff note. |
+| <code>position[width]</code>                        | integer        | no                                   | For <code>image</code> diff notes, width of the image. |
+| <code>position[height]</code>                       | integer        | no                                   | For <code>image</code> diff notes, height of the image. |
+| <code>position[x]</code>                            | float          | no                                   | For <code>image</code> diff notes, X coordinate. |
+| <code>position[y]</code>                            | float          | no                                   | For <code>image</code> diff notes, Y coordinate. |</p>
+<h4>Create a new thread on the overview page</h4>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  "https://gitlab.example.com/api/v4/projects/5/merge_requests/11/discussions?body=comment"</code></p>
+<h4>Create a new thread in the merge request diff</h4>
+<ul>
+<li>Both <code>position[old_path]</code> and <code>position[new_path]</code> are required and must refer
+  to the file path before and after the change.</li>
+<li>To create a thread on an added line (highlighted in green in the merge request diff),
+  use <code>position[new_line]</code> and don't include <code>position[old_line]</code>.</li>
+<li>To create a thread on a removed line (highlighted in red in the merge request diff),
+  use <code>position[old_line]</code> and don't include <code>position[new_line]</code>.</li>
+<li>To create a thread on an unchanged line, include both <code>position[new_line]</code> and
+  <code>position[old_line]</code> for the line. These positions might not be the same if earlier
+  changes in the file changed the line number. For the discussion about a fix, see
+  <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/325161">issue 32516</a>.</li>
+<li>If you specify incorrect <code>base</code>, <code>head</code>, <code>start</code>, or <code>SHA</code> parameters, you might run
+  into the bug described in <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/296829">issue #296829)</a>.</li>
+</ul>
+<p>To create a new thread:</p>
+<ol>
+<li><a href="merge_requests.md#get-merge-request-diff-versions">Get the latest merge request version</a>:</li>
+</ol>
+<p><code>shell
+   curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+     "https://gitlab.example.com/api/v4/projects/5/merge_requests/11/versions"</code></p>
+<ol>
+<li>Note the details of the latest version, which is listed first in the response array.</li>
+</ol>
+<p><code>json
+   [
+     {
+       "id": 164560414,
+       "head_commit_sha": "f9ce7e16e56c162edbc9e480108041cf6b0291fe",
+       "base_commit_sha": "5e6dffa282c5129aa67cd227a0429be21bfdaf80",
+       "start_commit_sha": "5e6dffa282c5129aa67cd227a0429be21bfdaf80",
+       "created_at": "2021-03-30T09:18:27.351Z",
+       "merge_request_id": 93958054,
+       "state": "collected",
+       "real_size": "2"
+     },
+     "previous versions are here"
+   ]</code></p>
+<ol>
+<li>Create a new diff thread. This example creates a thread on an added line:</li>
+</ol>
+<p><code>shell
+   curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;"\
+     --form 'position[position_type]=text'\
+     --form 'position[base_sha]=&lt;use base_commit_sha from the versions response&gt;'\
+     --form 'position[head_sha]=&lt;use head_commit_sha from the versions response&gt;'\
+     --form 'position[start_sha]=&lt;use start_commit_sha from the versions response&gt;'\
+     --form 'position[new_path]=file.js'\
+     --form 'position[old_path]=file.js'\
+     --form 'position[new_line]=18'\
+     --form 'body=test comment body'\
+     "https://gitlab.example.com/api/v4/projects/5/merge_requests/11/discussions"</code></p>
+<h4>Parameters for multiline comments</h4>
+<p>Parameters for multiline comments only:</p>
+<p>| Attribute                                | Type           | Required | Description |
+| ---------------------------------------- | -------------- | -------- | ----------- |
+| <code>position[line_range][end][line_code]</code>   | string         | yes      | <a href="#line-code">Line code</a> for the end line. |
+| <code>position[line_range][end][type]</code>        | string         | yes      | Use <code>new</code> for lines added by this commit, otherwise <code>old</code>. |
+| <code>position[line_range][start][line_code]</code> | string         | yes      | <a href="#line-code">Line code</a> for the start line. |
+| <code>position[line_range][start][type]</code>      | string         | yes      | Use <code>new</code> for lines added by this commit, otherwise <code>old</code>. |
+| <code>position[line_range][end]</code>              | hash           | no       | Multiline note ending line. |
+| <code>position[line_range][start]</code>            | hash           | no       | Multiline note starting line. |</p>
+<h4>Line code</h4>
+<p>A line code is of the form <code>&lt;SHA&gt;_&lt;old&gt;_&lt;new&gt;</code>, like this: <code>adc83b19e793491b1c6ea0fd8b46cd9f32e292fc_5_5</code></p>
+<ul>
+<li><code>&lt;SHA&gt;</code> is the SHA1 hash of the filename.</li>
+<li><code>&lt;old&gt;</code> is the line number before the change.</li>
+<li><code>&lt;new&gt;</code> is the line number after the change.</li>
+</ul>
+<p>For example, if a commit (<code>&lt;COMMIT_ID&gt;</code>) deletes line 463 in the README, you can comment
+on the deletion by referencing line 463 in the <em>old</em> file:</p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  --form "note=Very clever to remove this unnecessary line!" \
+  --form "path=README" --form "line=463" --form "line_type=old" \
+  "https://gitlab.com/api/v4/projects/47/repository/commits/&lt;COMMIT_ID&gt;/comments"</code></p>
+<p>If a commit (<code>&lt;COMMIT_ID&gt;</code>) adds line 157 to <code>hello.rb</code>, you can comment on the
+addition by referencing line 157 in the <em>new</em> file:</p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  --form "note=This is brilliant!" --form "path=hello.rb" \
+  --form "line=157" --form "line_type=new" \
+  "https://gitlab.com/api/v4/projects/47/repository/commits/&lt;COMMIT_ID&gt;/comments"</code></p>
+<h3>Resolve a merge request thread</h3>
+<p>Resolve or unresolve a thread of discussion in a merge request.</p>
+<p>Prerequisites:</p>
+<ul>
+<li>You must have at least the Developer role, or be the author of the change being reviewed.</li>
+</ul>
+<p><code>plaintext
+PUT /projects/:id/merge_requests/:merge_request_iid/discussions/:discussion_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute           | Type           | Required | Description |
+| ------------------- | -------------- | -------- | ----------- |
+| <code>id</code>                | integer/string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>. |
+| <code>discussion_id</code>     | string        | yes      | The ID of a thread. |
+| <code>merge_request_iid</code> | integer        | yes      | The IID of a merge request. |
+| <code>resolved</code>          | boolean        | yes      | Resolve or unresolve the discussion. |</p>
+<p><code>shell
+curl --request PUT --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  "https://gitlab.example.com/api/v4/projects/5/merge_requests/11/discussions/&lt;discussion_id&gt;?resolved=true"</code></p>
+<h3>Add note to existing merge request thread</h3>
+<p>Adds a new note to the thread. This can also
+<a href="../user/discussions/index.md#create-a-thread-by-replying-to-a-standard-comment">create a thread from a single comment</a>.</p>
+<p><code>plaintext
+POST /projects/:id/merge_requests/:merge_request_iid/discussions/:discussion_id/notes</code></p>
+<p>Parameters:</p>
+<p>| Attribute           | Type           | Required | Description |
+| ------------------- | -------------- | -------- | ----------- |
+| <code>body</code>              | string         | yes      | The content of the note or reply. |
+| <code>id</code>                | integer/string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>. |
+| <code>discussion_id</code>     | string        | yes      | The ID of a thread. |
+| <code>merge_request_iid</code> | integer        | yes      | The IID of a merge request. |
+| <code>note_id</code>           | integer        | yes      | The ID of a thread note. |
+| <code>created_at</code>        | string         | no       | Date time string, ISO 8601 formatted, such as <code>2016-03-11T03:45:40Z</code>. Requires administrator or project/group owner rights. |</p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  "https://gitlab.example.com/api/v4/projects/5/merge_requests/11/discussions/&lt;discussion_id&gt;/notes?body=comment"</code></p>
+<h3>Modify an existing merge request thread note</h3>
+<p>Modify or resolve an existing thread note of a merge request.</p>
+<p><code>plaintext
+PUT /projects/:id/merge_requests/:merge_request_iid/discussions/:discussion_id/notes/:note_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute           | Type           | Required | Description |
+| ------------------- | -------------- | -------- | ----------- |
+| <code>discussion_id</code>     | string        | yes      | The ID of a thread. |
+| <code>id</code>                | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>. |
+| <code>merge_request_iid</code> | integer        | yes      | The IID of a merge request. |
+| <code>note_id</code>           | integer        | yes      | The ID of a thread note. |
+| <code>body</code>              | string         | no       | The content of the note or reply. Exactly one of <code>body</code> or <code>resolved</code> must be set. |
+| <code>resolved</code>          | boolean        | no       | Resolve or unresolve the note. Exactly one of <code>body</code> or <code>resolved</code> must be set. |</p>
+<p><code>shell
+curl --request PUT --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  "https://gitlab.example.com/api/v4/projects/5/merge_requests/11/discussions/&lt;discussion_id&gt;/notes/1108?body=comment"</code></p>
+<p>Resolving a note:</p>
+<p><code>shell
+curl --request PUT --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  "https://gitlab.example.com/api/v4/projects/5/merge_requests/11/discussions/&lt;discussion_id&gt;/notes/1108?resolved=true"</code></p>
+<h3>Delete a merge request thread note</h3>
+<p>Deletes an existing thread note of a merge request.</p>
+<p><code>plaintext
+DELETE /projects/:id/merge_requests/:merge_request_iid/discussions/:discussion_id/notes/:note_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute           | Type           | Required | Description |
+| ------------------- | -------------- | -------- | ----------- |
+| <code>discussion_id</code>     | string        | yes      | The ID of a thread. |
+| <code>id</code>                | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>. |
+| <code>merge_request_iid</code> | integer        | yes      | The IID of a merge request. |
+| <code>note_id</code>           | integer        | yes      | The ID of a thread note. |</p>
+<p><code>shell
+curl --request DELETE --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  "https://gitlab.example.com/api/v4/projects/5/merge_requests/11/discussions/636"</code></p>
+<h2>Commits</h2>
+<h3>List project commit discussion items</h3>
+<p>Gets a list of all discussion items for a single commit.</p>
+<p><code>plaintext
+GET /projects/:id/repository/commits/:commit_id/discussions</code></p>
+<p>| Attribute           | Type             | Required   | Description  |
+| ------------------- | ---------------- | ---------- | ------------ |
+| <code>commit_id</code>         | string           | yes        | The SHA of a commit. |
+| <code>id</code>                | integer or string   | yes        | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>. |</p>
+<p><code>json
+[
+  {
+    "id": "6a9c1750b37d513a43987b574953fceb50b03ce7",
+    "individual_note": false,
+    "notes": [
+      {
+        "id": 1126,
+        "type": "DiscussionNote",
+        "body": "discussion text",
+        "attachment": null,
+        "author": {
+          "id": 1,
+          "name": "root",
+          "username": "root",
+          "state": "active",
+          "avatar_url": "https://www.gravatar.com/avatar/00afb8fb6ab07c3ee3e9c1f38777e2f4?s=80&amp;d=identicon",
+          "web_url": "http://localhost:3000/root"
+        },
+        "created_at": "2018-03-03T21:54:39.668Z",
+        "updated_at": "2018-03-03T21:54:39.668Z",
+        "system": false,
+        "noteable_id": 3,
+        "noteable_type": "Commit",
+        "project_id": 5,
+        "noteable_iid": null,
+        "resolvable": false
+      },
+      {
+        "id": 1129,
+        "type": "DiscussionNote",
+        "body": "reply to the discussion",
+        "attachment": null,
+        "author": {
+          "id": 1,
+          "name": "root",
+          "username": "root",
+          "state": "active",
+          "avatar_url": "https://www.gravatar.com/avatar/00afb8fb6ab07c3ee3e9c1f38777e2f4?s=80&amp;d=identicon",
+          "web_url": "http://localhost:3000/root"
+        },
+        "created_at": "2018-03-04T13:38:02.127Z",
+        "updated_at": "2018-03-04T13:38:02.127Z",
+        "system": false,
+        "noteable_id": 3,
+        "noteable_type": "Commit",
+        "project_id": 5,
+        "noteable_iid": null,
+        "resolvable": false
+      }
+    ]
+  },
+  {
+    "id": "87805b7c09016a7058e91bdbe7b29d1f284a39e6",
+    "individual_note": true,
+    "notes": [
+      {
+        "id": 1128,
+        "type": null,
+        "body": "a single comment",
+        "attachment": null,
+        "author": {
+          "id": 1,
+          "name": "root",
+          "username": "root",
+          "state": "active",
+          "avatar_url": "https://www.gravatar.com/avatar/00afb8fb6ab07c3ee3e9c1f38777e2f4?s=80&amp;d=identicon",
+          "web_url": "http://localhost:3000/root"
+        },
+        "created_at": "2018-03-04T09:17:22.520Z",
+        "updated_at": "2018-03-04T09:17:22.520Z",
+        "system": false,
+        "noteable_id": 3,
+        "noteable_type": "Commit",
+        "project_id": 5,
+        "noteable_iid": null,
+        "resolvable": false
+      }
+    ]
+  }
+]</code></p>
+<p>Diff comments contain also position:</p>
+<p><code>json
+[
+  {
+    "id": "87805b7c09016a7058e91bdbe7b29d1f284a39e6",
+    "individual_note": false,
+    "notes": [
+      {
+        "id": 1128,
+        "type": "DiffNote",
+        "body": "diff comment",
+        "attachment": null,
+        "author": {
+          "id": 1,
+          "name": "root",
+          "username": "root",
+          "state": "active",
+          "avatar_url": "https://www.gravatar.com/avatar/00afb8fb6ab07c3ee3e9c1f38777e2f4?s=80&amp;d=identicon",
+          "web_url": "http://localhost:3000/root"
+        },
+        "created_at": "2018-03-04T09:17:22.520Z",
+        "updated_at": "2018-03-04T09:17:22.520Z",
+        "system": false,
+        "noteable_id": 3,
+        "noteable_type": "Commit",
+        "project_id": 5,
+        "noteable_iid": null,
+        "position": {
+          "base_sha": "b5d6e7b1613fca24d250fa8e5bc7bcc3dd6002ef",
+          "start_sha": "7c9c2ead8a320fb7ba0b4e234bd9529a2614e306",
+          "head_sha": "4803c71e6b1833ca72b8b26ef2ecd5adc8a38031",
+          "old_path": "package.json",
+          "new_path": "package.json",
+          "position_type": "text",
+          "old_line": 27,
+          "new_line": 27
+        },
+        "resolvable": false
+      }
+    ]
+  }
+]</code></p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  "https://gitlab.example.com/api/v4/projects/5/repository/commits/&lt;commit_id&gt;/discussions"</code></p>
+<h3>Get single commit discussion item</h3>
+<p>Returns a single discussion item for a specific project commit</p>
+<p><code>plaintext
+GET /projects/:id/repository/commits/:commit_id/discussions/:discussion_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute           | Type           | Required | Description |
+| ------------------- | -------------- | -------- | ----------- |
+| <code>commit_id</code>         | string         | yes      | The SHA of a commit. |
+| <code>discussion_id</code>     | string         | yes      | The ID of a discussion item. |
+| <code>id</code>                | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>. |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  "https://gitlab.example.com/api/v4/projects/5/repository/commits/&lt;commit_id&gt;/discussions/&lt;discussion_id&gt;"</code></p>
+<h3>Create new commit thread</h3>
+<p>Creates a new thread to a single project commit. Similar to creating
+a note but other comments (replies) can be added to it later.</p>
+<p><code>plaintext
+POST /projects/:id/repository/commits/:commit_id/discussions</code></p>
+<p>Parameters:</p>
+<p>| Attribute                 | Type           | Required                         | Description |
+| ------------------------- | -------------- |----------------------------------| ----------- |
+| <code>body</code>                    | string         | yes                              | The content of the thread. |
+| <code>commit_id</code>               | string         | yes                              | The SHA of a commit. |
+| <code>id</code>                      | integer/string | yes                              | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>. |
+| <code>position[base_sha]</code>      | string         | yes (if <code>position*</code> is supplied) | SHA of the parent commit. |
+| <code>position[head_sha]</code>      | string         | yes (if <code>position*</code> is supplied) | The SHA of this commit. Same as <code>commit_id</code>. |
+| <code>position[start_sha]</code>     | string         | yes (if <code>position*</code> is supplied) | SHA of the parent commit. |
+| <code>position[position_type]</code> | string         | yes (if <code>position*</code> is supplied) | Type of the position reference. Allowed values: <code>text</code> or <code>image</code>. |
+| <code>created_at</code>              | string         | no                               | Date time string, ISO 8601 formatted, such as <code>2016-03-11T03:45:40Z</code>. Requires administrator or project/group owner rights. |
+| <code>position</code>                | hash           | no                               | Position when creating a diff note. |</p>
+<p>| <code>position[new_path]</code>      | string         | no       | File path after change. |
+| <code>position[new_line]</code>      | integer        | no       | Line number after change. |
+| <code>position[old_path]</code>      | string         | no       | File path before change. |
+| <code>position[old_line]</code>      | integer        | no       | Line number before change. |
+| <code>position[height]</code>        | integer        | no       | For <code>image</code> diff notes, image height. |
+| <code>position[width]</code>         | integer        | no       | For <code>image</code> diff notes, image width. |
+| <code>position[x]</code>             | integer        | no       | For <code>image</code> diff notes, X coordinate. |
+| <code>position[y]</code>             | integer        | no       | For <code>image</code> diff notes, Y coordinate. |</p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  "https://gitlab.example.com/api/v4/projects/5/repository/commits/&lt;commit_id&gt;/discussions?body=comment"</code></p>
+<p>The rules for creating the API request are the same as when
+<a href="#create-a-new-thread-in-the-merge-request-diff">creating a new thread in the merge request diff</a>.
+The exceptions:</p>
+<ul>
+<li><code>base_sha</code></li>
+<li><code>head_sha</code></li>
+<li><code>start_sha</code></li>
+</ul>
+<h3>Add note to existing commit thread</h3>
+<p>Adds a new note to the thread.</p>
+<p><code>plaintext
+POST /projects/:id/repository/commits/:commit_id/discussions/:discussion_id/notes</code></p>
+<p>Parameters:</p>
+<p>| Attribute           | Type           | Required | Description |
+| ------------------- | -------------- | -------- | ----------- |
+| <code>body</code>              | string         | yes      | The content of the note or reply. |
+| <code>commit_id</code>         | string         | yes      | The SHA of a commit. |
+| <code>discussion_id</code>     | string         | yes      | The ID of a thread. |
+| <code>id</code>                | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>. |
+| <code>note_id</code>           | integer        | yes      | The ID of a thread note. |
+| <code>created_at</code>        | string         | no       | Date time string, ISO 8601 formatted, such <code>2016-03-11T03:45:40Z</code>. Requires administrator or project/group owner rights. |</p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  "https://gitlab.example.com/api/v4/projects/5/repository/commits/&lt;commit_id&gt;/discussions/&lt;discussion_id&gt;/notes?body=comment</code></p>
+<h3>Modify an existing commit thread note</h3>
+<p>Modify or resolve an existing thread note of a commit.</p>
+<p><code>plaintext
+PUT /projects/:id/repository/commits/:commit_id/discussions/:discussion_id/notes/:note_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute           | Type           | Required | Description |
+| ------------------- | -------------- | -------- | ----------- |
+| <code>commit_id</code>         | string         | yes      | The SHA of a commit. |
+| <code>discussion_id</code>     | string         | yes      | The ID of a thread. |
+| <code>id</code>                | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>. |
+| <code>note_id</code>           | integer        | yes      | The ID of a thread note. |
+| <code>body</code>              | string         | no       | The content of a note. |</p>
+<p><code>shell
+curl --request PUT --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  "https://gitlab.example.com/api/v4/projects/5/repository/commits/&lt;commit_id&gt;/discussions/&lt;discussion_id&gt;/notes/1108?body=comment"</code></p>
+<p>Resolving a note:</p>
+<p><code>shell
+curl --request PUT --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  "https://gitlab.example.com/api/v4/projects/5/repository/commits/&lt;commit_id&gt;/discussions/&lt;discussion_id&gt;/notes/1108?resolved=true"</code></p>
+<h3>Delete a commit thread note</h3>
+<p>Deletes an existing thread note of a commit.</p>
+<p><code>plaintext
+DELETE /projects/:id/repository/commits/:commit_id/discussions/:discussion_id/notes/:note_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute           | Type           | Required | Description |
+| ------------------- | -------------- | -------- | ----------- |
+| <code>id</code>                | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>. |
+| <code>commit_id</code>         | string         | yes      | The SHA of a commit. |
+| <code>discussion_id</code>     | string         | yes      | The ID of a thread. |
+| <code>note_id</code>           | integer        | yes      | The ID of a thread note. |</p>
+<p><code>shell
+curl --request DELETE --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+  "https://gitlab.example.com/api/v4/projects/5/repository/commits/&lt;commit_id&gt;/discussions/&lt;discussion_id&gt;/notes/636"</code></p>
+</body>
+</html>

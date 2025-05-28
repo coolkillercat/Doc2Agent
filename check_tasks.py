@@ -9,7 +9,7 @@ map_tasks = []
 unique_templates = set()  # Initialize set for unique templates
 
 for task in tasks:
-    if task.get('start_url') == '__SHOPPING__':
+    if task.get('start_url') == '__MAP__':
         template = task.get('intent_template')
         map_tasks.append({
             'task_id': task.get('task_id'),
@@ -18,7 +18,7 @@ for task in tasks:
         unique_templates.add(template)  # Add template to set
 
 # Print unique intent templates
-print("\nUnique intent templates for shopping tasks:")
+print("\nUnique intent templates for map tasks:")
 for template in sorted(unique_templates):
     print(f"- {template}")
 

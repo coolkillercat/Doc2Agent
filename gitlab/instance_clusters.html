@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>instance_clusters API Documentation</title>
+</head>
+<body>
+<hr />
+<p>stage: Deploy
+group: Environments
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments</p>
+<hr />
+<h1>Instance clusters API (certificate-based) (deprecated)</h1>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> Self-managed</p>
+<p>WARNING:
+This feature was <a href="https://gitlab.com/groups/gitlab-org/configure/-/epics/8">deprecated</a> in GitLab 14.5.</p>
+<p>With <a href="../user/instance/clusters/index.md">instance-level Kubernetes clusters</a>,
+you can connect a Kubernetes cluster to the GitLab instance and use the same cluster across all of
+the projects within your instance.</p>
+<p>Users need administrator access to use these endpoints.</p>
+<h2>List instance clusters</h2>
+<p>Returns a list of instance clusters.</p>
+<p><code>plaintext
+GET /admin/clusters</code></p>
+<p>Example request:</p>
+<p><code>shell
+curl --header "Private-Token: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/admin/clusters"</code></p>
+<p>Example response:</p>
+<p><code>json
+[
+  {
+    "id": 9,
+    "name": "cluster-1",
+    "created_at": "2020-07-14T18:36:10.440Z",
+    "managed": true,
+    "enabled": true,
+    "domain": null,
+    "provider_type": "user",
+    "platform_type": "kubernetes",
+    "environment_scope": "*",
+    "cluster_type": "instance_type",
+    "user": {
+      "id": 1,
+      "name": "Administrator",
+      "username": "root",
+      "state": "active",
+      "avatar_url": "https://www.gravatar.com/avatar/e64c7d89f26bd1972efa854d13d7dd61?s=80&amp;d=identicon",
+      "web_url": "https://gitlab.example.com/root"
+    },
+    "platform_kubernetes": {
+      "api_url": "https://example.com",
+      "namespace": null,
+      "authorization_type": "rbac",
+      "ca_cert":"-----BEGIN CERTIFICATE-----IxMDM1MV0ZDJkZjM...-----END CERTIFICATE-----"
+    },
+    "provider_gcp": null,
+    "management_project": null
+  },
+  {
+    "id": 10,
+    "name": "cluster-2",
+    "created_at": "2020-07-14T18:39:05.383Z",
+    "domain": null,
+    "provider_type": "user",
+    "platform_type": "kubernetes",
+    "environment_scope": "staging",
+    "cluster_type": "instance_type",
+    "user": {
+      "id": 1,
+      "name": "Administrator",
+      "username": "root",
+      "state": "active",
+      "avatar_url": "https://www.gravatar.com/avatar/e64c7d89f26bd1972efa854d13d7dd61?s=80&amp;d=identicon",
+      "web_url": "https://gitlab.example.com/root"
+    },
+    "platform_kubernetes": {
+      "api_url": "https://example.com",
+      "namespace": null,
+      "authorization_type": "rbac",
+      "ca_cert":"-----BEGIN CERTIFICATE-----LzEtMCadtaLGxcsGAZjM...-----END CERTIFICATE-----"
+    },
+    "provider_gcp": null,
+    "management_project": null
+  },
+  {
+    "id": 11,
+    "name": "cluster-3",
+    ...
+  }
+]</code></p>
+<h2>Get a single instance cluster</h2>
+<p>Returns a single instance cluster.</p>
+<p>Parameters:</p>
+<p>| Attribute    | Type    | Required | Description           |
+| ------------ | ------- | -------- | --------------------- |
+| <code>cluster_id</code> | integer | yes      | The ID of the cluster |</p>
+<p><code>plaintext
+GET /admin/clusters/:cluster_id</code></p>
+<p>Example request:</p>
+<p><code>shell
+curl --header "Private-Token: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/admin/clusters/9"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "id": 9,
+  "name": "cluster-1",
+  "created_at": "2020-07-14T18:36:10.440Z",
+  "managed": true,
+  "enabled": true,
+  "domain": null,
+  "provider_type": "user",
+  "platform_type": "kubernetes",
+  "environment_scope": "*",
+  "cluster_type": "instance_type",
+  "user": {
+    "id": 1,
+    "name": "Administrator",
+    "username": "root",
+    "state": "active",
+    "avatar_url": "https://www.gravatar.com/avatar/e64c7d89f26bd1972efa854d13d7dd61?s=80&amp;d=identicon",
+    "web_url": "https://gitlab.example.com/root"
+  },
+  "platform_kubernetes": {
+    "api_url": "https://example.com",
+    "namespace": null,
+    "authorization_type": "rbac",
+    "ca_cert":"-----BEGIN CERTIFICATE-----IxMDM1MV0ZDJkZjM...-----END CERTIFICATE-----"
+  },
+  "provider_gcp": null,
+  "management_project": null
+}</code></p>
+<h2>Add existing instance cluster</h2>
+<p>Adds an existing Kubernetes instance cluster.</p>
+<p><code>plaintext
+POST /admin/clusters/add</code></p>
+<p>Parameters:</p>
+<p>| Attribute                                            | Type    | Required | Description                                                                                           |
+| ---------------------------------------------------- | ------- | -------- | ----------------------------------------------------------------------------------------------------- |
+| <code>name</code>                                               | string  | yes      | The name of the cluster                                                                               |
+| <code>domain</code>                                             | string  | no       | The <a href="../user/project/clusters/gitlab_managed_clusters.md#base-domain">base domain</a> of the cluster                       |
+| <code>environment_scope</code>                                  | string  | no       | The associated environment to the cluster. Defaults to <code>*</code>                                            |
+| <code>management_project_id</code>                              | integer | no       | The ID of the <a href="../user/clusters/management_project.md">management project</a> for the cluster            |
+| <code>enabled</code>                                            | boolean | no       | Determines if cluster is active or not, defaults to <code>true</code>                                            |
+| <code>managed</code>                                            | boolean | no       | Determines if GitLab manages namespaces and service accounts for this cluster. Defaults to <code>true</code> |
+| <code>platform_kubernetes_attributes[api_url]</code>            | string  | yes      | The URL to access the Kubernetes API                                                                  |
+| <code>platform_kubernetes_attributes[token]</code>              | string  | yes      | The token to authenticate against Kubernetes                                                          |
+| <code>platform_kubernetes_attributes[ca_cert]</code>            | string  | no       | TLS certificate. Required if API is using a self-signed TLS certificate.                              |
+| <code>platform_kubernetes_attributes[namespace]</code>          | string  | no       | The unique namespace related to the project                                                           |
+| <code>platform_kubernetes_attributes[authorization_type]</code> | string  | no       | The cluster authorization type: <code>rbac</code>, <code>abac</code> or <code>unknown_authorization</code>. Defaults to <code>rbac</code>.        |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --header "Private-Token:&lt;your_access_token&gt;" "http://gitlab.example.com/api/v4/admin/clusters/add" \
+-H "Accept:application/json" \
+-H "Content-Type:application/json" \
+-X POST --data '{"name":"cluster-3", "environment_scope":"production", "platform_kubernetes_attributes":{"api_url":"https://example.com", "token":"12345",  "ca_cert":"-----BEGIN CERTIFICATE-----qpoeiXXZafCM0ZDJkZjM...-----END CERTIFICATE-----"}}'</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "id": 11,
+  "name": "cluster-3",
+  "created_at": "2020-07-14T18:42:50.805Z",
+  "managed": true,
+  "enabled": true,
+  "domain": null,
+  "provider_type": "user",
+  "platform_type": "kubernetes",
+  "environment_scope": "production",
+  "cluster_type": "instance_type",
+  "user": {
+    "id": 1,
+    "name": "Administrator",
+    "username": "root",
+    "state": "active",
+    "avatar_url": "https://www.gravatar.com/avatar/e64c7d89f26bd1972efa854d13d7dd61?s=80&amp;d=identicon",
+    "web_url": "http://gitlab.example.com:3000/root"
+  },
+  "platform_kubernetes": {
+    "api_url": "https://example.com",
+    "namespace": null,
+    "authorization_type": "rbac",
+    "ca_cert":"-----BEGIN CERTIFICATE-----qpoeiXXZafCM0ZDJkZjM...-----END CERTIFICATE-----"
+  },
+  "provider_gcp": null,
+  "management_project": null
+}</code></p>
+<h2>Edit instance cluster</h2>
+<p>Updates an existing instance cluster.</p>
+<p><code>plaintext
+PUT /admin/clusters/:cluster_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute                                   | Type    | Required | Description                                                                                |
+| ------------------------------------------- | ------- | -------- | ------------------------------------------------------------------------------------------ |
+| <code>cluster_id</code>                                | integer | yes      | The ID of the cluster                                                                      |
+| <code>name</code>                                      | string  | no       | The name of the cluster                                                                    |
+| <code>domain</code>                                    | string  | no       | The <a href="../user/project/clusters/gitlab_managed_clusters.md#base-domain">base domain</a> of the cluster            |
+| <code>environment_scope</code>                         | string  | no       | The associated environment to the cluster                                                  |
+| <code>management_project_id</code>                     | integer | no       | The ID of the <a href="../user/clusters/management_project.md">management project</a> for the cluster |
+| <code>enabled</code>                                   | boolean | no       | Determines if cluster is active or not                                                     |
+| <code>managed</code>                                   | boolean | no       | Determines if GitLab manages namespaces and service accounts for this cluster          |
+| <code>platform_kubernetes_attributes[api_url]</code>   | string  | no       | The URL to access the Kubernetes API                                                       |
+| <code>platform_kubernetes_attributes[token]</code>     | string  | no       | The token to authenticate against Kubernetes                                               |
+| <code>platform_kubernetes_attributes[ca_cert]</code>   | string  | no       | TLS certificate. Required if API is using a self-signed TLS certificate.                   |
+| <code>platform_kubernetes_attributes[namespace]</code> | string  | no       | The unique namespace related to the project                                                |</p>
+<p>NOTE:
+<code>name</code>, <code>api_url</code>, <code>ca_cert</code> and <code>token</code> can only be updated if the cluster was added
+through the <a href="../user/project/clusters/add_existing_cluster.md">Add existing Kubernetes cluster</a> option or
+through the <a href="#add-existing-instance-cluster">Add existing instance cluster</a> endpoint.</p>
+<p>Example request:</p>
+<p><code>shell
+curl --header "Private-Token: &lt;your_access_token&gt;" "http://gitlab.example.com/api/v4/admin/clusters/9" \
+-H "Content-Type:application/json" \
+-X PUT --data '{"name":"update-cluster-name", "platform_kubernetes_attributes":{"api_url":"https://new-example.com","token":"new-token"}}'</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "id": 9,
+  "name": "update-cluster-name",
+  "created_at": "2020-07-14T18:36:10.440Z",
+  "managed": true,
+  "enabled": true,
+  "domain": null,
+  "provider_type": "user",
+  "platform_type": "kubernetes",
+  "environment_scope": "*",
+  "cluster_type": "instance_type",
+  "user": {
+    "id": 1,
+    "name": "Administrator",
+    "username": "root",
+    "state": "active",
+    "avatar_url": "https://www.gravatar.com/avatar/e64c7d89f26bd1972efa854d13d7dd61?s=80&amp;d=identicon",
+    "web_url": "https://gitlab.example.com/root"
+  },
+  "platform_kubernetes": {
+    "api_url": "https://new-example.com",
+    "namespace": null,
+    "authorization_type": "rbac",
+    "ca_cert":"-----BEGIN CERTIFICATE-----IxMDM1MV0ZDJkZjM...-----END CERTIFICATE-----"
+  },
+  "provider_gcp": null,
+  "management_project": null,
+  "project": null
+}</code></p>
+<h2>Delete instance cluster</h2>
+<p>Deletes an existing instance cluster. Does not remove existing resources within the connected Kubernetes cluster.</p>
+<p><code>plaintext
+DELETE /admin/clusters/:cluster_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute    | Type    | Required | Description           |
+| ------------ | ------- | -------- | --------------------- |
+| <code>cluster_id</code> | integer | yes      | The ID of the cluster |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --request DELETE --header "Private-Token: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/admin/clusters/11"</code></p>
+</body>
+</html>

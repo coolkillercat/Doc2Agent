@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>admin_sidekiq_queues API Documentation</title>
+</head>
+<body>
+<hr />
+<p>stage: Systems
+group: Distribution
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments</p>
+<hr />
+<h1>Sidekiq queues administration API</h1>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> Self-managed, GitLab Dedicated</p>
+<p>Delete jobs from a Sidekiq queue that match the given
+<a href="../development/logging.md#logging-context-metadata-through-rails-or-grape-requests">metadata</a>.</p>
+<p>The response has three fields:</p>
+<ol>
+<li><code>deleted_jobs</code> - the number of jobs deleted by the request.</li>
+<li><code>queue_size</code> - the remaining size of the queue after processing the
+   request.</li>
+<li><code>completed</code> - whether or not the request was able to process the
+   entire queue in time. If not, retrying with the same parameters may
+   delete further jobs (including those added after the first request
+   was issued).</li>
+</ol>
+<p>This API endpoint is only available to administrators.</p>
+<p><code>plaintext
+DELETE /admin/sidekiq/queues/:queue_name</code></p>
+<p>| Attribute           | Type   | Required | Description                                                                                                                                  |
+|---------------------|--------|----------|----------------------------------------------------------------------------------------------------------------------------------------------|
+| <code>queue_name</code>        | string | yes      | The name of the queue to delete jobs from                                                                                                    |
+| <code>user</code>              | string | no       | The username of the user who scheduled the jobs                                                                                              |
+| <code>project</code>           | string | no       | The full path of the project where the jobs were scheduled from                                                                              |
+| <code>root_namespace</code>    | string | no       | The root namespace of the project                                                                                                            |
+| <code>subscription_plan</code> | string | no       | The subscription plan of the root namespace (GitLab.com only)                                                                                |
+| <code>caller_id</code>         | string | no       | The endpoint or background job that schedule the job (for example: <code>ProjectsController#create</code>, <code>/api/:version/projects/:id</code>, <code>PostReceive</code>) |
+| <code>feature_category</code>  | string | no       | The feature category of the background job (for example: <code>team_planning</code> or <code>code_review</code>)                                                  |
+| <code>worker_class</code>      | string | no       | The class of the background job worker (for example: <code>PostReceive</code> or <code>MergeWorker</code>)                                                         |</p>
+<p>At least one attribute, other than <code>queue_name</code>, is required.</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/admin/sidekiq/queues/authorized_projects?user=root"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "completed": true,
+  "deleted_jobs": 7,
+  "queue_size": 14
+}</code></p>
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>code_suggestions API Documentation</title>
+</head>
+<body>
+<hr />
+<p>stage: Create
+group: Code Creation
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments</p>
+<hr />
+<h1>Code Suggestions API</h1>
+<p>Use the Code Suggestions API to access the Code Suggestions feature.</p>
+<h2>Generate code completions</h2>
+<p>DETAILS:
+<strong>Status:</strong> Experiment</p>
+<blockquote>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/issues/415581">Introduced</a> in GitLab 16.2 <a href="../administration/feature_flags.md">with a flag</a> named <code>code_suggestions_completion_api</code>. Disabled by default. This feature is an Experiment.</li>
+<li>Requirement to generate a JWT before calling this endpoint was <a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/127863">removed</a> in GitLab 16.3.</li>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/issues/416371">Generally available</a> in GitLab 16.8. <a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/138174">Feature flag <code>code_suggestions_completion_api</code></a> removed.</li>
+</ul>
+</blockquote>
+<p><code>plaintext
+POST /code_suggestions/completions</code></p>
+<p>NOTE:
+This endpoint rate-limits each user to 60 requests per 1-minute window.</p>
+<p>Use the AI abstraction layer to generate code completions.</p>
+<p>Requests to this endpoint are proxied to the
+<a href="https://gitlab.com/gitlab-org/modelops/applied-ml/code-suggestions/ai-assist/-/blob/main/docs/api.md">AI Gateway</a>.</p>
+<p>Parameters:</p>
+<p>| Attribute      | Type    | Required | Description |
+|----------------|---------|----------|-------------|
+| <code>current_file</code> | hash    | yes      | Attributes of file for which code suggestions are being generated. See <a href="#file-attributes">File attributes</a> for a list of strings this attribute accepts. |
+| <code>intent</code>       | string  | no       | The intent of the completion request. Options: <code>completion</code> or <code>generation</code>. |
+| <code>stream</code>       | boolean | no       | Whether to stream the response as smaller chunks as they are ready (if applicable). Default: <code>false</code>. |
+| <code>project_path</code> | string  | no       | The path of the project. |</p>
+<h3>File attributes</h3>
+<p>The <code>current_file</code> attribute accepts the following strings:</p>
+<ul>
+<li><code>file_name</code> - The name of the file. Required.</li>
+<li><code>content_above_cursor</code> - The content of the file above the current cursor position. Required.</li>
+<li><code>content_below_cursor</code> - The content of the file below the current cursor position. Optional.</li>
+</ul>
+<p>Example request:</p>
+<p><code>shell
+curl --request POST \
+  --header "Authorization: Bearer &lt;YOUR_ACCESS_TOKEN&gt;" \
+  --data '{
+      "current_file": {
+        "file_name": "car.py",
+        "content_above_cursor": "class Car:\n    def __init__(self):\n        self.is_running = False\n        self.speed = 0\n    def increase_speed(self, increment):",
+        "content_below_cursor": ""
+      },
+      "intent": "completion"
+    }' \
+  --url "https://gitlab.example.com/api/v4/code_suggestions/completions"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "id": "id",
+  "model": {
+    "engine": "vertex-ai",
+    "name": "code-gecko"
+  },
+  "object": "text_completion",
+  "created": 1688557841,
+  "choices": [
+    {
+      "text": "\n        if self.is_running:\n            self.speed += increment\n            print(\"The car's speed is now",
+      "index": 0,
+      "finish_reason": "length"
+    }
+  ]
+}</code></p>
+<h2>Validate that Code Suggestions is enabled</h2>
+<blockquote>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/138814">Introduced</a> in GitLab 16.7.</li>
+</ul>
+</blockquote>
+<p>Use this endpoint to validate if either:</p>
+<ul>
+<li>A project has <code>code_suggestions</code> enabled.</li>
+<li>A project's group has <code>code_suggestions</code> enabled in its namespace settings.</li>
+</ul>
+<p><code>plaintext
+POST code_suggestions/enabled</code></p>
+<p>Supported attributes:</p>
+<p>| Attribute         | Type    | Required | Description |
+| ----------------- | ------- | -------- | ----------- |
+| <code>project_path</code>    | string  | yes      | The path of the project to be validated. |</p>
+<p>If successful, returns:</p>
+<ul>
+<li><a href="rest/index.md#status-codes"><code>200</code></a> if the feature is enabled.</li>
+<li><a href="rest/index.md#status-codes"><code>403</code></a> if the feature is disabled.</li>
+</ul>
+<p>Additionally, returns a <a href="rest/index.md#status-codes"><code>404</code></a> if the path is empty or the project does not exist.</p>
+<p>Example request:</p>
+<p>```shell
+curl --request POST \
+  --url "https://gitlab.example.com/api/v4/code_suggestions/enabled"
+  --header "Private-Token: <YOUR_ACCESS_TOKEN>" \
+  --header "Content-Type: application/json" \
+  --data '{
+      "project_path": "group/project_name"
+    }' \</p>
+<p>```</p>
+<h2>Fetch direct connection information</h2>
+<p>DETAILS:
+<strong>Status:</strong> Experiment</p>
+<blockquote>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/issues/452044">Introduced</a> in GitLab 17.0 <a href="../administration/feature_flags.md">with a flag</a> named <code>code_suggestions_direct_completions</code>. Disabled by default. This feature is an Experiment.</li>
+</ul>
+</blockquote>
+<p>FLAG:
+On self-managed GitLab, by default this feature is not available. To make it available, an administrator can <a href="../administration/feature_flags.md">enable the feature flag</a> named <code>code_suggestions_direct_completions</code>.
+On GitLab.com and GitLab Dedicated, this feature is not available.
+This feature is not ready for production use.</p>
+<p><code>plaintext
+POST /code_suggestions/direct_access</code></p>
+<p>NOTE:
+This endpoint rate-limits each user to 10 requests per 5-minute window.</p>
+<p>Returns user-specific connection details which can be used by IDEs/clients to send completion requests directly to AI Gateway.</p>
+<p>Example request:</p>
+<p><code>shell
+curl --request POST \
+  --header "Authorization: Bearer &lt;YOUR_ACCESS_TOKEN&gt;" \
+  --url "https://gitlab.example.com/api/v4/code_suggestions/direct_access"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "base_url": "http://0.0.0.0:5052",
+  "token": "a valid token",
+  "expires_at": 1713343569,
+  "headers": {
+    "X-Gitlab-Instance-Id": "292c3c7c-c5d5-48ec-b4bf-f00b724ce560",
+    "X-Gitlab-Realm": "saas",
+    "X-Gitlab-Global-User-Id": "Df0Jhs9xlbetQR8YoZCKDZJflhxO0ZBI8uoRzmpnd1w=",
+    "X-Gitlab-Host-Name": "gitlab.example.com"
+  }
+}</code></p>
+</body>
+</html>

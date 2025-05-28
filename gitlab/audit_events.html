@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>audit_events API Documentation</title>
+</head>
+<body>
+<hr />
+<p>stage: Govern
+group: Compliance
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments</p>
+<hr />
+<h1>Audit Events API</h1>
+<p>DETAILS:
+<strong>Tier:</strong> Premium, Ultimate
+<strong>Offering:</strong> GitLab.com, Self-managed, GitLab Dedicated</p>
+<blockquote>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/issues/386322">Author Email added to the response body</a> in GitLab 15.9.</li>
+</ul>
+</blockquote>
+<h2>Instance Audit Events</h2>
+<p>DETAILS:
+<strong>Tier:</strong> Premium, Ultimate
+<strong>Offering:</strong> Self-managed, GitLab Dedicated</p>
+<p>Use this API to retrieve instance audit events.</p>
+<p>To retrieve audit events using the API, you must <a href="rest/index.md#authentication">authenticate yourself</a> as an Administrator.</p>
+<h3>Retrieve all instance audit events</h3>
+<blockquote>
+<ul>
+<li>Support for keyset pagination <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/367528">introduced</a> in GitLab 15.11.</li>
+<li>Entity type <code>Gitlab::Audit::InstanceScope</code> for instance audit events <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/418185">introduced</a> in GitLab 16.2.</li>
+</ul>
+</blockquote>
+<p><code>plaintext
+GET /audit_events</code></p>
+<p>| Attribute | Type | Required | Description                                                                                                     |
+| --------- | ---- | -------- |-----------------------------------------------------------------------------------------------------------------|
+| <code>created_after</code> | string | no | Return audit events created on or after the given time. Format: ISO 8601 (<code>YYYY-MM-DDTHH:MM:SSZ</code>)               |
+| <code>created_before</code> | string | no | Return audit events created on or before the given time. Format: ISO 8601 (<code>YYYY-MM-DDTHH:MM:SSZ</code>)              |
+| <code>entity_type</code> | string | no | Return audit events for the given entity type. Valid values are: <code>User</code>, <code>Group</code>, <code>Project</code>, or <code>Gitlab::Audit::InstanceScope</code>. |
+| <code>entity_id</code> | integer | no | Return audit events for the given entity ID. Requires <code>entity_type</code> attribute to be present.                    |</p>
+<p>This endpoint supports both offset-based and <a href="rest/index.md#keyset-based-pagination">keyset-based</a> pagination. You should use keyset-based
+pagination when requesting consecutive pages of results.</p>
+<p>Read more on <a href="rest/index.md#pagination">pagination</a>.</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://primary.example.com/api/v4/audit_events"</code></p>
+<p>Example response:</p>
+<p><code>json
+[
+  {
+    "id": 1,
+    "author_id": 1,
+    "entity_id": 6,
+    "entity_type": "Project",
+    "details": {
+      "custom_message": "Project archived",
+      "author_name": "Administrator",
+      "author_email": "admin@example.com",
+      "target_id": "flightjs/flight",
+      "target_type": "Project",
+      "target_details": "flightjs/flight",
+      "ip_address": "127.0.0.1",
+      "entity_path": "flightjs/flight"
+    },
+    "created_at": "2019-08-30T07:00:41.885Z"
+  },
+  {
+    "id": 2,
+    "author_id": 1,
+    "entity_id": 60,
+    "entity_type": "Group",
+    "details": {
+      "add": "group",
+      "author_name": "Administrator",
+      "author_email": "admin@example.com",
+      "target_id": "flightjs",
+      "target_type": "Group",
+      "target_details": "flightjs",
+      "ip_address": "127.0.0.1",
+      "entity_path": "flightjs"
+    },
+    "created_at": "2019-08-27T18:36:44.162Z"
+  },
+  {
+    "id": 3,
+    "author_id": 51,
+    "entity_id": 51,
+    "entity_type": "User",
+    "details": {
+      "change": "email address",
+      "from": "hello@flightjs.com",
+      "to": "maintainer@flightjs.com",
+      "author_name": "Andreas",
+      "author_email": "admin@example.com",
+      "target_id": 51,
+      "target_type": "User",
+      "target_details": "Andreas",
+      "ip_address": null,
+      "entity_path": "Andreas"
+    },
+    "created_at": "2019-08-22T16:34:25.639Z"
+  },
+  {
+    "id": 4,
+    "author_id": 43,
+    "entity_id": 1,
+    "entity_type": "Gitlab::Audit::InstanceScope",
+    "details": {
+      "author_name": "Administrator",
+      "author_class": "User",
+      "target_id": 32,
+      "target_type": "AuditEvents::Streaming::InstanceHeader",
+      "target_details": "unknown",
+      "custom_message": "Created custom HTTP header with key X-arg.",
+      "ip_address": "127.0.0.1",
+      "entity_path": "gitlab_instance"
+    },
+    "ip_address": "127.0.0.1",
+    "author_name": "Administrator",
+    "entity_path": "gitlab_instance",
+    "target_details": "unknown",
+    "created_at": "2023-08-01T11:29:44.764Z",
+    "target_type": "AuditEvents::Streaming::InstanceHeader",
+    "target_id": 32,
+    "event_type": "audit_events_streaming_instance_headers_create"
+  }
+]</code></p>
+<h3>Retrieve single instance audit event</h3>
+<p><code>plaintext
+GET /audit_events/:id</code></p>
+<p>| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| <code>id</code> | integer | yes | The ID of the audit event |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://primary.example.com/api/v4/audit_events/1"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "id": 1,
+  "author_id": 1,
+  "entity_id": 6,
+  "entity_type": "Project",
+  "details": {
+    "custom_message": "Project archived",
+    "author_name": "Administrator",
+    "author_email": "admin@example.com",
+    "target_id": "flightjs/flight",
+    "target_type": "Project",
+    "target_details": "flightjs/flight",
+    "ip_address": "127.0.0.1",
+    "entity_path": "flightjs/flight"
+  },
+  "created_at": "2019-08-30T07:00:41.885Z"
+}</code></p>
+<h2>Group Audit Events</h2>
+<blockquote>
+<ul>
+<li>Support for keyset pagination <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/333968">introduced</a> in GitLab 15.2.</li>
+</ul>
+</blockquote>
+<p>Use this API to retrieve group audit events.</p>
+<p>A user with:</p>
+<ul>
+<li>The Owner role can retrieve group audit events of all users.</li>
+<li>The Developer or Maintainer role is limited to group audit events based on their individual actions.</li>
+</ul>
+<p>This endpoint supports both offset-based and <a href="rest/index.md#keyset-based-pagination">keyset-based</a> pagination. Keyset-based
+pagination is recommended when requesting consecutive pages of results.</p>
+<h3>Retrieve all group audit events</h3>
+<blockquote>
+<ul>
+<li>Support for keyset pagination <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/333968">introduced</a> in GitLab 15.2.</li>
+</ul>
+</blockquote>
+<p><code>plaintext
+GET /groups/:id/audit_events</code></p>
+<p>| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| <code>id</code> | integer/string | yes | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the group</a> |
+| <code>created_after</code> | string | no | Return group audit events created on or after the given time. Format: ISO 8601 (<code>YYYY-MM-DDTHH:MM:SSZ)</code>  |
+| <code>created_before</code> | string | no | Return group audit events created on or before the given time. Format: ISO 8601 (<code>YYYY-MM-DDTHH:MM:SSZ</code>) |</p>
+<p>By default, <code>GET</code> requests return 20 results at a time because the API results
+are paginated.</p>
+<p>Read more on <a href="rest/index.md#pagination">pagination</a>.</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://primary.example.com/api/v4/groups/60/audit_events"</code></p>
+<p>Example response:</p>
+<p><code>json
+[
+  {
+    "id": 2,
+    "author_id": 1,
+    "entity_id": 60,
+    "entity_type": "Group",
+    "details": {
+      "custom_message": "Group marked for deletion",
+      "author_name": "Administrator",
+      "author_email": "admin@example.com",
+      "target_id": "flightjs",
+      "target_type": "Group",
+      "target_details": "flightjs",
+      "ip_address": "127.0.0.1",
+      "entity_path": "flightjs"
+    },
+    "created_at": "2019-08-28T19:36:44.162Z"
+  },
+  {
+    "id": 1,
+    "author_id": 1,
+    "entity_id": 60,
+    "entity_type": "Group",
+    "details": {
+      "add": "group",
+      "author_name": "Administrator",
+      "author_email": "admin@example.com",
+      "target_id": "flightjs",
+      "target_type": "Group",
+      "target_details": "flightjs",
+      "ip_address": "127.0.0.1",
+      "entity_path": "flightjs"
+    },
+    "created_at": "2019-08-27T18:36:44.162Z"
+  }
+]</code></p>
+<h3>Retrieve a specific group audit event</h3>
+<p>Only available to group owners and administrators.</p>
+<p><code>plaintext
+GET /groups/:id/audit_events/:audit_event_id</code></p>
+<p>| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| <code>id</code> | integer/string | yes | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the group</a> |
+| <code>audit_event_id</code> | integer | yes | The ID of the audit event |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://primary.example.com/api/v4/groups/60/audit_events/2"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "id": 2,
+  "author_id": 1,
+  "entity_id": 60,
+  "entity_type": "Group",
+  "details": {
+    "custom_message": "Group marked for deletion",
+    "author_name": "Administrator",
+    "author_email": "admin@example.com",
+    "target_id": "flightjs",
+    "target_type": "Group",
+    "target_details": "flightjs",
+    "ip_address": "127.0.0.1",
+    "entity_path": "flightjs"
+  },
+  "created_at": "2019-08-28T19:36:44.162Z"
+}</code></p>
+<h2>Project Audit Events</h2>
+<p>Use this API to retrieve project audit events.</p>
+<p>A user with a Maintainer role (or above) can retrieve project audit events of all users.
+A user with a Developer role is limited to project audit events based on their individual actions.</p>
+<h3>Retrieve all project audit events</h3>
+<blockquote>
+<ul>
+<li>Support for keyset pagination <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/367528">introduced</a> in GitLab 15.10.</li>
+</ul>
+</blockquote>
+<p><code>plaintext
+GET /projects/:id/audit_events</code></p>
+<p>| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| <code>id</code> | integer/string | yes | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> |
+| <code>created_after</code> | string | no | Return project audit events created on or after the given time. Format: ISO 8601 (<code>YYYY-MM-DDTHH:MM:SSZ</code>)  |
+| <code>created_before</code> | string | no | Return project audit events created on or before the given time. Format: ISO 8601 (<code>YYYY-MM-DDTHH:MM:SSZ</code>) |</p>
+<p>By default, <code>GET</code> requests return 20 results at a time because the API results are paginated.
+When requesting consecutive pages of results, you should use <a href="rest/index.md#keyset-based-pagination">keyset pagination</a>.</p>
+<p>Read more on <a href="rest/index.md#pagination">pagination</a>.</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://primary.example.com/api/v4/projects/7/audit_events"</code></p>
+<p>Example response:</p>
+<p><code>json
+[
+  {
+    "id": 5,
+    "author_id": 1,
+    "entity_id": 7,
+    "entity_type": "Project",
+    "details": {
+        "change": "prevent merge request approval from committers",
+        "from": "",
+        "to": "true",
+        "author_name": "Administrator",
+        "author_email": "admin@example.com",
+        "target_id": 7,
+        "target_type": "Project",
+        "target_details": "twitter/typeahead-js",
+        "ip_address": "127.0.0.1",
+        "entity_path": "twitter/typeahead-js"
+    },
+    "created_at": "2020-05-26T22:55:04.230Z"
+  },
+  {
+      "id": 4,
+      "author_id": 1,
+      "entity_id": 7,
+      "entity_type": "Project",
+      "details": {
+          "change": "prevent merge request approval from authors",
+          "from": "false",
+          "to": "true",
+          "author_name": "Administrator",
+          "author_email": "admin@example.com",
+          "target_id": 7,
+          "target_type": "Project",
+          "target_details": "twitter/typeahead-js",
+          "ip_address": "127.0.0.1",
+          "entity_path": "twitter/typeahead-js"
+      },
+      "created_at": "2020-05-26T22:55:04.218Z"
+  }
+]</code></p>
+<h3>Retrieve a specific project audit event</h3>
+<p>Only available to users with at least the Maintainer role for the project.</p>
+<p><code>plaintext
+GET /projects/:id/audit_events/:audit_event_id</code></p>
+<p>| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| <code>id</code> | integer/string | yes | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> |
+| <code>audit_event_id</code> | integer | yes | The ID of the audit event |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://primary.example.com/api/v4/projects/7/audit_events/5"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "id": 5,
+  "author_id": 1,
+  "entity_id": 7,
+  "entity_type": "Project",
+  "details": {
+      "change": "prevent merge request approval from committers",
+      "from": "",
+      "to": "true",
+      "author_name": "Administrator",
+      "author_email": "admin@example.com",
+      "target_id": 7,
+      "target_type": "Project",
+      "target_details": "twitter/typeahead-js",
+      "ip_address": "127.0.0.1",
+      "entity_path": "twitter/typeahead-js"
+  },
+  "created_at": "2020-05-26T22:55:04.230Z"
+}</code></p>
+</body>
+</html>
