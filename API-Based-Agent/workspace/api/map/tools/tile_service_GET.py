@@ -1,43 +1,46 @@
 import requests
 from urllib.parse import quote
 
-def tile_service(x=None, y=None, zoom=None):
+def tile_service(x=None, y=None, zoom=None, profile=5000):
     """
-    Fetches a vector tile from the OSRM tile service.
+    Fetch a vector tile from the OSRM tile service.
     
-    This function retrieves a Mapbox Vector Tile (MVT) from the OSRM tile service
-    for the specified tile coordinates. The tiles contain road geometries and metadata
-    that can be used to examine the routing graph.
+    This function retrieves a Mapbox Vector Tile (MVT) from the OSRM backend service
+    for the specified tile coordinates and zoom level.
     
-    Args:
-        x (int): The x coordinate of the tile. Required.
-        y (int): The y coordinate of the tile. Required.
-        zoom (int): The zoom level of the tile. Required. Must be >= 12.
+    Parameters:
+    -----------
+    x : int
+        The x coordinate of the tile. Required.
+    y : int
+        The y coordinate of the tile. Required.
+    zoom : int
+        The zoom level of the tile. Required.
+    profile : int, optional
+        Mode of transportation. One of the following values:
+        - 5000 for car (driving)
+        - 5001 for bicycle (biking)
+        - 5002 for foot (walking)
+        Default is 5000 (car).
     
     Returns:
-        requests.Response: The HTTP response containing the vector tile data.
-        The response object has a binary encoded blob with a Content-Type of 
-        application/x-protobuf, or a 404 error if the tile is not found.
+    --------
+    requests.Response
+        The HTTP response object containing the MVT data.
     
-    Example:
-        # Fetch a Z=13 tile for downtown San Francisco
-        response = tile_service(x=1310, y=3166, zoom=13)
+    Examples:
+    ---------
+    >>> response = tile_service(x=1310, y=3166, zoom=13)
+    >>> response.status_code
+    200
     """
     assert x is not None, 'Missing required parameter: x'
     assert y is not None, 'Missing required parameter: y'
     assert zoom is not None, 'Missing required parameter: zoom'
     
-    api_url = f"http://router.project-osrm.org/tile/v1/test/tile({x},{y},{zoom}).mvt"
+    api_url = f"http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:{profile}/tile/v1/test/tile({x},{y},{zoom}).mvt"
     
-    headers = {
-        "Authorization": "Bearer " + "GITLAB_KEY_REMOVED",
-        "PRIVATE-TOKEN": "GITLAB_KEY_REMOVED",
-        "Private-Token": "GITLAB_KEY_REMOVED",
-    }
-    
-    response = requests.get(url=api_url, headers=headers, timeout=50, verify=False)
-    if response.status_code != 200:
-        response = requests.get(url=api_url, timeout=50)  # in case API can't handle redundant params
+    response = requests.get(url=api_url, timeout=50, verify=False)
     return response
 
 if __name__ == '__main__':

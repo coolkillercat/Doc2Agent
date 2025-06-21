@@ -413,8 +413,20 @@ class CodeActAgent(Agent):
             # For non-benchmark browsing, the browser env starts with a blank page, and the agent is expected to first navigate to desired websites
             # This message will not be included in `messages`
 
+            ### GLYCAN API TASKS
+            if 'glycan' in history_str.lower() or 'RESEARCH QUESTION:' in history_str:
+                logger.info('Initializing glycan API tools')
+                init_code = (
+                    'from utils import list_tools, get_documentation, call_function\n'
+                    'print("\\n==== CHECKING GLYCAN API TOOLS ====\\n")\n'
+                    'print("Available glycan modules:")\n'
+                    'result = list_tools(site="glycan")\n'
+                    'print(result)'
+                )
+                response = f'<execute_ipython>\n{init_code}\n</execute_ipython>'
+
             ### SHOPPING
-            if SHOPPING_URL in history_str:
+            elif SHOPPING_URL in history_str:
                 logger.info('logging in to shopping website')
                 action = f'goto("{SHOPPING_URL}/customer/account/login/")\nwait_for_load_state("load")\n'
                 response = f'<execute_browse> {action} </execute_browse>'
@@ -455,8 +467,41 @@ class CodeActAgent(Agent):
                 response = f'<execute_browse> {action} </execute_browse>'
 
         elif EVAL_MODE and len(state.history) <= 2:
+            ### GLYCAN API TASKS  
+            if 'glycan' in history_str.lower() or 'RESEARCH QUESTION:' in history_str:
+                logger.info('Glycan API task detected (history <= 2) - calling LLM directly')
+                # Process messages for glycan tasks
+                messages[-1]['content'] = messages[-1]['content'] + '\n' + browse_prompt
+                latest_user_messages = [m for m in messages if m['role'] == 'user']
+                if len(latest_user_messages) >= 1:
+                    latest_user_message = latest_user_messages[-1]
+                    if latest_user_message:
+                        if latest_user_message['content'].strip() == '/exit':
+                            return AgentFinishAction()
+                        latest_user_message['content'] += (
+                            f'\n\nENVIRONMENT REMINDER: You have {state.max_iterations - state.iteration} turns left to complete the task.'
+                        )
+                
+                try:
+                    response = self.llm.completion(
+                        messages=messages,
+                        stop=[
+                            '</execute_ipython>',
+                            '</execute_bash>',
+                            '</execute_browse>',
+                        ],
+                        temperature=0.0,
+                    )
+                    state.num_of_chars += sum(
+                        len(message['content']) for message in messages
+                    ) + len(response.choices[0].message.content)
+                except Exception as e:
+                    logger.error(f'Error calling LLM for glycan task: {e}')
+                    return MessageAction(
+                        content=f'An error occurred: {e}', wait_for_response=True
+                    )
             ### SHOPPING
-            if SHOPPING_URL in history_str:
+            elif SHOPPING_URL in history_str:
                 action = 'fill("1375", "emma.lopez@gmail.com")\n'
                 action += 'fill("1380", "Password.123")\n'
                 action += 'click("1387")\n'
@@ -502,8 +547,41 @@ class CodeActAgent(Agent):
                 response = f'<execute_browse> {action} </execute_browse>'
 
         elif EVAL_MODE and len(state.history) <= 3:
+            ### GLYCAN API TASKS
+            if 'glycan' in history_str.lower() or 'RESEARCH QUESTION:' in history_str:
+                logger.info('Glycan API task detected - calling LLM directly')
+                # Process messages for glycan tasks
+                messages[-1]['content'] = messages[-1]['content'] + '\n' + browse_prompt
+                latest_user_messages = [m for m in messages if m['role'] == 'user']
+                if len(latest_user_messages) >= 1:
+                    latest_user_message = latest_user_messages[-1]
+                    if latest_user_message:
+                        if latest_user_message['content'].strip() == '/exit':
+                            return AgentFinishAction()
+                        latest_user_message['content'] += (
+                            f'\n\nENVIRONMENT REMINDER: You have {state.max_iterations - state.iteration} turns left to complete the task.'
+                        )
+                
+                try:
+                    response = self.llm.completion(
+                        messages=messages,
+                        stop=[
+                            '</execute_ipython>',
+                            '</execute_bash>',
+                            '</execute_browse>',
+                        ],
+                        temperature=0.0,
+                    )
+                    state.num_of_chars += sum(
+                        len(message['content']) for message in messages
+                    ) + len(response.choices[0].message.content)
+                except Exception as e:
+                    logger.error(f'Error calling LLM for glycan task: {e}')
+                    return MessageAction(
+                        content=f'An error occurred: {e}', wait_for_response=True
+                    )
             ### SHOPPING
-            if SHOPPING_URL in history_str:
+            elif SHOPPING_URL in history_str:
                 SHOPPING_START_URL = os.environ.get('SHOPPING_START_URL', SHOPPING_URL)
                 logger.info(f'opening shopping {SHOPPING_START_URL}')
                 task_start_urls = [

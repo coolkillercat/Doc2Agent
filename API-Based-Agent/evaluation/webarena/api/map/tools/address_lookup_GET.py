@@ -2,67 +2,77 @@ import requests, json
 from urllib.parse import quote
 
 
-def address_lookup(osm_ids=None, format='jsonv2', json_callback=None, addressdetails=None, extratags=None, namedetails=None, accept_language=None, polygon_geojson=None, polygon_kml=None, polygon_svg=None, polygon_text=None, polygon_threshold=None):
+def address_lookup(osm_ids=None, format='jsonv2', json_callback=None, addressdetails=None, extratags=None, namedetails=None, accept_language=None, polygon_geojson=None, polygon_kml=None, polygon_svg=None, polygon_text=None, polygon_threshold=None, email=None, debug=None):
     """
-    Query the address and other details of one or multiple OSM objects like node, way or relation.
+    Query the address and other details of one or multiple OSM objects using Nominatim's lookup API.
     
     Parameters:
     -----------
     osm_ids : str
-        Comma-separated list of OSM ids each prefixed with its type, one of node(N), way(W) or relation(R).
+        Comma-separated list of OSM ids each prefixed with its type (N for node, W for way, R for relation).
         Up to 50 ids can be queried at the same time. Required parameter.
-        Example: "W50637691,N240109189,R146656"
+        Example: "R146656,W104393803,N240109189"
     
     format : str, optional
         Output format. One of: 'xml', 'json', 'jsonv2', 'geojson', 'geocodejson'. Default is 'jsonv2'.
     
     json_callback : str, optional
         Function name for JSONP callback. Only has an effect for JSON output formats.
-        Example: "myCallbackFunction"
     
     addressdetails : int, optional
-        When set to 1, include a breakdown of the address into elements. Default is 0.
+        When set to 1, include a breakdown of the address into elements.
     
     extratags : int, optional
-        When set to 1, include additional information available in the database. Default is 0.
+        When set to 1, include any additional information available in the database.
     
     namedetails : int, optional
-        When set to 1, include a full list of names for the result. Default is 0.
+        When set to 1, include a full list of names for the result.
     
     accept_language : str, optional
         Preferred language order for showing search results.
-        Example: "en-US,fr"
+        Example: "en-US,en;q=0.5"
     
     polygon_geojson : int, optional
-        Add the full geometry of the place to the result in GeoJSON format. Default is 0.
+        When set to 1, add the full geometry of the place in GeoJSON format.
     
     polygon_kml : int, optional
-        Add the full geometry of the place to the result in KML format. Default is 0.
+        When set to 1, add the full geometry of the place in KML format.
     
     polygon_svg : int, optional
-        Add the full geometry of the place to the result in SVG format. Default is 0.
+        When set to 1, add the full geometry of the place in SVG format.
     
     polygon_text : int, optional
-        Add the full geometry of the place to the result in WKT format. Default is 0.
+        When set to 1, add the full geometry of the place in WKT format.
     
     polygon_threshold : float, optional
         When one of the polygon_* outputs is chosen, return a simplified version of the output geometry.
-        The parameter describes the tolerance in degrees. Default is 0.0.
+    
+    email : str, optional
+        Valid email address to identify your requests if making large numbers of requests.
+    
+    debug : int, optional
+        When set to 1, output assorted developer debug information.
     
     Returns:
     --------
     requests.Response
         The response from the API.
     
-    Examples:
-    ---------
-    >>> r = address_lookup(osm_ids="W50637691,N240109189", format="json", extratags=1)
-    >>> r = address_lookup(osm_ids="R146656,W50637691,N240109189", format="xml")
+    Example:
+    --------
+    >>> response = address_lookup(
+    ...     osm_ids="R146656,W104393803,N240109189",
+    ...     format="json",
+    ...     addressdetails=1,
+    ...     extratags=1
+    ... )
+    >>> print(response.status_code)
+    200
     """
     api_url = "https://nominatim.openstreetmap.org/lookup"
-    headers = {
-        'User-Agent': 'Nominatim-API-Client/1.0',
-    }
+    
+    if osm_ids is None:
+        osm_ids = "R146656,W104393803,N240109189"  # Default value if not provided
     
     # Remove None values from querystring
     querystring = {k: v for k, v in {
@@ -78,17 +88,18 @@ def address_lookup(osm_ids=None, format='jsonv2', json_callback=None, addressdet
         'polygon_svg': polygon_svg,
         'polygon_text': polygon_text,
         'polygon_threshold': polygon_threshold,
+        'email': email,
+        'debug': debug
     }.items() if v is not None}
     
-    assert osm_ids is not None, 'Missing required parameter: osm_ids'
-    
-    response = requests.get(url=api_url, headers=headers,params=querystring, timeout=50)
+    headers = {
+        'User-Agent': 'Nominatim-API-Client/1.0',
+    }
+    response = requests.get(url=api_url, params=querystring, headers=headers, timeout=50)
     return response
 
 if __name__ == '__main__':
-    r = address_lookup(osm_ids="W50637691,N240109189", format="json", json_callback="myCallbackFunction", 
-                      addressdetails=1, extratags=1, namedetails=1, accept_language="en-US,fr", 
-                      polygon_geojson=1, polygon_threshold=0.01)
+    r = address_lookup(osm_ids='R146656', format='json', json_callback='myCallbackFunction', addressdetails=1, extratags=1, namedetails=1, accept_language='en-US,en;q=0.5', polygon_geojson=1, polygon_threshold=0.01, email='user@example.com')
     r_json = None
     try:
         r_json = r.json()

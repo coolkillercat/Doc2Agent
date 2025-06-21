@@ -11,8 +11,8 @@ import shutil
 
 from tqdm import tqdm
 
-sys.path.append('/API-Based-Agent/evaluation/webarena/webarena')
-sys.path.append('/API-Based-Agent/evaluation/webarena/webarena/evaluation_harness')
+sys.path.append('/Users/jianhaonan/Desktop/API-Based-Agent/evaluation/webarena/webarena')
+sys.path.append('/Users/jianhaonan/Desktop/API-Based-Agent/evaluation/webarena/webarena/evaluation_harness')
 from utils import check_correctness, get_initial_prompt_from_task, get_tests
 from opendevin.controller.state.state import State
 from opendevin.core.config import config, get_llm_config_arg, get_parser
@@ -143,7 +143,7 @@ def process_instance(task, agent_class, metadata, reset_logger: bool = True):
         workspace_utils = os.path.join(workspace_mount_path, 'utils.py')
         
         # NEW CODE: Copy our custom utils.py file to override the default one
-        custom_utils_path = "/API-Based-Agent/custom_utils.py"
+        custom_utils_path = "/Users/jianhaonan/Desktop/API-Based-Agent/custom_utils.py"
         if os.path.exists(custom_utils_path):
             shutil.copy(custom_utils_path, workspace_utils)
             print(f"Successfully replaced utils.py with custom version from {custom_utils_path}")
@@ -323,7 +323,7 @@ def process_instance(task, agent_class, metadata, reset_logger: bool = True):
     workspace_utils = os.path.join(workspace_mount_path, 'utils.py')
     
     # NEW CODE: Copy our custom utils.py file to override the default one
-    custom_utils_path = "/API-Based-Agent/custom_utils.py"
+    custom_utils_path = "/Users/jianhaonan/Desktop/API-Based-Agent/custom_utils.py"
     if os.path.exists(custom_utils_path):
         shutil.copy(custom_utils_path, workspace_utils)
         print(f"Successfully replaced utils.py with custom version from {custom_utils_path}")

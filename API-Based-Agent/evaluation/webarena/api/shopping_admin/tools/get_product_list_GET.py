@@ -1,79 +1,86 @@
-import json
-
 import requests
+import json
+from urllib.parse import quote
 
-
-def get_shopping_admin_admin_auth_token():
+def get_shopping_admin_auth_token():
+    ENDPOINT = 'http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:7780'
     response = requests.post(
-        url='http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:7780/rest/default/V1/integration/admin/token',
-        headers={'content-type': 'application/json'},
-        data=json.dumps({'username': 'admin', 'password': 'admin1234'}),
+        url = f'{ENDPOINT}/rest/default/V1/integration/admin/token',
+        headers = {
+            'content-type': 'application/json'
+        },
+        data = json.dumps({
+            'username': 'admin',
+            'password': 'admin1234'
+        })
     )
-    return response.json()
+    return "Bearer " + response.json()
 
 
-def get_product_list(
-    searchCriteria_filterGroups__0__filters__0__field=None,
-    searchCriteria_filterGroups__0__filters__0__value=None,
-    searchCriteria_filterGroups__0__filters__0__conditionType=None,
-    searchCriteria_sortOrders__0__field=None,
-    searchCriteria_sortOrders__0__direction=None,
-    searchCriteria_pageSize=None,
-    searchCriteria_currentPage=None,
-):
+def get_product_list(searchCriteria_filterGroups_0_filters_0_field=None, 
+                    searchCriteria_filterGroups_0_filters_0_value=None, 
+                    searchCriteria_filterGroups_0_filters_0_conditionType=None, 
+                    searchCriteria_sortOrders_0_field=None, 
+                    searchCriteria_sortOrders_0_direction=None, 
+                    searchCriteria_pageSize=None, 
+                    searchCriteria_currentPage=None):
     """
-    Get a list of products based on search criteria.
-
+    Get product list from the API.
+    
     Args:
-        searchCriteria_filterGroups__0__filters__0__field: Field to filter by
-        searchCriteria_filterGroups__0__filters__0__value: Value to filter with
-        searchCriteria_filterGroups__0__filters__0__conditionType: Condition type for filtering
-        searchCriteria_sortOrders__0__field: Field to sort by
-        searchCriteria_sortOrders__0__direction: Sort direction (asc/desc)
-        searchCriteria_pageSize: Number of items per page
-        searchCriteria_currentPage: Current page number
-
+        searchCriteria_filterGroups_0_filters_0_field (str, optional): Field to filter by. Example: 'name'
+        searchCriteria_filterGroups_0_filters_0_value (str, optional): Value to filter by. Example: 'shirt'
+        searchCriteria_filterGroups_0_filters_0_conditionType (str, optional): Condition type. Example: 'eq'
+        searchCriteria_sortOrders_0_field (str, optional): Sorting field. Example: 'price'
+        searchCriteria_sortOrders_0_direction (str, optional): Sorting direction. Example: 'ASC'
+        searchCriteria_pageSize (int, optional): Page size. Example: 20
+        searchCriteria_currentPage (int, optional): Current page. Example: 1
+    
     Returns:
-        Response object from the API request
-    """
-    api_url = 'http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:7780/rest/default/V1/products'
-    querystring = {
-        'searchCriteria[filterGroups][0][filters][0][field]': searchCriteria_filterGroups__0__filters__0__field,
-        'searchCriteria[filterGroups][0][filters][0][value]': searchCriteria_filterGroups__0__filters__0__value,
-        'searchCriteria[filterGroups][0][filters][0][conditionType]': searchCriteria_filterGroups__0__filters__0__conditionType,
-        'searchCriteria[sortOrders][0][field]': searchCriteria_sortOrders__0__field,
-        'searchCriteria[sortOrders][0][direction]': searchCriteria_sortOrders__0__direction,
-        'searchCriteria[pageSize]': searchCriteria_pageSize,
-        'searchCriteria[currentPage]': searchCriteria_currentPage,
-    }
-    # Remove None values
-    querystring = {k: v for k, v in querystring.items() if v is not None}
-
-    headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + get_shopping_admin_admin_auth_token(),
-    }
-
-    response = requests.get(
-        url=api_url, headers=headers, params=querystring, timeout=50, verify=False
-    )
-    if response.status_code != 200:
-        response2 = requests.get(
-            url=api_url, headers=headers, timeout=50, verify=False
-        )  # in case API can't handle redundant params
-        response = response2
+        Returns a list of products with filtering, sorting, and pagination options based on specified search criteria."""
+    base_url = "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:7780"
+    api_url = f"{base_url}/rest/default/V1/products"
+    
+    querystring = {}
+    
+    # Add required searchCriteria parameter (even if empty)
+    querystring["searchCriteria"] = ""
+    
+    if searchCriteria_filterGroups_0_filters_0_field:
+        querystring["searchCriteria[filterGroups][0][filters][0][field]"] = searchCriteria_filterGroups_0_filters_0_field
+    
+    if searchCriteria_filterGroups_0_filters_0_value:
+        querystring["searchCriteria[filterGroups][0][filters][0][value]"] = searchCriteria_filterGroups_0_filters_0_value
+    
+    if searchCriteria_filterGroups_0_filters_0_conditionType:
+        querystring["searchCriteria[filterGroups][0][filters][0][conditionType]"] = searchCriteria_filterGroups_0_filters_0_conditionType
+    
+    if searchCriteria_sortOrders_0_field:
+        querystring["searchCriteria[sortOrders][0][field]"] = searchCriteria_sortOrders_0_field
+    
+    if searchCriteria_sortOrders_0_direction:
+        querystring["searchCriteria[sortOrders][0][direction]"] = searchCriteria_sortOrders_0_direction
+    
+    if searchCriteria_pageSize:
+        querystring["searchCriteria[pageSize]"] = searchCriteria_pageSize
+    
+    if searchCriteria_currentPage:
+        querystring["searchCriteria[currentPage]"] = searchCriteria_currentPage
+    
+    headers = {'Content-Type': 'application/json', 'Authorization': get_shopping_admin_auth_token()}
+    
+    response = requests.get(url=api_url, params=querystring, headers=headers, timeout=50, verify=False)
     return response
-
 
 if __name__ == '__main__':
     r = get_product_list(
-        searchCriteria_filterGroups__0__filters__0__field='name',
-        searchCriteria_filterGroups__0__filters__0__value='laptop',
-        searchCriteria_filterGroups__0__filters__0__conditionType='eq',
-        searchCriteria_sortOrders__0__field='price',
-        searchCriteria_sortOrders__0__direction='asc',
-        searchCriteria_pageSize=10,
-        searchCriteria_currentPage=1,
+        searchCriteria_filterGroups_0_filters_0_field='name',
+        searchCriteria_filterGroups_0_filters_0_value='women shoes',
+        searchCriteria_filterGroups_0_filters_0_conditionType='eq',
+        searchCriteria_sortOrders_0_field='price',
+        searchCriteria_sortOrders_0_direction='ASC',
+        searchCriteria_pageSize=20,
+        searchCriteria_currentPage=1
     )
     r_json = None
     try:
@@ -81,10 +88,9 @@ if __name__ == '__main__':
     except:
         pass
     import json
-
     result_dict = dict()
     result_dict['status_code'] = r.status_code
     result_dict['text'] = r.text
     result_dict['json'] = r_json
-    result_dict['content'] = r.content.decode('utf-8')
+    result_dict['content'] = r.content.decode("utf-8")
     print(json.dumps(result_dict, indent=4))
