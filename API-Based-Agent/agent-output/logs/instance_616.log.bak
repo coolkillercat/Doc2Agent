@@ -1,0 +1,1953 @@
+Step 0:
+act - **MessageAction** (source=EventSource.USER)
+CONTENT: Think step by step to perform the following task related to reddit. Answer the question: ***Re-post the image of Thanksgiving turkey in this page to funny subreddit and note "from /f/pics"***
+The site URL for reddit is http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999, use this instead of the normal reddit URL. 
+This task is related to the forum pics. 
+For web browsing, You should start from the URL http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/f/pics, and this webpage is already logged in and opened for you.
+My username is MarvelsGrantMan136. 
+
+Below is the list of all APIs you can use and their descriptions:
+## Forums
+
+### List All Forums
+
+To retrieve the names of all the forums, you could use the API `get http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/forums/all`.
+
+#### Response
+
+The response contains HTML contents including the names of all the forums sorted by alphabetical order. For example,
+```html
+<li><a href="/f/allentown">allentown</a></li>
+```
+this means a forum named `allentown`, and to retrieve the contents in this forum, you would need to do `get http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/f/allentown`.
+
+
+### **Get Forum by ID**
+To retrieve a forum by its ID, use the `get_forum_by_id` function.  
+To use this function, run:
+
+```python
+from utils import get_forum_by_id
+```
+
+#### **Input Parameters**:
+- **forum_id** (int): The ID of the forum.
+
+#### **Response**:
+- Returns a JSON object containing the forum details.
+
+---
+
+### **Create a New Forum**
+To create a new forum, use the `create_forum` function.  
+To use this function, run:
+
+```python
+from utils import create_forum
+```
+
+#### **Input Parameters**:
+- **forum_name** (str): The name of the new forum.
+- **title** (str): The title of the new forum.
+- **sidebar** (str): The sidebar content for the forum.
+- **description** (str): The description of the forum.
+
+#### **Response**:
+- Returns a JSON object containing the result of the forum creation.
+
+---
+
+### **Update a Forum**
+To update an existing forum, use the `update_forum` function.  
+To use this function, run:
+
+```python
+from utils import update_forum
+```
+
+#### **Input Parameters**:
+- **forum_id** (int): The ID of the forum to be updated.
+- **forum_name** (str): The new name of the forum.
+- **title** (str): The new title of the forum.
+- **sidebar** (str): The updated sidebar content.
+- **description** (str): The updated description.
+
+#### **Response**:
+- Returns a JSON object containing the result of the forum update.
+
+### **Subscribe and Unsubscribe**
+
+#### Subscribe to a Forum
+To subscribe to a forum, use the predefined `utils` function `subscribe_forum`.  
+To use this function, run:
+
+```python
+from utils import subscribe_forum
+```
+
+#### **Input Parameters**:
+- **forum_name** (str): The name of the forum you want to subscribe to. Example: `'relationship_advice'`.
+
+#### **Response**:
+- Returns a JSON object containing the result of the subscription.
+
+---
+
+#### Unsubscribe from a Forum
+To unsubscribe from a forum, use the predefined `utils` function `unsubscribe_forum`.  
+To use this function, run:
+
+```python
+from utils import unsubscribe_forum
+```
+
+#### **Input Parameters**:
+- **forum_name** (str): The name of the forum you want to unsubscribe from. Example: `'relationship_advice'`.
+
+#### **Response**:
+- Returns a JSON object containing the result of the unsubscription.
+
+### Retrieve All Submissions to a Forum
+
+To retrieve all submissions to a forum, you could use the API `get http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/f/{forum_name}`. For example, `get http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/f/allentown`
+
+#### Sort Submissions
+
+You could sort the submissions by `hot`, `new`, `active`, `top`, `controversial`, and `most_commented`.
+
+For `hot`, `new`, and `active`, you could sort by these attributes using the API format `http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/f/{forum_name}/{attribute}`. For example, `get http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/f/allentown/hot`.
+
+For `top`, `controversial`, and `most_commented`, you could sort by these attributes using the API format `http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/f/{forum_name}/{attribute}?t={time}`. For $time, you could choose from `day` (which means the past 24 hours), `week` (which means the past 7 days), `month` (which means the past month), `year` (which means the past yeaer), and `all` (which means all times). For example, `get http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/f/allentown/most_commented?t=day` will get you the submissions in the past 24 hours, sorted by number of comments; `get http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/f/allentown/most_commented?t=all` will get you all submissions until now, sorted by number of comments.
+
+#### Retrieve a Specific Submission and All Comments to It
+
+If you already has the submission_id that you would like to retrieve, then you are good to use the API `get http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/{submission_id}`. For example, the submission_id for the submission with title 'New area code?' to the forum 'allentown' has the submission_id `123256`, then you could do `get http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/123256` to retrieve the submission and all comments to this submission.
+
+However, if you don't have the submission_id to the submission you would like to retrieve, but you have a keyword or the title of the submission and the name of the forum, then you could first call `get http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/f/{forum_name}`, and then search for the keyword of the submission in the html response, and the locate the line with format `href="/f/{forum_name}/{submission_id}/...`. For example, if you would like to retrieve the submission to `allentown` with keyword `area`, then you could first call `get http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/f/allentown`, and then search for `area`. For instance, the response contains the following lines:
+
+```html
+<div class="submission__row">
+
+      <div class="submission__inner">
+        <header class="submission__header">
+          <div class="submission__title-row break-text"><h1 class="submission__title unheaderize inline"><a href="/f/allentown/123256/new-area-code"
+         class="submission__link"
+                  rel=""
+          target="_self"
+        >New area code?</a></h1>
+
+
+                      </div>
+
+          <p class="submission__info">
+            <span class="text-sm fg-muted">
+              Submitted by         <a href="/user/Francis-pencovic" class="submission__submitter fg-inherit"><strong>Francis-pencovic</strong></a>    <small class="fg-grey text-sm user-flag">t3_11xxi00</small>
+   <time class="submission__timestamp"
+        data-controller="relative-time"
+        datetime="2023-03-21T22:40:42+00:00"
+        title="March 21, 2023 at 10:40:42 PM UTC">on March 21, 2023 at 10:40 PM</time>
+```
+then, `123256` is the submission_id you want. You could find this submission_id by locating the line `href="/f/allentown/123256/new-area-code"`. Then you could call `get http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/123256` to retrieve the submission and all comments to this submission.
+
+### Retrieve All Comments to a Forum
+
+To retrieve all comments to a forum, you could use the API `get http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/f/{forum_name}/comments`. For example, `get http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/f/allentown/comments`.
+
+## User
+
+### **Update User Bio**
+To update the biography of the current user, use the `update_bio` function.  
+To use this function, run:
+
+```python
+from utils import update_bio
+```
+
+#### **Input Parameters**:
+- **bio** (str): The new biography content.
+
+#### **Response**:
+- Returns a dictionary indicating whether the update was successful (`{"updated": True}`) or not (`{"updated": False}`).
+
+### Other Functionalities
+To retrieve the information of a user, you could use the API `http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/user/{username}`.
+
+To retrieve the submissions of a user, you could use the API `http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/user/{username}/submissions`.
+
+To retrieve the comments of a user, you could use the API `http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/user/{username}/comments`.
+
+To retrieve the preferences of a user, you could use the API `http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/user/{username}/preferences`.
+
+
+Here's the API documentation for the functions you provided in `utils.py`. This documentation is organized by different functionalities such as subscribing to forums, voting on submissions and comments, etc.
+
+
+## Submissions
+
+### **Get a Submission by Submission ID**
+To get a submission by its ID, use the `get_submission_by_id` function.  
+To use this function, run:
+
+```python
+from utils import get_submission_by_id
+```
+
+#### **Input Parameters**:
+- **submission_id** (int): The ID of the submission.
+
+#### **Response**:
+- Returns an json containing the submission information.
+
+### **Get Votes for a Submission**
+To get the number of votes for a submission, use the `get_submission_votes` function.  
+To use this function, run:
+
+```python
+from utils import get_submission_votes
+```
+
+#### **Input Parameters**:
+- **submission_id** (int): The ID of the submission to check the votes for.
+
+#### **Response**:
+- Returns an integer representing the net votes for the submission.
+
+---
+
+### **Upvote a Submission**
+To upvote a submission, use the `upvote_submission` function.  
+To use this function, run:
+
+```python
+from utils import upvote_submission
+```
+
+#### **Input Parameters**:
+- **submission_id** (int): The ID of the submission to upvote.
+
+#### **Response**:
+- Returns a JSON object containing the result of the upvote.
+
+---
+
+### **Downvote a Submission**
+To downvote a submission, use the `downvote_submission` function.  
+To use this function, run:
+
+```python
+from utils import downvote_submission
+```
+
+#### **Input Parameters**:
+- **submission_id** (int): The ID of the submission to downvote.
+
+#### **Response**:
+- Returns a JSON object containing the result of the downvote.
+
+---
+
+### **Remove Vote from a Submission**
+To unvote a submission, use the `unvote_submission` function.  
+To use this function, run:
+
+```python
+from utils import unvote_submission
+```
+
+#### **Input Parameters**:
+- **submission_id** (int): The ID of the submission to unvote.
+
+#### **Response**:
+- Returns a JSON object containing the result of the unvote.
+
+---
+
+## Comments
+
+### **Get All Comments**
+To retrieve all comments from a submission, use the `get_all_comments` function.  
+To use this function, run:
+
+```python
+from utils import get_all_comments
+```
+
+#### **Response**:
+- Returns a JSON object containing a list of all comments.
+
+---
+
+### **Get Comment by ID**
+To retrieve a specific comment by its ID, use the `get_comment_by_id` function.  
+To use this function, run:
+
+```python
+from utils import get_comment_by_id
+```
+
+#### **Input Parameters**:
+- **comment_id** (int): The ID of the comment.
+
+#### **Response**:
+- Returns a JSON object containing the comment data.
+
+---
+
+### **Update Comment by ID**
+To update the content of a comment, use the `update_comment_by_id` function.  
+To use this function, run:
+
+```python
+from utils import update_comment_by_id
+```
+
+#### **Input Parameters**:
+- **comment_id** (int): The ID of the comment to be updated.
+- **new_comment_content** (str): The new content for the comment.
+
+#### **Response**:
+- Returns the updated comment as text.
+
+---
+
+
+### **Get Votes for a Comment**
+To get the number of votes for a comment, use the `get_comment_votes` function.  
+To use this function, run:
+
+```python
+from utils import get_comment_votes
+```
+
+#### **Input Parameters**:
+- **submission_id** (int): The ID of the submission where the comment is posted.
+- **comment_id** (int): The ID of the comment to check the votes for.
+
+#### **Response**:
+- Returns an integer representing the net votes for the comment.
+
+---
+
+### **Upvote a Comment**
+To upvote a comment, use the `upvote_comment` function.  
+To use this function, run:
+
+```python
+from utils import upvote_comment
+```
+
+#### **Input Parameters**:
+- **submission_id** (int): The ID of the submission where the comment is posted.
+- **comment_id** (int): The ID of the comment to upvote.
+
+#### **Response**:
+- Returns a JSON object containing the result of the upvote.
+
+---
+
+### **Downvote a Comment**
+To downvote a comment, use the `downvote_comment` function.  
+To use this function, run:
+
+```python
+from utils import downvote_comment
+```
+
+#### **Input Parameters**:
+- **submission_id** (int): The ID of the submission where the comment is posted.
+- **comment_id** (int): The ID of the comment to downvote.
+
+#### **Response**:
+- Returns a JSON object containing the result of the downvote.
+
+---
+
+### **Remove Vote from a Comment**
+To unvote a comment, use the `unvote_comment` function.  
+To use this function, run:
+
+```python
+from utils import unvote_comment
+```
+
+#### **Input Parameters**:
+- **submission_id** (int): The ID of the submission where the comment is posted.
+- **comment_id** (int): The ID of the comment to unvote.
+
+#### **Response**:
+- Returns a JSON object containing the result of the unvote.
+
+---
+
+## **Commenting on Submissions**
+
+### **Post a Comment on a Submission**
+To post a new comment on a submission, use the `post_comment` function.  
+To use this function, run:
+
+```python
+from utils import post_comment
+```
+
+#### **Input Parameters**:
+- **submission_id** (int): The ID of the submission where the comment will be posted.
+- **comment** (str): The content of the comment.
+
+#### **Response**:
+- Returns the URL of the posted comment.
+
+---
+
+### **Reply to a Comment**
+To reply to an existing comment, use the `reply_comment` function.  
+To use this function, run:
+
+```python
+from utils import reply_comment
+```
+
+#### **Input Parameters**:
+- **submission_id** (int): The ID of the submission where the comment is posted.
+- **comment_id** (int): The ID of the comment to reply to.
+- **comment** (str): The reply content.
+
+#### **Response**:
+- Returns the URL of the posted reply.
+
+---
+
+IMPORTANT: In general, you must always first try to use APIs to perform the task; however, you should use web browsing when there is no useful API available for the task. IMPORTANT: After you tried out using APIs, you must use web browsing to navigate to some URL containing contents that could verify whether the results you obtained by API calling is correct. IMPORTANT: You should ONLY interact with the environment provided to you AND NEVER ASK FOR HUMAN HELP.
+When you think you have completed the request, please run the following command: <execute_bash> exit </execute_bash>.
+
+obs - NullObservation(content='', observation='null')
+
+Step 1:
+act - **BrowseInteractiveAction**
+BROWSER_ACTIONS: goto("http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/login?_cookie_check=1727865249")
+obs - **BrowserOutputObservation**
+URL: http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/login?_cookie_check=1727867397
+Status code: 200
+Error: False
+Open pages: ['http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/login?_cookie_check=1727867397']
+Active page index: 0
+Last browser action: goto("http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/login?_cookie_check=1727865249")
+Last browser action error: 
+Focused element bid: 62
+CONTENT: Jump to main content  Jump to sidebar 
+
+[ **Postmill** ](/)
+
+  * [ Forums ](/forums)
+  * [ Wiki ](/wiki)
+
+
+
+  * [ <::after>Log in ](/login)
+  * [ Sign up ](/registration)
+
+
+
+#  Log in 
+
+Username 
+
+Password 
+
+Keep me logged in 
+
+Log in  [ Reset password? ](/reset_password)
+
+##  No account? 
+
+[ Sign up ](/registration)
+
+Running [ Postmill ](https://postmill.xyz/)
+
+
+
+Step 2:
+act - **BrowseInteractiveAction**
+BROWSER_ACTIONS: fill("62", "MarvelsGrantMan136")
+fill("65", "test1234")
+click("76")
+obs - **BrowserOutputObservation**
+URL: http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/
+Status code: 200
+Error: True
+Open pages: ['http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/']
+Active page index: 0
+Last browser action: fill("62", "MarvelsGrantMan136")
+fill("65", "test1234")
+click("76")
+Last browser action error: TimeoutError: Timeout 500ms exceeded.
+=========================== logs ===========================
+waiting for get_by_test_id("76")
+  locator resolved to <button value="" bid="76" type="submit" class="button" b…>Log in</button>
+attempting click action
+  waiting for element to be visible, enabled and stable
+  element is visible, enabled and stable
+  scrolling into view if needed
+  done scrolling
+  performing click action
+  click action done
+  waiting for scheduled navigations to finish
+============================================================
+Focused element bid: 23
+CONTENT: Jump to main content  Jump to sidebar 
+
+[ <::after> **Postmill** ](/)
+
+  * [ Forums ](/forums)
+  * [ Wiki ](/wiki)
+
+
+
+  * [ ](/notifications "Notifications \(0\)")
+  * [ Submit  ](/submit)
+  * **MarvelsGrantMan136** <::after>
+    * Logged in as **MarvelsGrantMan136**
+    * * * *
+
+    * [ Profile ](/user/MarvelsGrantMan136)
+    * [ My account ](/user/MarvelsGrantMan136/account)
+    * [ User settings ](/user/MarvelsGrantMan136/preferences)
+    * [ Block list ](/user/MarvelsGrantMan136/block_list)
+    * * * *
+
+    * Dark mode  Light mode 
+    * Log out 
+
+
+
+  * [ Submissions ](/)
+  * [ Comments ](/comments)
+
+
+  * Subscribed  <::after>
+    * [ Featured ](/featured/hot)
+    * [ Subscribed ](/subscribed/hot)
+    * [ All ](/all/hot)
+    * [ Moderated ](/moderated/hot)
+  * Hot  <::after>
+    * [ Hot ](/hot)
+    * [ New ](/new)
+    * [ Active ](/active)
+    * [ Top ](/top?t=day)
+    * [ Controversial ](/controversial?t=day)
+    * [ Most commented ](/most_commented?t=day)
+
+
+
+#  [ Fun thing to do in Pittsburgh ](/f/pittsburgh/4/fun-thing-to-do-in-pittsburgh)
+
+Submitted by [ **MarvelsGrantMan136** ](/user/MarvelsGrantMan136) 20 minutes ago  in [ **pittsburgh** ](/f/pittsburgh)
+
+  * [ **No comments** ](/f/pittsburgh/4/fun-thing-to-do-in-pittsburgh)
+  * [ Edit ](/f/pittsburgh/4/-/edit)
+  * Delete 
+
+
+
+1 
+
+#  [ Nvidia RTX 4090 ](/f/MachineLearning/1/nvidia-rtx-4090)
+
+Submitted by [ **MarvelsGrantMan136** ](/user/MarvelsGrantMan136) 1 year ago  in [ **MachineLearning** ](/f/MachineLearning)
+
+  * [ **No comments** ](/f/MachineLearning/1/nvidia-rtx-4090)
+  * [ Edit ](/f/MachineLearning/1/-/edit)
+  * Delete 
+
+
+
+1 
+
+#  [ Friendly reminder bookshop.org exists. ](/f/books/59421/friendly-reminder-bookshop-org-exists)
+
+Submitted by [ **smita16** ](/user/smita16) <::before><::after>t3_zzvi0q  2 years ago  in [ **books** ](/f/books)
+
+  * [ **126 comments** ](/f/books/59421/friendly-reminder-bookshop-org-exists)
+
+
+
+3085 
+
+#  [ The letters of T. S. Eliot to Emily Hale that were kept sealed from 1956 to 2020 have been released for free online ](https://tseliot.com/the-eliot-hale-letters)
+
+[ tseliot.com ](/search?q=tseliot.com)
+
+Submitted by [ **RunDNA** ](/user/RunDNA) <::before><::after>t3_10p83br  2 years ago  in [ **books** ](/f/books)
+
+  * [ **184 comments** ](/f/books/81371/the-letters-of-t-s-eliot-to-emily-hale-that-were-kept-sealed)
+
+
+
+3591 
+
+#  [ [P] I made a command-line tool that explains your errors using ChatGPT (link in comments) ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/c5baabe3d849e5940bdf4aa2093a81fbb30cef546ca57df3c26b56739e2a5f71.gif)
+
+Submitted by [ **jsonathan** ](/user/jsonathan) <::before><::after>t3_zhrgln  2 years ago  in [ **MachineLearning** ](/f/MachineLearning)
+
+  * [ **116 comments** ](/f/MachineLearning/55923/p-i-made-a-command-line-tool-that-explains-your-errors-using)
+
+
+
+2655 
+
+#  [ [D] Types of Machine Learning Papers ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/01a852783e90c857b9ad030244e38fb550b07bd8d163a513f1e282dd920ef04c.jpg)
+
+Submitted by [ **Lost-Parfait568** ](/user/Lost-Parfait568) <::before><::after>t3_xtxe6f  2 years ago  in [ **MachineLearning** ](/f/MachineLearning)
+
+  * [ **96 comments** ](/f/MachineLearning/13894/d-types-of-machine-learning-papers)
+
+
+
+2476 
+
+#  [ Appalachian prison book project seeks notebook donations: "The books can help inmates learn new skills, broaden their worldviews and obtain college credits through the West Virginia University Higher Education in Prison Initiative" ](https://www.timeswv.com/news/monday_news/appalachian-prison-book-project-seeks-notebook-donations/article_1b2d021a-c8c6-509a-9a01-185e71d54448.html)
+
+[ timeswv.com ](/search?q=www.timeswv.com)
+
+Submitted by [ **SAT0725** ](/user/SAT0725) <::before><::after>t3_zd6cxz  2 years ago  in [ **books** ](/f/books)
+
+  * [ **33 comments** ](/f/books/59447/appalachian-prison-book-project-seeks-notebook-donations-the)
+
+
+
+1716 
+
+#  [ After Two Decades And 38 Children’s Books Lin Oliver Continues Her Thriving Collaboration With Henry Winkler ](https://www.forbes.com/sites/jerylbrunner/2023/02/26/after-two-decades-and-38-childrens-books-lin-oliver-continues-her-thriving-collaboration-with-henry-winkler/?sh=7fd671c16e63)
+
+[ forbes.com ](/search?q=www.forbes.com)
+
+Submitted by [ **drak0bsidian** ](/user/drak0bsidian) <::before><::after>t3_11dewje  2 years ago  in [ **books** ](/f/books)
+
+  * [ **27 comments** ](/f/books/103102/after-two-decades-and-38-children-s-books-lin-oliver)
+
+
+
+1695 
+
+#  [ [P] I built Adrenaline, a debugger that fixes errors and explains them with GPT-3 ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/92d8f1beded03fe86bc1a48709a9a542831f09ae215b49c38562f7774ca4c8cf.gif)
+
+Submitted by [ **jsonathan** ](/user/jsonathan) <::before><::after>t3_106q6m9  2 years ago  in [ **MachineLearning** ](/f/MachineLearning)
+
+  * [ **94 comments** ](/f/MachineLearning/77856/p-i-built-adrenaline-a-debugger-that-fixes-errors-and)
+
+
+
+1542 
+
+#  [ Museum issues appeal to save famed "Misty of Chincoteague" ranch from being sold to developers ](https://www.delmarvanow.com/story/news/local/virginia/2023/03/01/museum-issues-appeal-to-help-save-home-of-misty-of-chincoteague/69950922007/)
+
+[ delmarvanow.com ](/search?q=www.delmarvanow.com)
+
+Submitted by [ **ZebZ** ](/user/ZebZ) <::before><::after>t3_11goa5z  2 years ago  in [ **books** ](/f/books)
+
+  * [ **43 comments** ](/f/books/124017/museum-issues-appeal-to-save-famed-misty-of-chincoteague)
+
+
+
+1539 
+
+#  [ Driving in Pittsburgh summed up by one traffic sign. ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/4de52eaa0f9bc63858be63af6c1936b7764c4976649f220893a7b6f3433e8fd1.jpg)
+
+Submitted by [ **Dare_County** ](/user/Dare_County) <::before><::after>t3_z780b9  2 years ago  in [ **pittsburgh** ](/f/pittsburgh)
+
+  * [ **87 comments** ](/f/pittsburgh/45899/driving-in-pittsburgh-summed-up-by-one-traffic-sign)
+
+
+
+1438 
+
+#  [ How Ukrainian publishers are fighting to survive ](https://www.publishersweekly.com/pw/by-topic/international/international-book-news/article/91178-ukrainian-publishers-fight-on.html)
+
+[ publishersweekly.com ](/search?q=www.publishersweekly.com)
+
+Submitted by [ **livingmybestestlyfe** ](/user/livingmybestestlyfe) <::before><::after>t3_zwihxz  2 years ago  in [ **books** ](/f/books)
+
+  * [ **31 comments** ](/f/books/59466/how-ukrainian-publishers-are-fighting-to-survive)
+
+
+
+1434 
+
+#  [ The simple greatness of Agatha Christie ](/f/books/59478/the-simple-greatness-of-agatha-christie)
+
+Submitted by [ **-something_something** ](/user/-something_something) <::before><::after>t3_zvr666  2 years ago  in [ **books** ](/f/books)
+
+  * [ **147 comments** ](/f/books/59478/the-simple-greatness-of-agatha-christie)
+
+
+
+1423 
+
+#  [ I just finished reading The Hobbit to my 6 year old daughter, and she loved it! ](/f/books/17445/i-just-finished-reading-the-hobbit-to-my-6-year-old-daughter)
+
+Submitted by [ **Shaosil** ](/user/Shaosil) <::before><::after>t3_ydeu5t  2 years ago  in [ **books** ](/f/books)
+
+  * [ **138 comments** ](/f/books/17445/i-just-finished-reading-the-hobbit-to-my-6-year-old-daughter)
+
+
+
+1423 
+
+#  [ Apple Books has a free audiobook of A Christmas Carol narrated by LeVar Burton! ](/f/books/59396/apple-books-has-a-free-audiobook-of-a-christmas-carol)
+
+Submitted by [ **ancienthippo** ](/user/ancienthippo) <::before><::after>t3_zs60at  2 years ago  in [ **books** ](/f/books)
+
+  * [ **39 comments** ](/f/books/59396/apple-books-has-a-free-audiobook-of-a-christmas-carol)
+
+
+
+1335 
+
+#  [ What Is It That Makes Used Bookstores So Wonderful? ](https://crimereads.com/what-is-it-that-makes-used-bookstores-so-wonderful/)
+
+[ crimereads.com ](/search?q=crimereads.com)
+
+Submitted by [ **zsreport** ](/user/zsreport) <::before><::after>t3_11bs6is  2 years ago  in [ **books** ](/f/books)
+
+  * [ **142 comments** ](/f/books/103061/what-is-it-that-makes-used-bookstores-so-wonderful)
+
+
+
+1334 
+
+#  [ Fallingwater by Lisa Frank Lloyd Wright ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/e272176b0084d3e7420dccb427cbc1c79624ff7c9cb607e2e2ef11f21139a81d.jpg)
+
+Submitted by [ **put_the_ux_in_sux** ](/user/put_the_ux_in_sux) <::before><::after>t3_10q441y  2 years ago  in [ **pittsburgh** ](/f/pittsburgh)
+
+  * [ **51 comments** ](/f/pittsburgh/89846/fallingwater-by-lisa-frank-lloyd-wright)
+
+
+
+1334 
+
+#  [ After 30+ years, 'The Stinky Cheese Man' is aging well ](https://www.npr.org/2023/01/22/1150382945/after-30-years-the-stinky-cheese-man-is-aging-well)
+
+[ npr.org ](/search?q=www.npr.org)
+
+Submitted by [ **drak0bsidian** ](/user/drak0bsidian) <::before><::after>t3_10mny74  2 years ago  in [ **books** ](/f/books)
+
+  * [ **81 comments** ](/f/books/81489/after-30-years-the-stinky-cheese-man-is-aging-well)
+
+
+
+1321 
+
+#  [ [N] new SNAPCHAT feature transfers an image of an upper body garment in realtime on a person in AR ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/ef1e5aecf0555f1195100fce9e6aff7f0438bff0439b83075972c6fc4e7d8a17.gif)
+
+Submitted by [ **SpatialComputing** ](/user/SpatialComputing) <::before><::after>t3_yzap5b  2 years ago  in [ **MachineLearning** ](/f/MachineLearning)
+
+  * [ **49 comments** ](/f/MachineLearning/34825/n-new-snapchat-feature-transfers-an-image-of-an-upper-body)
+
+
+
+1224 
+
+#  [ [R] InstructPix2Pix: Learning to Follow Image Editing Instructions ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/7f87272aa0f474d3415411a697cbda233dce91611343533559579cb901b24295.jpg)
+
+Submitted by [ **Illustrious_Row_9971** ](/user/Illustrious_Row_9971) <::before><::after>t3_10nxqfg  2 years ago  in [ **MachineLearning** ](/f/MachineLearning)
+
+  * [ **41 comments** ](/f/MachineLearning/77988/r-instructpix2pix-learning-to-follow-image-editing)
+
+
+
+1132 
+
+#  [ Just finished Things Fall Apart (Chinua Achebe) and I LOVED it ](/f/books/59401/just-finished-things-fall-apart-chinua-achebe-and-i-loved-it)
+
+Submitted by [ **SublimeLime1** ](/user/SublimeLime1) <::before><::after>t3_zbxnpm  2 years ago  in [ **books** ](/f/books)
+
+  * [ **116 comments** ](/f/books/59401/just-finished-things-fall-apart-chinua-achebe-and-i-loved-it)
+
+
+
+1103 
+
+#  [ Happy Light Up Night, Pittsburgh! ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/534655c4f627b6bfc41f279290a8f0dec6616d24ed7baa2a7b7054326fdd4269.jpg)
+
+Submitted by [ **Chopper11Pilot** ](/user/Chopper11Pilot) <::before><::after>t3_yzofh0  2 years ago  in [ **pittsburgh** ](/f/pittsburgh)
+
+  * [ **27 comments** ](/f/pittsburgh/45900/happy-light-up-night-pittsburgh)
+
+
+
+1054 
+
+#  [ The haunting of hill house was so good ](/f/books/38309/the-haunting-of-hill-house-was-so-good)
+
+Submitted by [ **AxidentalMe** ](/user/AxidentalMe) <::before><::after>t3_z4ph9t  2 years ago  in [ **books** ](/f/books)
+
+  * [ **88 comments** ](/f/books/38309/the-haunting-of-hill-house-was-so-good)
+
+
+
+1011 
+
+#  [ The potholes are pretty bad out there…stay vigilant my fellow drivers ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/ab8c0aa4e524c06e091bbbddfd86bdb6a76d655f2dcc46705328b6daf610ca5e.jpg)
+
+Submitted by [ **Tiny-Strain-6400** ](/user/Tiny-Strain-6400) <::before><::after>t3_11e6moh  2 years ago  in [ **pittsburgh** ](/f/pittsburgh)
+
+  * [ **23 comments** ](/f/pittsburgh/111200/the-potholes-are-pretty-bad-out-there-stay-vigilant-my)
+
+
+
+969 
+
+#  [ Post book depression ](/f/books/124150/post-book-depression)
+
+Submitted by [ **bertiewoooster** ](/user/bertiewoooster) <::before><::after>t3_124f4e2  2 years ago  in [ **books** ](/f/books)
+
+  * [ **185 comments** ](/f/books/124150/post-book-depression)
+
+
+
+965 
+
+  * [ More ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/?next%5Branking%5D=943&next%5Bid%5D=89805)
+
+
+
+#  Subscribed forums 
+
+  * [ books ](/f/books)
+  * [ consoles ](/f/consoles)
+  * [ Karaoke ](/f/Karaoke)
+  * [ MachineLearning ](/f/MachineLearning)
+  * [ new_forum ](/f/new_forum)
+  * [ new_forum_t ](/f/new_forum_t)
+  * [ new_forum_test ](/f/new_forum_test)
+  * [ pittsburgh ](/f/pittsburgh)
+
+
+
+Running [ Postmill ](https://postmill.xyz/)
+
+
+
+Step 3:
+act - **BrowseInteractiveAction**
+BROWSER_ACTIONS: goto("http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/f/pics")
+obs - **BrowserOutputObservation**
+URL: http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/f/pics
+Status code: 200
+Error: False
+Open pages: ['http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/f/pics']
+Active page index: 0
+Last browser action: goto("http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/f/pics")
+Last browser action error: 
+Focused element bid: 25
+CONTENT: Jump to main content  Jump to sidebar 
+
+[ **Postmill** ](/)
+
+  * [ Forums ](/forums)
+  * [ Wiki ](/wiki)
+
+
+
+  * [ ](/notifications "Notifications \(0\)")
+  * [ Submit  ](/submit/pics)
+  * **MarvelsGrantMan136** <::after>
+    * Logged in as **MarvelsGrantMan136**
+    * * * *
+
+    * [ Profile ](/user/MarvelsGrantMan136)
+    * [ My account ](/user/MarvelsGrantMan136/account)
+    * [ User settings ](/user/MarvelsGrantMan136/preferences)
+    * [ Block list ](/user/MarvelsGrantMan136/block_list)
+    * * * *
+
+    * Dark mode  Light mode 
+    * Log out 
+
+
+
+#  /f/  **pics**
+
+  * [ Submissions ](/f/pics)
+  * [ Comments ](/f/pics/comments)
+
+
+  * Hot  <::after>
+    * [ Hot ](/f/pics/hot)
+    * [ New ](/f/pics/new)
+    * [ Active ](/f/pics/active)
+    * [ Top ](/f/pics/top?t=day)
+    * [ Controversial ](/f/pics/controversial?t=day)
+    * [ Most commented ](/f/pics/most_commented?t=day)
+
+
+
+#  [ A Trejo Thanksgiving. ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/2e4fa0a328e653a97a7d07046291c298ef5b4e0d0c73a287f317ca86a8e8685f.jpg)
+
+Submitted by [ **DinoRoman** ](/user/DinoRoman) <::before><::after>t3_z433er  2 years ago 
+
+  * [ **195 comments** ](/f/pics/45604/a-trejo-thanksgiving)
+
+
+
+7522 
+
+#  [ Amazing shot of a Blue Jay pestering a Bald Eagle ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/b02113033af32feae9ff147dbbe3764039368d67d193885bd04e65c2e6beea9c.jpg)
+
+Submitted by [ **Smash_Factor** ](/user/Smash_Factor) <::before><::after>t3_115q04n  2 years ago 
+
+  * [ **192 comments** ](/f/pics/110715/amazing-shot-of-a-blue-jay-pestering-a-bald-eagle)
+
+
+
+7502 
+
+#  [ We won first place in the costume contest! ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/bd8bc5f4c846aac4df08626faa3a34a7d47c8f3bdd92bf615a54afd939f063a7.jpg)
+
+Submitted by [ **KrakenDesign** ](/user/KrakenDesign) <::before><::after>t3_yghd0a  2 years ago 
+
+  * [ **134 comments** ](/f/pics/25055/we-won-first-place-in-the-costume-contest)
+
+
+
+6777 
+
+#  [ It maybe a bit early for everyone else but Happy New Year's from us Kiwi's over here. Bring on 2023. ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/92411be6af4e9ad5ccd3ccbaa01c10457bb00e704e99c58dd430de1a958307fd.jpg)
+
+Submitted by [ **beware_the_noid** ](/user/beware_the_noid) <::before><::after>t3_zzroda  2 years ago 
+
+  * [ **108 comments** ](/f/pics/67161/it-maybe-a-bit-early-for-everyone-else-but-happy-new-year-s)
+
+
+
+6697 
+
+#  [ The photo that was the inspiration for Jamie Lee Curtis' character in EEAAO ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/13400796795df4ad5b650a78d4b5aa2d6409847876eb3880c0887cbad3d078db.jpg)
+
+Submitted by [ **woutomatic** ](/user/woutomatic) <::before><::after>t3_11vr5a3  2 years ago 
+
+  * [ **204 comments** ](/f/pics/131632/the-photo-that-was-the-inspiration-for-jamie-lee-curtis)
+
+
+
+6169 
+
+#  [ These kids from Germany were insistent that I take their photo (with my camera). Here you go, guys! ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/6dc2020f2794bfec1ee7749d976c10ba7f64f63835ecf7d015439ff402f4c71b.jpg)
+
+Submitted by [ **soccerk1** ](/user/soccerk1) <::before><::after>t3_10nmdjw  2 years ago 
+
+  * [ **92 comments** ](/f/pics/89400/these-kids-from-germany-were-insistent-that-i-take-their)
+
+
+
+5394 
+
+#  [ My Jamaican wife got me a bunch of flowers for my birthday! ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/4b2e184be3780e0137d8c719be86a7afe2ea8feddc734b2b60f00af901da2d77.jpg)
+
+Submitted by [ **paulrudder1982** ](/user/paulrudder1982) <::before><::after>t3_11bpnef  2 years ago 
+
+  * [ **165 comments** ](/f/pics/110591/my-jamaican-wife-got-me-a-bunch-of-flowers-for-my-birthday)
+
+
+
+5238 
+
+#  [ Parents of LGBT children at the first Pride Parade, 1973 ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/a70457e4ff490d1a950e4a8329e3f274566259a67ed6c9c73387210241686496.jpg)
+
+Submitted by [ **Heretostay59** ](/user/Heretostay59) <::before><::after>t3_1275f3r  2 years ago 
+
+  * [ **96 comments** ](/f/pics/131480/parents-of-lgbt-children-at-the-first-pride-parade-1973)
+
+
+
+4984 
+
+#  [ It took 30+ hours for me to etch a sketch the Mona Lisa [OC] ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/c1dfd44a4ab4e3c3196c10f3c9d115c8df06e80b1f9a1cd3dd65ba703ec78866.jpg)
+
+Submitted by [ **Pikajane** ](/user/Pikajane) <::before><::after>t3_z8ytxi  2 years ago 
+
+  * [ **76 comments** ](/f/pics/45680/it-took-30-hours-for-me-to-etch-a-sketch-the-mona-lisa-oc)
+
+
+
+4978 
+
+#  [ Aphrodite beats her son Eros with a slipper. 360 BC from Taranto ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/4ca1692e68adb577e66dc15b817d79210ffe2ccb308f667c750fd91555030d79.jpg)
+
+Submitted by [ **swell_swell_swell** ](/user/swell_swell_swell) <::before><::after>t3_zz8fa9  2 years ago 
+
+  * [ **198 comments** ](/f/pics/67063/aphrodite-beats-her-son-eros-with-a-slipper-360-bc-from)
+
+
+
+4757 
+
+#  [ My wife’s toy costume for 2022 ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/6bfbf1280d28d84a9261695f0cac5a90addaaff1174807a2b381fdc159f3ed00.jpg)
+
+Submitted by [ **o0_bobbo_0o** ](/user/o0_bobbo_0o) <::before><::after>t3_ygzhiz  2 years ago 
+
+  * [ **137 comments** ](/f/pics/25046/my-wife-s-toy-costume-for-2022)
+
+
+
+4719 
+
+#  [ My 20-yr-old nephew didn't think he showed up looking like Michael Jackson until we showed him this. ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/383cdf241ed25dbe4301723c730f9905a729297838e725136dcf882218dcaae6.jpg)
+
+Submitted by [ **Mchootin** ](/user/Mchootin) <::before><::after>t3_126n57t  2 years ago 
+
+  * [ **109 comments** ](/f/pics/131613/my-20-yr-old-nephew-didn-t-think-he-showed-up-looking-like)
+
+
+
+4717 
+
+#  [ The tropical “Rainbow Lobster” (Panulirus ornatus) ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/d3333ad4839961f9f765b514279fc0730c9c7fee194ecd3fd069e3f15ef86234.jpg)
+
+Submitted by [ **fluffy_squidtooth** ](/user/fluffy_squidtooth) <::before><::after>t3_10oag8w  2 years ago 
+
+  * [ **140 comments** ](/f/pics/89308/the-tropical-rainbow-lobster-panulirus-ornatus)
+
+
+
+4640 
+
+#  [ Grateful for my freedom in America! I escaped religious persecution in Egypt! ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/9a12dee6b9a00fe03cd6934a66bec81259b0eeb9d514a9dc76398a55a354774f.jpg)
+
+Submitted by [ **ibrahim0000000** ](/user/ibrahim0000000) <::before><::after>t3_zvulr1  2 years ago 
+
+  * [ **187 comments** ](/f/pics/67226/grateful-for-my-freedom-in-america-i-escaped-religious)
+
+
+
+4408 
+
+#  [ My friend's mother has been doing their hair for award shows for 30 yrs ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/62c2dae35d9939e6cb179ce8f6f006abae3ca30b911f4966c540939ee6e5bab2.jpg)
+
+Submitted by [ **Shame_Agile** ](/user/Shame_Agile) <::before><::after>t3_11czvmf  2 years ago 
+
+  * [ **178 comments** ](/f/pics/110635/my-friend-s-mother-has-been-doing-their-hair-for-award-shows)
+
+
+
+4342 
+
+#  [ My oil painting of McDonald’s Filet-O-Fish ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/00d2341392f787ba15960934bea08a81090053c0ac17458c37c743a2eacb9f66.jpg)
+
+Submitted by [ **NoahVerrier** ](/user/NoahVerrier) <::before><::after>t3_ygjzsl  2 years ago 
+
+  * [ **160 comments** ](/f/pics/25017/my-oil-painting-of-mcdonald-s-filet-o-fish)
+
+
+
+4056 
+
+#  [ Daily life in Japan’s countryside ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/a7b9cae3a0e868d8d1eb4376b93200c3bdd089524795800a944d268932e11fab.jpg)
+
+Submitted by [ **No_Eye8650** ](/user/No_Eye8650) <::before><::after>t3_zzqsmt  2 years ago 
+
+  * [ **51 comments** ](/f/pics/67097/daily-life-in-japan-s-countryside)
+
+
+
+3923 
+
+#  [ happy birthday jonathan banks ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/3ba604ec9775deb72ff3394510e9a6c242e47283c101a2608f04a106428f1a94.jpg)
+
+Submitted by [ **mommamia245** ](/user/mommamia245) <::before><::after>t3_10pqq7a  2 years ago 
+
+  * [ **63 comments** ](/f/pics/89431/happy-birthday-jonathan-banks)
+
+
+
+3657 
+
+#  [ The nut that defeated its nemesis ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/1dc0b9788b90a21e5020bdb2a9bfd357b8841cad5611df493e472d32ef91e4ea.jpg)
+
+Submitted by [ **tchuruck** ](/user/tchuruck) <::before><::after>t3_zz7vxu  2 years ago 
+
+  * [ **156 comments** ](/f/pics/67126/the-nut-that-defeated-its-nemesis)
+
+
+
+3443 
+
+#  [ "BORA BORA"....The most beautiful Island in the World! ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/4c806381badf137f7977f7d661a94260e373de7f44171542cf22e069f2cf603d.jpg)
+
+Submitted by [ **TamerDubai** ](/user/TamerDubai) <::before><::after>t3_10pdlib  2 years ago 
+
+  * [ **164 comments** ](/f/pics/89361/bora-bora-the-most-beautiful-island-in-the-world)
+
+
+
+3365 
+
+#  [ Soup of the day at an airport ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/83447460b1988f46c3964935b676a67c0af9dc23b04bea9a083bf5912025f407.jpg)
+
+Submitted by [ **frankPutty** ](/user/frankPutty) <::before><::after>t3_125r02s  2 years ago 
+
+  * [ **55 comments** ](/f/pics/131464/soup-of-the-day-at-an-airport)
+
+
+
+3292 
+
+#  [ this dentist lamp kind of looks like a water buffalo ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/9b98705380f9fcc8125d8aa2e62038971504c37aadfda8a6f0bd6e7e15b2b7ab.jpg)
+
+Submitted by [ **orcsrool123** ](/user/orcsrool123) <::before><::after>t3_10nmc0e  2 years ago 
+
+  * [ **81 comments** ](/f/pics/89341/this-dentist-lamp-kind-of-looks-like-a-water-buffalo)
+
+
+
+3255 
+
+#  [ Just A Romanian Pizza Parlor. ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/ae76c9d3121b83c91176990b94e9b3d67dc7c9b444ac3571fea5634e37bfc788.jpg)
+
+Submitted by [ **StinkyPoopsAlot** ](/user/StinkyPoopsAlot) <::before><::after>t3_zyrn06  2 years ago 
+
+  * [ **71 comments** ](/f/pics/67179/just-a-romanian-pizza-parlor)
+
+
+
+3231 
+
+#  [ Scotish fans ready for England vs USA ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/f0c24d88723fe15bc0f1f12db3e27f3841c690f84557b9056ff6bf827443d4bb.jpg)
+
+Submitted by [ **realbeats** ](/user/realbeats) <::before><::after>t3_z4ckhi  2 years ago 
+
+  * [ **151 comments** ](/f/pics/45664/scotish-fans-ready-for-england-vs-usa)
+
+
+
+3185 
+
+#  [ I painted a very big astronaut, that is all. ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/c00998a8eba2c76e09451d6a01f93052f2aebd87808db67e451151aa22467578.jpg)
+
+Submitted by [ **theprophetisaiah** ](/user/theprophetisaiah) <::before><::after>t3_z8f6wf  2 years ago 
+
+  * [ **127 comments** ](/f/pics/45632/i-painted-a-very-big-astronaut-that-is-all)
+
+
+
+3183 
+
+  * [ More ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/f/pics?next%5Branking%5D=3139&next%5Bid%5D=45586)
+
+
+
+#  [ pics ](/f/pics)
+
+Subscribe  Subscribe  Unsubscribe  **0**
+
+t5_2qh0u 
+
+* * *
+
+  * Created  2 years ago 
+  * [ Subscribe via RSS  ](/f/pics/new.atom)
+
+<::marker>Hide this forum 
+
+By marking forums as hidden, you won't see submissions from those forums when browsing the "featured" and "all" submission listings. You can still subscribe to and moderate forums you choose to hide. 
+
+Hide 
+
+#  Toolbox 
+
+  * [ Bans ](/f/pics/bans)
+  * [ Moderation log ](/f/pics/moderation_log)
+
+
+
+Running [ Postmill ](https://postmill.xyz/)
+
+
+
+Step 4:
+act - **BrowseInteractiveAction**
+BROWSER_ACTIONS: goto("http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/f/pics")
+obs - **BrowserOutputObservation**
+URL: http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/f/pics
+Status code: 200
+Error: False
+Open pages: ['http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/f/pics']
+Active page index: 0
+Last browser action: goto("http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/f/pics")
+Last browser action error: 
+Focused element bid: 25
+CONTENT: Jump to main content  Jump to sidebar 
+
+[ **Postmill** ](/)
+
+  * [ Forums ](/forums)
+  * [ Wiki ](/wiki)
+
+
+
+  * [ ](/notifications "Notifications \(0\)")
+  * [ Submit  ](/submit/pics)
+  * **MarvelsGrantMan136** <::after>
+    * Logged in as **MarvelsGrantMan136**
+    * * * *
+
+    * [ Profile ](/user/MarvelsGrantMan136)
+    * [ My account ](/user/MarvelsGrantMan136/account)
+    * [ User settings ](/user/MarvelsGrantMan136/preferences)
+    * [ Block list ](/user/MarvelsGrantMan136/block_list)
+    * * * *
+
+    * Dark mode  Light mode 
+    * Log out 
+
+
+
+#  /f/  **pics**
+
+  * [ Submissions ](/f/pics)
+  * [ Comments ](/f/pics/comments)
+
+
+  * Hot  <::after>
+    * [ Hot ](/f/pics/hot)
+    * [ New ](/f/pics/new)
+    * [ Active ](/f/pics/active)
+    * [ Top ](/f/pics/top?t=day)
+    * [ Controversial ](/f/pics/controversial?t=day)
+    * [ Most commented ](/f/pics/most_commented?t=day)
+
+
+
+#  [ A Trejo Thanksgiving. ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/2e4fa0a328e653a97a7d07046291c298ef5b4e0d0c73a287f317ca86a8e8685f.jpg)
+
+Submitted by [ **DinoRoman** ](/user/DinoRoman) <::before><::after>t3_z433er  2 years ago 
+
+  * [ **195 comments** ](/f/pics/45604/a-trejo-thanksgiving)
+
+
+
+7522 
+
+#  [ Amazing shot of a Blue Jay pestering a Bald Eagle ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/b02113033af32feae9ff147dbbe3764039368d67d193885bd04e65c2e6beea9c.jpg)
+
+Submitted by [ **Smash_Factor** ](/user/Smash_Factor) <::before><::after>t3_115q04n  2 years ago 
+
+  * [ **192 comments** ](/f/pics/110715/amazing-shot-of-a-blue-jay-pestering-a-bald-eagle)
+
+
+
+7502 
+
+#  [ We won first place in the costume contest! ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/bd8bc5f4c846aac4df08626faa3a34a7d47c8f3bdd92bf615a54afd939f063a7.jpg)
+
+Submitted by [ **KrakenDesign** ](/user/KrakenDesign) <::before><::after>t3_yghd0a  2 years ago 
+
+  * [ **134 comments** ](/f/pics/25055/we-won-first-place-in-the-costume-contest)
+
+
+
+6777 
+
+#  [ It maybe a bit early for everyone else but Happy New Year's from us Kiwi's over here. Bring on 2023. ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/92411be6af4e9ad5ccd3ccbaa01c10457bb00e704e99c58dd430de1a958307fd.jpg)
+
+Submitted by [ **beware_the_noid** ](/user/beware_the_noid) <::before><::after>t3_zzroda  2 years ago 
+
+  * [ **108 comments** ](/f/pics/67161/it-maybe-a-bit-early-for-everyone-else-but-happy-new-year-s)
+
+
+
+6697 
+
+#  [ The photo that was the inspiration for Jamie Lee Curtis' character in EEAAO ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/13400796795df4ad5b650a78d4b5aa2d6409847876eb3880c0887cbad3d078db.jpg)
+
+Submitted by [ **woutomatic** ](/user/woutomatic) <::before><::after>t3_11vr5a3  2 years ago 
+
+  * [ **204 comments** ](/f/pics/131632/the-photo-that-was-the-inspiration-for-jamie-lee-curtis)
+
+
+
+6169 
+
+#  [ These kids from Germany were insistent that I take their photo (with my camera). Here you go, guys! ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/6dc2020f2794bfec1ee7749d976c10ba7f64f63835ecf7d015439ff402f4c71b.jpg)
+
+Submitted by [ **soccerk1** ](/user/soccerk1) <::before><::after>t3_10nmdjw  2 years ago 
+
+  * [ **92 comments** ](/f/pics/89400/these-kids-from-germany-were-insistent-that-i-take-their)
+
+
+
+5394 
+
+#  [ My Jamaican wife got me a bunch of flowers for my birthday! ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/4b2e184be3780e0137d8c719be86a7afe2ea8feddc734b2b60f00af901da2d77.jpg)
+
+Submitted by [ **paulrudder1982** ](/user/paulrudder1982) <::before><::after>t3_11bpnef  2 years ago 
+
+  * [ **165 comments** ](/f/pics/110591/my-jamaican-wife-got-me-a-bunch-of-flowers-for-my-birthday)
+
+
+
+5238 
+
+#  [ Parents of LGBT children at the first Pride Parade, 1973 ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/a70457e4ff490d1a950e4a8329e3f274566259a67ed6c9c73387210241686496.jpg)
+
+Submitted by [ **Heretostay59** ](/user/Heretostay59) <::before><::after>t3_1275f3r  2 years ago 
+
+  * [ **96 comments** ](/f/pics/131480/parents-of-lgbt-children-at-the-first-pride-parade-1973)
+
+
+
+4984 
+
+#  [ It took 30+ hours for me to etch a sketch the Mona Lisa [OC] ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/c1dfd44a4ab4e3c3196c10f3c9d115c8df06e80b1f9a1cd3dd65ba703ec78866.jpg)
+
+Submitted by [ **Pikajane** ](/user/Pikajane) <::before><::after>t3_z8ytxi  2 years ago 
+
+  * [ **76 comments** ](/f/pics/45680/it-took-30-hours-for-me-to-etch-a-sketch-the-mona-lisa-oc)
+
+
+
+4978 
+
+#  [ Aphrodite beats her son Eros with a slipper. 360 BC from Taranto ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/4ca1692e68adb577e66dc15b817d79210ffe2ccb308f667c750fd91555030d79.jpg)
+
+Submitted by [ **swell_swell_swell** ](/user/swell_swell_swell) <::before><::after>t3_zz8fa9  2 years ago 
+
+  * [ **198 comments** ](/f/pics/67063/aphrodite-beats-her-son-eros-with-a-slipper-360-bc-from)
+
+
+
+4757 
+
+#  [ My wife’s toy costume for 2022 ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/6bfbf1280d28d84a9261695f0cac5a90addaaff1174807a2b381fdc159f3ed00.jpg)
+
+Submitted by [ **o0_bobbo_0o** ](/user/o0_bobbo_0o) <::before><::after>t3_ygzhiz  2 years ago 
+
+  * [ **137 comments** ](/f/pics/25046/my-wife-s-toy-costume-for-2022)
+
+
+
+4719 
+
+#  [ My 20-yr-old nephew didn't think he showed up looking like Michael Jackson until we showed him this. ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/383cdf241ed25dbe4301723c730f9905a729297838e725136dcf882218dcaae6.jpg)
+
+Submitted by [ **Mchootin** ](/user/Mchootin) <::before><::after>t3_126n57t  2 years ago 
+
+  * [ **109 comments** ](/f/pics/131613/my-20-yr-old-nephew-didn-t-think-he-showed-up-looking-like)
+
+
+
+4717 
+
+#  [ The tropical “Rainbow Lobster” (Panulirus ornatus) ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/d3333ad4839961f9f765b514279fc0730c9c7fee194ecd3fd069e3f15ef86234.jpg)
+
+Submitted by [ **fluffy_squidtooth** ](/user/fluffy_squidtooth) <::before><::after>t3_10oag8w  2 years ago 
+
+  * [ **140 comments** ](/f/pics/89308/the-tropical-rainbow-lobster-panulirus-ornatus)
+
+
+
+4640 
+
+#  [ Grateful for my freedom in America! I escaped religious persecution in Egypt! ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/9a12dee6b9a00fe03cd6934a66bec81259b0eeb9d514a9dc76398a55a354774f.jpg)
+
+Submitted by [ **ibrahim0000000** ](/user/ibrahim0000000) <::before><::after>t3_zvulr1  2 years ago 
+
+  * [ **187 comments** ](/f/pics/67226/grateful-for-my-freedom-in-america-i-escaped-religious)
+
+
+
+4408 
+
+#  [ My friend's mother has been doing their hair for award shows for 30 yrs ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/62c2dae35d9939e6cb179ce8f6f006abae3ca30b911f4966c540939ee6e5bab2.jpg)
+
+Submitted by [ **Shame_Agile** ](/user/Shame_Agile) <::before><::after>t3_11czvmf  2 years ago 
+
+  * [ **178 comments** ](/f/pics/110635/my-friend-s-mother-has-been-doing-their-hair-for-award-shows)
+
+
+
+4342 
+
+#  [ My oil painting of McDonald’s Filet-O-Fish ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/00d2341392f787ba15960934bea08a81090053c0ac17458c37c743a2eacb9f66.jpg)
+
+Submitted by [ **NoahVerrier** ](/user/NoahVerrier) <::before><::after>t3_ygjzsl  2 years ago 
+
+  * [ **160 comments** ](/f/pics/25017/my-oil-painting-of-mcdonald-s-filet-o-fish)
+
+
+
+4056 
+
+#  [ Daily life in Japan’s countryside ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/a7b9cae3a0e868d8d1eb4376b93200c3bdd089524795800a944d268932e11fab.jpg)
+
+Submitted by [ **No_Eye8650** ](/user/No_Eye8650) <::before><::after>t3_zzqsmt  2 years ago 
+
+  * [ **51 comments** ](/f/pics/67097/daily-life-in-japan-s-countryside)
+
+
+
+3923 
+
+#  [ happy birthday jonathan banks ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/3ba604ec9775deb72ff3394510e9a6c242e47283c101a2608f04a106428f1a94.jpg)
+
+Submitted by [ **mommamia245** ](/user/mommamia245) <::before><::after>t3_10pqq7a  2 years ago 
+
+  * [ **63 comments** ](/f/pics/89431/happy-birthday-jonathan-banks)
+
+
+
+3657 
+
+#  [ The nut that defeated its nemesis ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/1dc0b9788b90a21e5020bdb2a9bfd357b8841cad5611df493e472d32ef91e4ea.jpg)
+
+Submitted by [ **tchuruck** ](/user/tchuruck) <::before><::after>t3_zz7vxu  2 years ago 
+
+  * [ **156 comments** ](/f/pics/67126/the-nut-that-defeated-its-nemesis)
+
+
+
+3443 
+
+#  [ "BORA BORA"....The most beautiful Island in the World! ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/4c806381badf137f7977f7d661a94260e373de7f44171542cf22e069f2cf603d.jpg)
+
+Submitted by [ **TamerDubai** ](/user/TamerDubai) <::before><::after>t3_10pdlib  2 years ago 
+
+  * [ **164 comments** ](/f/pics/89361/bora-bora-the-most-beautiful-island-in-the-world)
+
+
+
+3365 
+
+#  [ Soup of the day at an airport ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/83447460b1988f46c3964935b676a67c0af9dc23b04bea9a083bf5912025f407.jpg)
+
+Submitted by [ **frankPutty** ](/user/frankPutty) <::before><::after>t3_125r02s  2 years ago 
+
+  * [ **55 comments** ](/f/pics/131464/soup-of-the-day-at-an-airport)
+
+
+
+3292 
+
+#  [ this dentist lamp kind of looks like a water buffalo ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/9b98705380f9fcc8125d8aa2e62038971504c37aadfda8a6f0bd6e7e15b2b7ab.jpg)
+
+Submitted by [ **orcsrool123** ](/user/orcsrool123) <::before><::after>t3_10nmc0e  2 years ago 
+
+  * [ **81 comments** ](/f/pics/89341/this-dentist-lamp-kind-of-looks-like-a-water-buffalo)
+
+
+
+3255 
+
+#  [ Just A Romanian Pizza Parlor. ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/ae76c9d3121b83c91176990b94e9b3d67dc7c9b444ac3571fea5634e37bfc788.jpg)
+
+Submitted by [ **StinkyPoopsAlot** ](/user/StinkyPoopsAlot) <::before><::after>t3_zyrn06  2 years ago 
+
+  * [ **71 comments** ](/f/pics/67179/just-a-romanian-pizza-parlor)
+
+
+
+3231 
+
+#  [ Scotish fans ready for England vs USA ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/f0c24d88723fe15bc0f1f12db3e27f3841c690f84557b9056ff6bf827443d4bb.jpg)
+
+Submitted by [ **realbeats** ](/user/realbeats) <::before><::after>t3_z4ckhi  2 years ago 
+
+  * [ **151 comments** ](/f/pics/45664/scotish-fans-ready-for-england-vs-usa)
+
+
+
+3185 
+
+#  [ I painted a very big astronaut, that is all. ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/c00998a8eba2c76e09451d6a01f93052f2aebd87808db67e451151aa22467578.jpg)
+
+Submitted by [ **theprophetisaiah** ](/user/theprophetisaiah) <::before><::after>t3_z8f6wf  2 years ago 
+
+  * [ **127 comments** ](/f/pics/45632/i-painted-a-very-big-astronaut-that-is-all)
+
+
+
+3183 
+
+  * [ More ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/f/pics?next%5Branking%5D=3139&next%5Bid%5D=45586)
+
+
+
+#  [ pics ](/f/pics)
+
+Subscribe  Subscribe  Unsubscribe  **0**
+
+t5_2qh0u 
+
+* * *
+
+  * Created  2 years ago 
+  * [ Subscribe via RSS  ](/f/pics/new.atom)
+
+<::marker>Hide this forum 
+
+By marking forums as hidden, you won't see submissions from those forums when browsing the "featured" and "all" submission listings. You can still subscribe to and moderate forums you choose to hide. 
+
+Hide 
+
+#  Toolbox 
+
+  * [ Bans ](/f/pics/bans)
+  * [ Moderation log ](/f/pics/moderation_log)
+
+
+
+Running [ Postmill ](https://postmill.xyz/)
+
+
+
+Step 5:
+act - **BrowseInteractiveAction**
+BROWSER_ACTIONS: click("152")
+obs - **BrowserOutputObservation**
+URL: http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/2e4fa0a328e653a97a7d07046291c298ef5b4e0d0c73a287f317ca86a8e8685f.jpg
+Status code: 200
+Error: False
+Open pages: ['http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/2e4fa0a328e653a97a7d07046291c298ef5b4e0d0c73a287f317ca86a8e8685f.jpg']
+Active page index: 0
+Last browser action: click("152")
+Last browser action error: 
+Focused element bid: 4
+CONTENT: 
+
+
+
+Step 6:
+act - **BrowseInteractiveAction**
+BROWSER_ACTIONS: click("5")
+obs - **BrowserOutputObservation**
+URL: http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/2e4fa0a328e653a97a7d07046291c298ef5b4e0d0c73a287f317ca86a8e8685f.jpg
+Status code: 200
+Error: False
+Open pages: ['http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/2e4fa0a328e653a97a7d07046291c298ef5b4e0d0c73a287f317ca86a8e8685f.jpg']
+Active page index: 0
+Last browser action: click("5")
+Last browser action error: 
+Focused element bid: 4
+CONTENT: 
+
+
+
+Step 7:
+act - **BrowseInteractiveAction**
+BROWSER_ACTIONS: click("5")
+obs - **BrowserOutputObservation**
+URL: http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/2e4fa0a328e653a97a7d07046291c298ef5b4e0d0c73a287f317ca86a8e8685f.jpg
+Status code: 200
+Error: False
+Open pages: ['http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/2e4fa0a328e653a97a7d07046291c298ef5b4e0d0c73a287f317ca86a8e8685f.jpg']
+Active page index: 0
+Last browser action: click("5")
+Last browser action error: 
+Focused element bid: 4
+CONTENT: 
+
+
+
+Step 8:
+act - **BrowseInteractiveAction**
+BROWSER_ACTIONS: click("5", button="right")
+obs - **BrowserOutputObservation**
+URL: http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/2e4fa0a328e653a97a7d07046291c298ef5b4e0d0c73a287f317ca86a8e8685f.jpg
+Status code: 200
+Error: False
+Open pages: ['http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/2e4fa0a328e653a97a7d07046291c298ef5b4e0d0c73a287f317ca86a8e8685f.jpg']
+Active page index: 0
+Last browser action: click("5", button="right")
+Last browser action error: 
+Focused element bid: 4
+CONTENT: 
+
+
+
+Step 9:
+act - **BrowseInteractiveAction**
+BROWSER_ACTIONS: click("5")
+obs - **BrowserOutputObservation**
+URL: http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/2e4fa0a328e653a97a7d07046291c298ef5b4e0d0c73a287f317ca86a8e8685f.jpg
+Status code: 200
+Error: False
+Open pages: ['http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/2e4fa0a328e653a97a7d07046291c298ef5b4e0d0c73a287f317ca86a8e8685f.jpg']
+Active page index: 0
+Last browser action: click("5")
+Last browser action error: 
+Focused element bid: 4
+CONTENT: 
+
+
+
+Step 10:
+act - **BrowseInteractiveAction**
+BROWSER_ACTIONS: goto("http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/2e4fa0a328e653a97a7d07046291c298ef5b4e0d0c73a287f317ca86a8e8685f.jpg")
+obs - **BrowserOutputObservation**
+URL: http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/2e4fa0a328e653a97a7d07046291c298ef5b4e0d0c73a287f317ca86a8e8685f.jpg
+Status code: 200
+Error: False
+Open pages: ['http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/2e4fa0a328e653a97a7d07046291c298ef5b4e0d0c73a287f317ca86a8e8685f.jpg']
+Active page index: 0
+Last browser action: goto("http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/2e4fa0a328e653a97a7d07046291c298ef5b4e0d0c73a287f317ca86a8e8685f.jpg")
+Last browser action error: 
+Focused element bid: 4
+CONTENT: 
+
+
+
+Step 11:
+act - **BrowseInteractiveAction**
+BROWSER_ACTIONS: go_back()
+obs - **BrowserOutputObservation**
+URL: http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/f/pics
+Status code: 200
+Error: False
+Open pages: ['http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/f/pics']
+Active page index: 0
+Last browser action: go_back()
+Last browser action error: 
+Focused element bid: 25
+CONTENT: Jump to main content  Jump to sidebar 
+
+[ **Postmill** ](/)
+
+  * [ Forums ](/forums)
+  * [ Wiki ](/wiki)
+
+
+
+  * [ ](/notifications "Notifications \(0\)")
+  * [ Submit  ](/submit/pics)
+  * **MarvelsGrantMan136** <::after>
+    * Logged in as **MarvelsGrantMan136**
+    * * * *
+
+    * [ Profile ](/user/MarvelsGrantMan136)
+    * [ My account ](/user/MarvelsGrantMan136/account)
+    * [ User settings ](/user/MarvelsGrantMan136/preferences)
+    * [ Block list ](/user/MarvelsGrantMan136/block_list)
+    * * * *
+
+    * Dark mode  Light mode 
+    * Log out 
+
+
+
+#  /f/  **pics**
+
+  * [ Submissions ](/f/pics)
+  * [ Comments ](/f/pics/comments)
+
+
+  * Hot  <::after>
+    * [ Hot ](/f/pics/hot)
+    * [ New ](/f/pics/new)
+    * [ Active ](/f/pics/active)
+    * [ Top ](/f/pics/top?t=day)
+    * [ Controversial ](/f/pics/controversial?t=day)
+    * [ Most commented ](/f/pics/most_commented?t=day)
+
+
+
+#  [ A Trejo Thanksgiving. ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/2e4fa0a328e653a97a7d07046291c298ef5b4e0d0c73a287f317ca86a8e8685f.jpg)
+
+Submitted by [ **DinoRoman** ](/user/DinoRoman) <::before><::after>t3_z433er  2 years ago 
+
+  * [ **195 comments** ](/f/pics/45604/a-trejo-thanksgiving)
+
+
+
+7522 
+
+#  [ Amazing shot of a Blue Jay pestering a Bald Eagle ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/b02113033af32feae9ff147dbbe3764039368d67d193885bd04e65c2e6beea9c.jpg)
+
+Submitted by [ **Smash_Factor** ](/user/Smash_Factor) <::before><::after>t3_115q04n  2 years ago 
+
+  * [ **192 comments** ](/f/pics/110715/amazing-shot-of-a-blue-jay-pestering-a-bald-eagle)
+
+
+
+7502 
+
+#  [ We won first place in the costume contest! ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/bd8bc5f4c846aac4df08626faa3a34a7d47c8f3bdd92bf615a54afd939f063a7.jpg)
+
+Submitted by [ **KrakenDesign** ](/user/KrakenDesign) <::before><::after>t3_yghd0a  2 years ago 
+
+  * [ **134 comments** ](/f/pics/25055/we-won-first-place-in-the-costume-contest)
+
+
+
+6777 
+
+#  [ It maybe a bit early for everyone else but Happy New Year's from us Kiwi's over here. Bring on 2023. ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/92411be6af4e9ad5ccd3ccbaa01c10457bb00e704e99c58dd430de1a958307fd.jpg)
+
+Submitted by [ **beware_the_noid** ](/user/beware_the_noid) <::before><::after>t3_zzroda  2 years ago 
+
+  * [ **108 comments** ](/f/pics/67161/it-maybe-a-bit-early-for-everyone-else-but-happy-new-year-s)
+
+
+
+6697 
+
+#  [ The photo that was the inspiration for Jamie Lee Curtis' character in EEAAO ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/13400796795df4ad5b650a78d4b5aa2d6409847876eb3880c0887cbad3d078db.jpg)
+
+Submitted by [ **woutomatic** ](/user/woutomatic) <::before><::after>t3_11vr5a3  2 years ago 
+
+  * [ **204 comments** ](/f/pics/131632/the-photo-that-was-the-inspiration-for-jamie-lee-curtis)
+
+
+
+6169 
+
+#  [ These kids from Germany were insistent that I take their photo (with my camera). Here you go, guys! ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/6dc2020f2794bfec1ee7749d976c10ba7f64f63835ecf7d015439ff402f4c71b.jpg)
+
+Submitted by [ **soccerk1** ](/user/soccerk1) <::before><::after>t3_10nmdjw  2 years ago 
+
+  * [ **92 comments** ](/f/pics/89400/these-kids-from-germany-were-insistent-that-i-take-their)
+
+
+
+5394 
+
+#  [ My Jamaican wife got me a bunch of flowers for my birthday! ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/4b2e184be3780e0137d8c719be86a7afe2ea8feddc734b2b60f00af901da2d77.jpg)
+
+Submitted by [ **paulrudder1982** ](/user/paulrudder1982) <::before><::after>t3_11bpnef  2 years ago 
+
+  * [ **165 comments** ](/f/pics/110591/my-jamaican-wife-got-me-a-bunch-of-flowers-for-my-birthday)
+
+
+
+5238 
+
+#  [ Parents of LGBT children at the first Pride Parade, 1973 ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/a70457e4ff490d1a950e4a8329e3f274566259a67ed6c9c73387210241686496.jpg)
+
+Submitted by [ **Heretostay59** ](/user/Heretostay59) <::before><::after>t3_1275f3r  2 years ago 
+
+  * [ **96 comments** ](/f/pics/131480/parents-of-lgbt-children-at-the-first-pride-parade-1973)
+
+
+
+4984 
+
+#  [ It took 30+ hours for me to etch a sketch the Mona Lisa [OC] ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/c1dfd44a4ab4e3c3196c10f3c9d115c8df06e80b1f9a1cd3dd65ba703ec78866.jpg)
+
+Submitted by [ **Pikajane** ](/user/Pikajane) <::before><::after>t3_z8ytxi  2 years ago 
+
+  * [ **76 comments** ](/f/pics/45680/it-took-30-hours-for-me-to-etch-a-sketch-the-mona-lisa-oc)
+
+
+
+4978 
+
+#  [ Aphrodite beats her son Eros with a slipper. 360 BC from Taranto ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/4ca1692e68adb577e66dc15b817d79210ffe2ccb308f667c750fd91555030d79.jpg)
+
+Submitted by [ **swell_swell_swell** ](/user/swell_swell_swell) <::before><::after>t3_zz8fa9  2 years ago 
+
+  * [ **198 comments** ](/f/pics/67063/aphrodite-beats-her-son-eros-with-a-slipper-360-bc-from)
+
+
+
+4757 
+
+#  [ My wife’s toy costume for 2022 ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/6bfbf1280d28d84a9261695f0cac5a90addaaff1174807a2b381fdc159f3ed00.jpg)
+
+Submitted by [ **o0_bobbo_0o** ](/user/o0_bobbo_0o) <::before><::after>t3_ygzhiz  2 years ago 
+
+  * [ **137 comments** ](/f/pics/25046/my-wife-s-toy-costume-for-2022)
+
+
+
+4719 
+
+#  [ My 20-yr-old nephew didn't think he showed up looking like Michael Jackson until we showed him this. ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/383cdf241ed25dbe4301723c730f9905a729297838e725136dcf882218dcaae6.jpg)
+
+Submitted by [ **Mchootin** ](/user/Mchootin) <::before><::after>t3_126n57t  2 years ago 
+
+  * [ **109 comments** ](/f/pics/131613/my-20-yr-old-nephew-didn-t-think-he-showed-up-looking-like)
+
+
+
+4717 
+
+#  [ The tropical “Rainbow Lobster” (Panulirus ornatus) ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/d3333ad4839961f9f765b514279fc0730c9c7fee194ecd3fd069e3f15ef86234.jpg)
+
+Submitted by [ **fluffy_squidtooth** ](/user/fluffy_squidtooth) <::before><::after>t3_10oag8w  2 years ago 
+
+  * [ **140 comments** ](/f/pics/89308/the-tropical-rainbow-lobster-panulirus-ornatus)
+
+
+
+4640 
+
+#  [ Grateful for my freedom in America! I escaped religious persecution in Egypt! ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/9a12dee6b9a00fe03cd6934a66bec81259b0eeb9d514a9dc76398a55a354774f.jpg)
+
+Submitted by [ **ibrahim0000000** ](/user/ibrahim0000000) <::before><::after>t3_zvulr1  2 years ago 
+
+  * [ **187 comments** ](/f/pics/67226/grateful-for-my-freedom-in-america-i-escaped-religious)
+
+
+
+4408 
+
+#  [ My friend's mother has been doing their hair for award shows for 30 yrs ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/62c2dae35d9939e6cb179ce8f6f006abae3ca30b911f4966c540939ee6e5bab2.jpg)
+
+Submitted by [ **Shame_Agile** ](/user/Shame_Agile) <::before><::after>t3_11czvmf  2 years ago 
+
+  * [ **178 comments** ](/f/pics/110635/my-friend-s-mother-has-been-doing-their-hair-for-award-shows)
+
+
+
+4342 
+
+#  [ My oil painting of McDonald’s Filet-O-Fish ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/00d2341392f787ba15960934bea08a81090053c0ac17458c37c743a2eacb9f66.jpg)
+
+Submitted by [ **NoahVerrier** ](/user/NoahVerrier) <::before><::after>t3_ygjzsl  2 years ago 
+
+  * [ **160 comments** ](/f/pics/25017/my-oil-painting-of-mcdonald-s-filet-o-fish)
+
+
+
+4056 
+
+#  [ Daily life in Japan’s countryside ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/a7b9cae3a0e868d8d1eb4376b93200c3bdd089524795800a944d268932e11fab.jpg)
+
+Submitted by [ **No_Eye8650** ](/user/No_Eye8650) <::before><::after>t3_zzqsmt  2 years ago 
+
+  * [ **51 comments** ](/f/pics/67097/daily-life-in-japan-s-countryside)
+
+
+
+3923 
+
+#  [ happy birthday jonathan banks ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/3ba604ec9775deb72ff3394510e9a6c242e47283c101a2608f04a106428f1a94.jpg)
+
+Submitted by [ **mommamia245** ](/user/mommamia245) <::before><::after>t3_10pqq7a  2 years ago 
+
+  * [ **63 comments** ](/f/pics/89431/happy-birthday-jonathan-banks)
+
+
+
+3657 
+
+#  [ The nut that defeated its nemesis ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/1dc0b9788b90a21e5020bdb2a9bfd357b8841cad5611df493e472d32ef91e4ea.jpg)
+
+Submitted by [ **tchuruck** ](/user/tchuruck) <::before><::after>t3_zz7vxu  2 years ago 
+
+  * [ **156 comments** ](/f/pics/67126/the-nut-that-defeated-its-nemesis)
+
+
+
+3443 
+
+#  [ "BORA BORA"....The most beautiful Island in the World! ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/4c806381badf137f7977f7d661a94260e373de7f44171542cf22e069f2cf603d.jpg)
+
+Submitted by [ **TamerDubai** ](/user/TamerDubai) <::before><::after>t3_10pdlib  2 years ago 
+
+  * [ **164 comments** ](/f/pics/89361/bora-bora-the-most-beautiful-island-in-the-world)
+
+
+
+3365 
+
+#  [ Soup of the day at an airport ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/83447460b1988f46c3964935b676a67c0af9dc23b04bea9a083bf5912025f407.jpg)
+
+Submitted by [ **frankPutty** ](/user/frankPutty) <::before><::after>t3_125r02s  2 years ago 
+
+  * [ **55 comments** ](/f/pics/131464/soup-of-the-day-at-an-airport)
+
+
+
+3292 
+
+#  [ this dentist lamp kind of looks like a water buffalo ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/9b98705380f9fcc8125d8aa2e62038971504c37aadfda8a6f0bd6e7e15b2b7ab.jpg)
+
+Submitted by [ **orcsrool123** ](/user/orcsrool123) <::before><::after>t3_10nmc0e  2 years ago 
+
+  * [ **81 comments** ](/f/pics/89341/this-dentist-lamp-kind-of-looks-like-a-water-buffalo)
+
+
+
+3255 
+
+#  [ Just A Romanian Pizza Parlor. ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/ae76c9d3121b83c91176990b94e9b3d67dc7c9b444ac3571fea5634e37bfc788.jpg)
+
+Submitted by [ **StinkyPoopsAlot** ](/user/StinkyPoopsAlot) <::before><::after>t3_zyrn06  2 years ago 
+
+  * [ **71 comments** ](/f/pics/67179/just-a-romanian-pizza-parlor)
+
+
+
+3231 
+
+#  [ Scotish fans ready for England vs USA ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/f0c24d88723fe15bc0f1f12db3e27f3841c690f84557b9056ff6bf827443d4bb.jpg)
+
+Submitted by [ **realbeats** ](/user/realbeats) <::before><::after>t3_z4ckhi  2 years ago 
+
+  * [ **151 comments** ](/f/pics/45664/scotish-fans-ready-for-england-vs-usa)
+
+
+
+3185 
+
+#  [ I painted a very big astronaut, that is all. ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/c00998a8eba2c76e09451d6a01f93052f2aebd87808db67e451151aa22467578.jpg)
+
+Submitted by [ **theprophetisaiah** ](/user/theprophetisaiah) <::before><::after>t3_z8f6wf  2 years ago 
+
+  * [ **127 comments** ](/f/pics/45632/i-painted-a-very-big-astronaut-that-is-all)
+
+
+
+3183 
+
+  * [ More ](http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/f/pics?next%5Branking%5D=3139&next%5Bid%5D=45586)
+
+
+
+#  [ pics ](/f/pics)
+
+Subscribe  Subscribe  Unsubscribe  **0**
+
+t5_2qh0u 
+
+* * *
+
+  * Created  2 years ago 
+  * [ Subscribe via RSS  ](/f/pics/new.atom)
+
+<::marker>Hide this forum 
+
+By marking forums as hidden, you won't see submissions from those forums when browsing the "featured" and "all" submission listings. You can still subscribe to and moderate forums you choose to hide. 
+
+Hide 
+
+#  Toolbox 
+
+  * [ Bans ](/f/pics/bans)
+  * [ Moderation log ](/f/pics/moderation_log)
+
+
+
+Running [ Postmill ](https://postmill.xyz/)
+
+
+
+Step 12:
+act - **CmdRunAction**
+THOUGHT: To re-post the image of the Thanksgiving turkey to the funny subreddit, I need to first download the image and then submit it to the funny subreddit with the note "from /f/pics".
+
+Let's start by downloading the image.
+COMMAND:
+wget -O thanksgiving_turkey.jpg "http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/2e4fa0a328e653a97a7d07046291c298ef5b4e0d0c73a287f317ca86a8e8685f.jpg"
+obs - **CmdOutputObservation (exit code=0)**
+--2024-10-02 11:10:57--  http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/2e4fa0a328e653a97a7d07046291c298ef5b4e0d0c73a287f317ca86a8e8685f.jpg
+Resolving ec2-18-219-239-190.us-east-2.compute.amazonaws.com (ec2-18-219-239-190.us-east-2.compute.amazonaws.com)... 18.219.239.190
+Connecting to ec2-18-219-239-190.us-east-2.compute.amazonaws.com (ec2-18-219-239-190.us-east-2.compute.amazonaws.com)|18.219.239.190|:9999... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 228681 (223K) [image/jpeg]
+Saving to: ‘thanksgiving_turkey.jpg’
+
+thanksgiving_turkey   0%[                    ]       0  --.-KB/s               thanksgiving_turkey 100%[===================>] 223.32K  --.-KB/s    in 0.1s    
+
+2024-10-02 11:10:57 (2.04 MB/s) - ‘thanksgiving_turkey.jpg’ saved [228681/228681]
+
+

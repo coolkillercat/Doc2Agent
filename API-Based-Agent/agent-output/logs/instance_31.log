@@ -1,0 +1,793 @@
+Step 0:
+act - **MessageAction** (source=EventSource.USER)
+CONTENT: Think step by step to perform the following task related to reddit. Answer the question: ***Tell me the count of comments that have received more downvotes than upvotes for the user who made the latest post on the photoshopbattles forum.***
+The site URL for reddit is http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999, use this instead of the normal reddit URL. 
+For web browsing, You should start from the URL http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999, and this webpage is already logged in and opened for you.
+My username is MarvelsGrantMan136. 
+
+Below is the list of all APIs you can use and their descriptions:
+## Forums
+
+### List All Forums
+
+To retrieve the names of all the forums, you could use the API `get http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/forums/all`.
+
+#### Response
+
+The response contains HTML contents including the names of all the forums sorted by alphabetical order. For example,
+```html
+<li><a href="/f/allentown">allentown</a></li>
+```
+this means a forum named `allentown`, and to retrieve the contents in this forum, you would need to do `get http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/f/allentown`.
+
+
+### **Get Forum by ID**
+To retrieve a forum by its ID, use the `get_forum_by_id` function.  
+To use this function, run:
+
+```python
+from utils import get_forum_by_id
+```
+
+#### **Input Parameters**:
+- **forum_id** (int): The ID of the forum.
+
+#### **Response**:
+- Returns a JSON object containing the forum details.
+
+---
+
+### **Create a New Forum**
+To create a new forum, use the `create_forum` function.  
+To use this function, run:
+
+```python
+from utils import create_forum
+```
+
+#### **Input Parameters**:
+- **forum_name** (str): The name of the new forum.
+- **title** (str): The title of the new forum.
+- **sidebar** (str): The sidebar content for the forum.
+- **description** (str): The description of the forum.
+
+#### **Response**:
+- Returns a JSON object containing the result of the forum creation.
+
+---
+
+### **Update a Forum**
+To update an existing forum, use the `update_forum` function.  
+To use this function, run:
+
+```python
+from utils import update_forum
+```
+
+#### **Input Parameters**:
+- **forum_id** (int): The ID of the forum to be updated.
+- **forum_name** (str): The new name of the forum.
+- **title** (str): The new title of the forum.
+- **sidebar** (str): The updated sidebar content.
+- **description** (str): The updated description.
+
+#### **Response**:
+- Returns a JSON object containing the result of the forum update.
+
+### **Subscribe and Unsubscribe**
+
+#### Subscribe to a Forum
+To subscribe to a forum, use the predefined `utils` function `subscribe_forum`.  
+To use this function, run:
+
+```python
+from utils import subscribe_forum
+```
+
+#### **Input Parameters**:
+- **forum_name** (str): The name of the forum you want to subscribe to. Example: `'relationship_advice'`.
+
+#### **Response**:
+- Returns a JSON object containing the result of the subscription.
+
+---
+
+#### Unsubscribe from a Forum
+To unsubscribe from a forum, use the predefined `utils` function `unsubscribe_forum`.  
+To use this function, run:
+
+```python
+from utils import unsubscribe_forum
+```
+
+#### **Input Parameters**:
+- **forum_name** (str): The name of the forum you want to unsubscribe from. Example: `'relationship_advice'`.
+
+#### **Response**:
+- Returns a JSON object containing the result of the unsubscription.
+
+### Retrieve All Submissions to a Forum
+
+To retrieve all submissions to a forum, you could use the API `get http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/f/{forum_name}`. For example, `get http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/f/allentown`
+
+#### Sort Submissions
+
+You could sort the submissions by `hot`, `new`, `active`, `top`, `controversial`, and `most_commented`.
+
+For `hot`, `new`, and `active`, you could sort by these attributes using the API format `http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/f/{forum_name}/{attribute}`. For example, `get http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/f/allentown/hot`.
+
+For `top`, `controversial`, and `most_commented`, you could sort by these attributes using the API format `http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/f/{forum_name}/{attribute}?t={time}`. For $time, you could choose from `day` (which means the past 24 hours), `week` (which means the past 7 days), `month` (which means the past month), `year` (which means the past yeaer), and `all` (which means all times). For example, `get http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/f/allentown/most_commented?t=day` will get you the submissions in the past 24 hours, sorted by number of comments; `get http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/f/allentown/most_commented?t=all` will get you all submissions until now, sorted by number of comments.
+
+#### Retrieve a Specific Submission and All Comments to It
+
+If you already has the submission_id that you would like to retrieve, then you are good to use the API `get http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/{submission_id}`. For example, the submission_id for the submission with title 'New area code?' to the forum 'allentown' has the submission_id `123256`, then you could do `get http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/123256` to retrieve the submission and all comments to this submission.
+
+However, if you don't have the submission_id to the submission you would like to retrieve, but you have a keyword or the title of the submission and the name of the forum, then you could first call `get http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/f/{forum_name}`, and then search for the keyword of the submission in the html response, and the locate the line with format `href="/f/{forum_name}/{submission_id}/...`. For example, if you would like to retrieve the submission to `allentown` with keyword `area`, then you could first call `get http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/f/allentown`, and then search for `area`. For instance, the response contains the following lines:
+
+```html
+<div class="submission__row">
+
+      <div class="submission__inner">
+        <header class="submission__header">
+          <div class="submission__title-row break-text"><h1 class="submission__title unheaderize inline"><a href="/f/allentown/123256/new-area-code"
+         class="submission__link"
+                  rel=""
+          target="_self"
+        >New area code?</a></h1>
+
+
+                      </div>
+
+          <p class="submission__info">
+            <span class="text-sm fg-muted">
+              Submitted by         <a href="/user/Francis-pencovic" class="submission__submitter fg-inherit"><strong>Francis-pencovic</strong></a>    <small class="fg-grey text-sm user-flag">t3_11xxi00</small>
+   <time class="submission__timestamp"
+        data-controller="relative-time"
+        datetime="2023-03-21T22:40:42+00:00"
+        title="March 21, 2023 at 10:40:42 PM UTC">on March 21, 2023 at 10:40 PM</time>
+```
+then, `123256` is the submission_id you want. You could find this submission_id by locating the line `href="/f/allentown/123256/new-area-code"`. Then you could call `get http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/123256` to retrieve the submission and all comments to this submission.
+
+### Retrieve All Comments to a Forum
+
+To retrieve all comments to a forum, you could use the API `get http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/f/{forum_name}/comments`. For example, `get http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/f/allentown/comments`.
+
+## User
+
+### **Update User Bio**
+To update the biography of the current user, use the `update_bio` function.  
+To use this function, run:
+
+```python
+from utils import update_bio
+```
+
+#### **Input Parameters**:
+- **bio** (str): The new biography content.
+
+#### **Response**:
+- Returns a dictionary indicating whether the update was successful (`{"updated": True}`) or not (`{"updated": False}`).
+
+### Other Functionalities
+To retrieve the information of a user, you could use the API `http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/user/{username}`.
+
+To retrieve the submissions of a user, you could use the API `http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/user/{username}/submissions`.
+
+To retrieve the comments of a user, you could use the API `http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/user/{username}/comments`.
+
+To retrieve the preferences of a user, you could use the API `http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/user/{username}/preferences`.
+
+
+Here's the API documentation for the functions you provided in `utils.py`. This documentation is organized by different functionalities such as subscribing to forums, voting on submissions and comments, etc.
+
+
+## Submissions
+
+### **Get a Submission by Submission ID**
+To get a submission by its ID, use the `get_submission_by_id` function.  
+To use this function, run:
+
+```python
+from utils import get_submission_by_id
+```
+
+#### **Input Parameters**:
+- **submission_id** (int): The ID of the submission.
+
+#### **Response**:
+- Returns an json containing the submission information.
+
+### **Get Votes for a Submission**
+To get the number of votes for a submission, use the `get_submission_votes` function.  
+To use this function, run:
+
+```python
+from utils import get_submission_votes
+```
+
+#### **Input Parameters**:
+- **submission_id** (int): The ID of the submission to check the votes for.
+
+#### **Response**:
+- Returns an integer representing the net votes for the submission.
+
+---
+
+### **Upvote a Submission**
+To upvote a submission, use the `upvote_submission` function.  
+To use this function, run:
+
+```python
+from utils import upvote_submission
+```
+
+#### **Input Parameters**:
+- **submission_id** (int): The ID of the submission to upvote.
+
+#### **Response**:
+- Returns a JSON object containing the result of the upvote.
+
+---
+
+### **Downvote a Submission**
+To downvote a submission, use the `downvote_submission` function.  
+To use this function, run:
+
+```python
+from utils import downvote_submission
+```
+
+#### **Input Parameters**:
+- **submission_id** (int): The ID of the submission to downvote.
+
+#### **Response**:
+- Returns a JSON object containing the result of the downvote.
+
+---
+
+### **Remove Vote from a Submission**
+To unvote a submission, use the `unvote_submission` function.  
+To use this function, run:
+
+```python
+from utils import unvote_submission
+```
+
+#### **Input Parameters**:
+- **submission_id** (int): The ID of the submission to unvote.
+
+#### **Response**:
+- Returns a JSON object containing the result of the unvote.
+
+---
+
+## Comments
+
+### **Get All Comments**
+To retrieve all comments from a submission, use the `get_all_comments` function.  
+To use this function, run:
+
+```python
+from utils import get_all_comments
+```
+
+#### **Response**:
+- Returns a JSON object containing a list of all comments.
+
+---
+
+### **Get Comment by ID**
+To retrieve a specific comment by its ID, use the `get_comment_by_id` function.  
+To use this function, run:
+
+```python
+from utils import get_comment_by_id
+```
+
+#### **Input Parameters**:
+- **comment_id** (int): The ID of the comment.
+
+#### **Response**:
+- Returns a JSON object containing the comment data.
+
+---
+
+### **Update Comment by ID**
+To update the content of a comment, use the `update_comment_by_id` function.  
+To use this function, run:
+
+```python
+from utils import update_comment_by_id
+```
+
+#### **Input Parameters**:
+- **comment_id** (int): The ID of the comment to be updated.
+- **new_comment_content** (str): The new content for the comment.
+
+#### **Response**:
+- Returns the updated comment as text.
+
+---
+
+
+### **Get Votes for a Comment**
+To get the number of votes for a comment, use the `get_comment_votes` function.  
+To use this function, run:
+
+```python
+from utils import get_comment_votes
+```
+
+#### **Input Parameters**:
+- **submission_id** (int): The ID of the submission where the comment is posted.
+- **comment_id** (int): The ID of the comment to check the votes for.
+
+#### **Response**:
+- Returns an integer representing the net votes for the comment.
+
+---
+
+### **Upvote a Comment**
+To upvote a comment, use the `upvote_comment` function.  
+To use this function, run:
+
+```python
+from utils import upvote_comment
+```
+
+#### **Input Parameters**:
+- **submission_id** (int): The ID of the submission where the comment is posted.
+- **comment_id** (int): The ID of the comment to upvote.
+
+#### **Response**:
+- Returns a JSON object containing the result of the upvote.
+
+---
+
+### **Downvote a Comment**
+To downvote a comment, use the `downvote_comment` function.  
+To use this function, run:
+
+```python
+from utils import downvote_comment
+```
+
+#### **Input Parameters**:
+- **submission_id** (int): The ID of the submission where the comment is posted.
+- **comment_id** (int): The ID of the comment to downvote.
+
+#### **Response**:
+- Returns a JSON object containing the result of the downvote.
+
+---
+
+### **Remove Vote from a Comment**
+To unvote a comment, use the `unvote_comment` function.  
+To use this function, run:
+
+```python
+from utils import unvote_comment
+```
+
+#### **Input Parameters**:
+- **submission_id** (int): The ID of the submission where the comment is posted.
+- **comment_id** (int): The ID of the comment to unvote.
+
+#### **Response**:
+- Returns a JSON object containing the result of the unvote.
+
+---
+
+## **Commenting on Submissions**
+
+### **Post a Comment on a Submission**
+To post a new comment on a submission, use the `post_comment` function.  
+To use this function, run:
+
+```python
+from utils import post_comment
+```
+
+#### **Input Parameters**:
+- **submission_id** (int): The ID of the submission where the comment will be posted.
+- **comment** (str): The content of the comment.
+
+#### **Response**:
+- Returns the URL of the posted comment.
+
+---
+
+### **Reply to a Comment**
+To reply to an existing comment, use the `reply_comment` function.  
+To use this function, run:
+
+```python
+from utils import reply_comment
+```
+
+#### **Input Parameters**:
+- **submission_id** (int): The ID of the submission where the comment is posted.
+- **comment_id** (int): The ID of the comment to reply to.
+- **comment** (str): The reply content.
+
+#### **Response**:
+- Returns the URL of the posted reply.
+
+---
+
+IMPORTANT: In general, you must always first try to use APIs to perform the task; however, you should use web browsing when there is no useful API available for the task. IMPORTANT: After you tried out using APIs, you must use web browsing to navigate to some URL containing contents that could verify whether the results you obtained by API calling is correct. IMPORTANT: You should ONLY interact with the environment provided to you AND NEVER ASK FOR HUMAN HELP.
+When you think you have completed the request, please run the following command: <execute_bash> exit </execute_bash>.
+
+obs - NullObservation(content='', observation='null')
+
+Step 1:
+act - **BrowseInteractiveAction**
+BROWSER_ACTIONS: goto("http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/login?_cookie_check=1727865249")
+obs - **BrowserOutputObservation**
+URL: http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/login?_cookie_check=1727866160
+Status code: 200
+Error: False
+Open pages: ['http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/login?_cookie_check=1727866160']
+Active page index: 0
+Last browser action: goto("http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/login?_cookie_check=1727865249")
+Last browser action error: 
+Focused element bid: 62
+CONTENT: Jump to main content  Jump to sidebar 
+
+[ **Postmill** ](/)
+
+  * [ Forums ](/forums)
+  * [ Wiki ](/wiki)
+
+
+
+  * [ <::after>Log in ](/login)
+  * [ Sign up ](/registration)
+
+
+
+#  Log in 
+
+Username 
+
+Password 
+
+Keep me logged in 
+
+Log in  [ Reset password? ](/reset_password)
+
+##  No account? 
+
+[ Sign up ](/registration)
+
+Running [ Postmill ](https://postmill.xyz/)
+
+
+
+Step 2:
+act - **BrowseInteractiveAction**
+BROWSER_ACTIONS: fill("62", "MarvelsGrantMan136")
+fill("65", "test1234")
+click("76")
+obs - **BrowserOutputObservation**
+URL: http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/
+Status code: 200
+Error: True
+Open pages: ['http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/']
+Active page index: 0
+Last browser action: fill("62", "MarvelsGrantMan136")
+fill("65", "test1234")
+click("76")
+Last browser action error: TimeoutError: Timeout 500ms exceeded.
+=========================== logs ===========================
+waiting for get_by_test_id("76")
+  locator resolved to <button value="" bid="76" type="submit" class="button" b…>Log in</button>
+attempting click action
+  waiting for element to be visible, enabled and stable
+  element is visible, enabled and stable
+  scrolling into view if needed
+  done scrolling
+  performing click action
+  click action done
+  waiting for scheduled navigations to finish
+============================================================
+Focused element bid: 22
+CONTENT: Jump to main content  Jump to sidebar 
+
+[ <::after> **Postmill** ](/)
+
+  * [ Forums ](/forums)
+  * [ Wiki ](/wiki)
+
+
+
+  * [ ](/notifications "Notifications \(0\)")
+  * [ Submit  ](/submit)
+  * **MarvelsGrantMan136** <::after>
+    * Logged in as **MarvelsGrantMan136**
+    * * * *
+
+    * [ Profile ](/user/MarvelsGrantMan136)
+    * [ My account ](/user/MarvelsGrantMan136/account)
+    * [ User settings ](/user/MarvelsGrantMan136/preferences)
+    * [ Block list ](/user/MarvelsGrantMan136/block_list)
+    * * * *
+
+    * Dark mode  Light mode 
+    * Log out 
+
+
+
+  * [ Submissions ](/)
+  * [ Comments ](/comments)
+
+
+  * Subscribed  <::after>
+    * [ Featured ](/featured/hot)
+    * [ Subscribed ](/subscribed/hot)
+    * [ All ](/all/hot)
+    * [ Moderated ](/moderated/hot)
+  * Hot  <::after>
+    * [ Hot ](/hot)
+    * [ New ](/new)
+    * [ Active ](/active)
+    * [ Top ](/top?t=day)
+    * [ Controversial ](/controversial?t=day)
+    * [ Most commented ](/most_commented?t=day)
+
+
+
+#  Subscribed forums 
+
+  * [ new_forum ](/f/new_forum)
+  * [ new_forum_t ](/f/new_forum_t)
+  * [ new_forum_test ](/f/new_forum_test)
+
+
+
+Running [ Postmill ](https://postmill.xyz/)
+
+
+
+Step 3:
+act - **BrowseInteractiveAction**
+BROWSER_ACTIONS: goto("http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999")
+obs - **BrowserOutputObservation**
+URL: http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/
+Status code: 200
+Error: False
+Open pages: ['http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/']
+Active page index: 0
+Last browser action: goto("http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999")
+Last browser action error: 
+Focused element bid: 22
+CONTENT: Jump to main content  Jump to sidebar 
+
+[ <::after> **Postmill** ](/)
+
+  * [ Forums ](/forums)
+  * [ Wiki ](/wiki)
+
+
+
+  * [ ](/notifications "Notifications \(0\)")
+  * [ Submit  ](/submit)
+  * **MarvelsGrantMan136** <::after>
+    * Logged in as **MarvelsGrantMan136**
+    * * * *
+
+    * [ Profile ](/user/MarvelsGrantMan136)
+    * [ My account ](/user/MarvelsGrantMan136/account)
+    * [ User settings ](/user/MarvelsGrantMan136/preferences)
+    * [ Block list ](/user/MarvelsGrantMan136/block_list)
+    * * * *
+
+    * Dark mode  Light mode 
+    * Log out 
+
+
+
+  * [ Submissions ](/)
+  * [ Comments ](/comments)
+
+
+  * Subscribed  <::after>
+    * [ Featured ](/featured/hot)
+    * [ Subscribed ](/subscribed/hot)
+    * [ All ](/all/hot)
+    * [ Moderated ](/moderated/hot)
+  * Hot  <::after>
+    * [ Hot ](/hot)
+    * [ New ](/new)
+    * [ Active ](/active)
+    * [ Top ](/top?t=day)
+    * [ Controversial ](/controversial?t=day)
+    * [ Most commented ](/most_commented?t=day)
+
+
+
+#  Subscribed forums 
+
+  * [ new_forum ](/f/new_forum)
+  * [ new_forum_t ](/f/new_forum_t)
+  * [ new_forum_test ](/f/new_forum_test)
+
+
+
+Running [ Postmill ](https://postmill.xyz/)
+
+
+
+Step 4:
+act - **IPythonRunCellAction**
+THOUGHT: To accomplish the task, we need to follow these steps:
+
+1. Retrieve the latest post from the "photoshopbattles" forum.
+2. Identify the user who made this latest post.
+3. Retrieve all comments made by this user.
+4. Count the comments that have received more downvotes than upvotes.
+
+Let's start by retrieving the latest post from the "photoshopbattles" forum.
+
+### Step 1: Retrieve the latest post from the "photoshopbattles" forum
+CODE:
+import requests
+
+# Define the base URL
+base_url = "http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999"
+
+# Retrieve the latest posts from the "photoshopbattles" forum
+response = requests.get(f"{base_url}/f/photoshopbattles/new")
+response.text
+obs - **IPythonRunCellObservation**
+'<!DOCTYPE html>\n<html class="no-js "\n       lang="en" dir="ltr"\n      prefix="og: http://ogp.me/ns#"\n      data-night-mode="auto">\n  <head>\n    <meta charset="UTF-8" />\n    <title>photoshopbattles</title>\n    <link rel="icon" type="image/x-icon" href="/favicon.ico">\n    <meta name="viewport" content="width=device-width, initial-scale=1">\n    <meta name="generator" content="Postmill ">\n\n    <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png">\n    <link rel="search" type="application/opensearchdescription+xml" href="/opensearch.xml" title="Postmill">\n\n          <script>\n        document.documentElement.classList.replace(\'no-js\', \'js\');\n        window.addEventListener(\'DOMContentLoaded\', function () {\n            if (!window.Translator || !window.Routing) {\n                document.documentElement.classList.replace(\'js\', \'no-js\');\n            }\n        });\n      </script>\n    \n            <link rel="stylesheet" href="/build/fonts/Roboto.1b769b7e.css" integrity="sha384-PHblYKCHVDInTPsE/C7YLlrz5e/TbcCpxnMKTOmJ1tnMQz7wf2Tf/AzufVJ9IKLY">                          \n  <style>:root { --font-family: "Roboto",sans-serif }</style>\n\n<link rel="stylesheet" href="/build/core.36e8bfa7.css" integrity="sha384-+DCZcRfDlgpsC+EZwUdN9LyFu18K/QS3QTPSxNl8eToIlsT+4sJzqwAllO8zWKnX">\n\n\n                <link rel="stylesheet" href="/build/themes/postmill.4bac9561.css" integrity="sha384-GUHG14mZHpncYrnaDoM2Phn9ys9wq1VHhue6IsM3fUo2cg9GVEyvGiCNn7YwYuGq">\n  \n    \n\n  \n\n            <link rel="alternate" type="application/atom+xml" href="/all/new.atom" title="All forums">\n      <link rel="alternate" type="application/atom+xml" href="/featured/new.atom" title="Featured forums">\n    \n  <link rel="alternate" type="application/atom+xml" href="/f/photoshopbattles/new.atom" title="/f/photoshopbattles">\n\n      \n\n  <link rel="canonical" href="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/f/photoshopbattles">\n    \n      <link rel="next" href="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/f/photoshopbattles/new?next%5Bid%5D=131436">\n  \n  <meta property="og:title" content="photoshopbattles">\n  <meta property="og:site_name" content="Postmill">\n  <meta property="og:type" content="website">\n  <meta property="og:url" content="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/f/photoshopbattles">\n  <meta property="og:image" content="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/apple-touch-icon-precomposed.png">\n\n      <meta name="description" content="photoshopbattles">\n    </head>\n\n  <body class="user-anonymous\njs-poppers-enabled">\n          <div class="site-alerts"></div>\n    \n    <nav class="site-accessibility-nav">\n      <a href="#main" class="site-accessibility-nav__link">Jump to main content</a>\n      <a href="#sidebar" class="site-accessibility-nav__link">Jump to sidebar</a>\n    </nav>\n\n        <nav class="site-nav">\n    <div class="site-nav__container content-container">\n          <header class="site-nav__header">\n    <a href="/"\n       class="site-nav__link "\n       aria-label="Home">\n      <span class="icon icon--with-alt-text no-desktop"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="Home"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#home"/></svg></span>\n      <b class="no-mobile">Postmill</b>\n    </a>\n  </header>\n\n          \n  <div class="site-nav__main-menu-container site-nav__mobile-hidden dropdown dropdown--mobile-only">\n    <button type="button"\n            class="site-nav__link  site-nav__mobile-toggle no-desktop dropdown__toggle unbuttonize"\n            aria-label="Places"><span class="icon icon--with-alt-text "><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="Places"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#menu"/></svg></span></button>\n\n    <ul class="site-nav__menu site-nav__main-menu unlistify dropdown__menu">\n          <li>\n    <a href="/forums"\n       class="site-nav__link ">Forums</a>\n  </li>\n\n      <li>\n      <a href="/wiki"\n         class="site-nav__link ">Wiki</a>\n    </li>\n  \n  \n    </ul>\n  </div>\n\n                    <form action="/search" class="site-nav__mobile-hidden site-nav__search dropdown dropdown--mobile-only">\n    <button type="button"\n            class="site-nav__link  site-nav__mobile-toggle no-desktop dropdown__toggle unbuttonize"\n            aria-label="Search"><span class="icon icon--with-alt-text "><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="Search"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#search"/></svg></span></button>\n\n    <div class="site-nav__search-row dropdown__menu">\n      <label class="site-nav__search-label" for="site-nav-search" aria-hidden="true">\n        <span class="icon  icon--no-align"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#search"/></svg></span>\n      </label>\n      <input name="q"\n             type="search"\n             class="form-control site-nav__search-input"\n             id="site-nav-search"\n             value=""\n             aria-label="Search query">\n    </div>\n  </form>\n\n        <ul class="site-nav__menu site-nav__user-menu unlistify">\n            <li>\n    <a href="/login" class="site-nav__link ">Log in</a>\n  </li>\n      <li>\n      <a href="/registration" class="site-nav__link ">Sign up</a>\n    </li>\n  \n      </ul>\n\n    </div>\n  </nav>\n\n\n          <div class="site-content content-container">\n        <main class="site-content__body body flow" id="main">  <h1 class="page-heading forum-name-heading"><span class="forum-name-heading__prefix">/f/</span><strong class="forum-name-heading__name">photoshopbattles</strong></h1>\n  <nav class="flex flex--guttered">\n      <ul class="unlistify flex">\n    <li>\n      <a href="/f/photoshopbattles"\n         class="tab tab--active">Submissions</a>\n    </li>\n    <li>\n      <a href="/f/photoshopbattles/comments"\n         class="tab ">Comments</a>\n    </li>\n  </ul>\n\n\n    <ul class="unlistify flex">\n            <li class="dropdown">\n        <button type="button"\n          class="dropdown__toggle tab no-underline unbuttonize"\n          aria-label="Sort by: New">\n    <span class="icon  "><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#sort"/></svg></span>\n    <span class="no-underline__exempt">New</span>\n    <span class="dropdown__arrow"></span>\n  </button>\n\n\n    <ul class="dropdown__menu dropdown-card unlistify">\n              <li>\n      <a href="/f/photoshopbattles/hot"\n         class="no-wrap menu-item ">Hot</a>\n    </li>\n      <li>\n      <a href="/f/photoshopbattles/new"\n         class="no-wrap menu-item menu-item--active">New</a>\n    </li>\n      <li>\n      <a href="/f/photoshopbattles/active"\n         class="no-wrap menu-item ">Active</a>\n    </li>\n  \n              <li>\n      <a href="/f/photoshopbattles/top?t=day"\n         class="no-wrap menu-item ">Top</a>\n    </li>\n      <li>\n      <a href="/f/photoshopbattles/controversial?t=day"\n         class="no-wrap menu-item ">Controversial</a>\n    </li>\n      <li>\n      <a href="/f/photoshopbattles/most_commented?t=day"\n         class="no-wrap menu-item ">Most commented</a>\n    </li>\n  \n    </ul>\n  </li>\n\n                \n    </ul>\n  </nav>\n\n  \n      <article class="  submission\n  \n  submission--has-body\n  submission--collapsed\n  \n  \n  submission--has-thumbnail\n  submission--visibility-visible\n">\n    <div class="submission__row">\n\n      <div class="submission__inner">\n        <header class="submission__header">\n          <div class="submission__title-row break-text"><h1 class="submission__title unheaderize inline"><a href="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/8afd562d3ea20ec1be6d3b110b8bb3f4114c7a31938c4ba09ae4563c139258db.jpg"\n         class="submission__link"\n                  rel=""\n          target="_self"\n        ><img src="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_1x/8afd562d3ea20ec1be6d3b110b8bb3f4114c7a31938c4ba09ae4563c139258db.jpg"\n               srcset="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_2x/8afd562d3ea20ec1be6d3b110b8bb3f4114c7a31938c4ba09ae4563c139258db.jpg 2x"\n               class="submission__thumb"\n               alt=""\n               width="70"\n               height="70"\n               aria-hidden="true">UK Prime Minister Rishi Sunak looking at a pothole</a></h1>\n            \n            \n                      </div>\n\n          <p class="submission__info">\n            <span class="text-sm fg-muted">\n              Submitted by         <a href="/user/Proud_Idiot" class="submission__submitter fg-inherit"><strong>Proud_Idiot</strong></a>    <small class="fg-grey text-sm user-flag">t3_127l8qa</small>\n   <time class="submission__timestamp"\n        data-controller="relative-time"\n        datetime="2023-03-31T13:18:39+00:00"\n        title="March 31, 2023 at 1:18:39 PM UTC">on March 31, 2023 at 1:18 PM</time>\n\n                          </span>\n          </p>\n        </header>\n\n                \n        <nav class="submission__nav">\n          <ul class="unlistify fg-muted flex flex--guttered">\n                  <li>\n    <a href="/f/photoshopbattles/131461/uk-prime-minister-rishi-sunak-looking-at-a-pothole"\n         class="text-sm"><strong>No comments</strong></a><span class="js-display-new-comments submission__new-comments text-sm fg-green"\n            data-submission-id="131461"\n            data-comment-count="0">\n      </span></li>\n\n        \n    \n  \n  \n\n          </ul>\n        </nav>\n      </div>\n\n      <div class="submission__vote"><form action="/sv/131461"\n        method="post"\n        class="vote"\n        >\n\n        \n          <button type="submit"\n          name="choice"\n          value="1"\n          class="unbuttonize vote__button vote__up"\n          title="Upvote"\n          data-action="vote#up"\n          data-vote-target="up">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="up"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#up"/></svg></span></span>\n  </button>\n    \n    <span class="vote__net-score" data-vote-target="score">2</span>\n\n    <span class="vote__spinner"><span class="icon icon--with-alt-text icon--pulse"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="loading"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#spinner"/></svg></span></span>\n\n          <button type="submit"\n          name="choice"\n          value="-1"\n          class="unbuttonize vote__button vote__down"\n          title="Downvote"\n          data-action="vote#down"\n          data-vote-target="down">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="down"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#down"/></svg></span></span>\n  </button>\n      </form></div>\n    </div>\n  </article>\n\n      <article class="  submission\n  \n  submission--has-body\n  submission--collapsed\n  \n  \n  submission--has-thumbnail\n  submission--visibility-visible\n">\n    <div class="submission__row">\n\n      <div class="submission__inner">\n        <header class="submission__header">\n          <div class="submission__title-row break-text"><h1 class="submission__title unheaderize inline"><a href="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/6fad18a7cebeb2ab89d3d581112097749daf83dc05a9d5f2c6aed6810a825555.jpg"\n         class="submission__link"\n                  rel=""\n          target="_self"\n        ><img src="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_1x/6fad18a7cebeb2ab89d3d581112097749daf83dc05a9d5f2c6aed6810a825555.jpg"\n               srcset="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_2x/6fad18a7cebeb2ab89d3d581112097749daf83dc05a9d5f2c6aed6810a825555.jpg 2x"\n               class="submission__thumb"\n               alt=""\n               width="70"\n               height="70"\n               aria-hidden="true">PsBattle: Pope Francis was spotted sporting an all white fashion ensemble</a></h1>\n            \n            \n                      </div>\n\n          <p class="submission__info">\n            <span class="text-sm fg-muted">\n              Submitted by         <a href="/user/borntoeatbizza" class="submission__submitter fg-inherit"><strong>borntoeatbizza</strong></a>    <small class="fg-grey text-sm user-flag">t3_121v5yk</small>\n   <time class="submission__timestamp"\n        data-controller="relative-time"\n        datetime="2023-03-25T18:46:11+00:00"\n        title="March 25, 2023 at 6:46:11 PM UTC">on March 25, 2023 at 6:46 PM</time>\n\n                          </span>\n          </p>\n        </header>\n\n                \n        <nav class="submission__nav">\n          <ul class="unlistify fg-muted flex flex--guttered">\n                  <li>\n    <a href="/f/photoshopbattles/131460/psbattle-pope-francis-was-spotted-sporting-an-all-white"\n         class="text-sm"><strong>No comments</strong></a><span class="js-display-new-comments submission__new-comments text-sm fg-green"\n            data-submission-id="131460"\n            data-comment-count="0">\n      </span></li>\n\n        \n    \n  \n  \n\n          </ul>\n        </nav>\n      </div>\n\n      <div class="submission__vote"><form action="/sv/131460"\n        method="post"\n        class="vote"\n        >\n\n        \n          <button type="submit"\n          name="choice"\n          value="1"\n          class="unbuttonize vote__button vote__up"\n          title="Upvote"\n          data-action="vote#up"\n          data-vote-target="up">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="up"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#up"/></svg></span></span>\n  </button>\n    \n    <span class="vote__net-score" data-vote-target="score">0</span>\n\n    <span class="vote__spinner"><span class="icon icon--with-alt-text icon--pulse"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="loading"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#spinner"/></svg></span></span>\n\n          <button type="submit"\n          name="choice"\n          value="-1"\n          class="unbuttonize vote__button vote__down"\n          title="Downvote"\n          data-action="vote#down"\n          data-vote-target="down">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="down"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#down"/></svg></span></span>\n  </button>\n      </form></div>\n    </div>\n  </article>\n\n      <article class="  submission\n  \n  submission--has-body\n  submission--collapsed\n  \n  \n  submission--has-thumbnail\n  submission--visibility-visible\n">\n    <div class="submission__row">\n\n      <div class="submission__inner">\n        <header class="submission__header">\n          <div class="submission__title-row break-text"><h1 class="submission__title unheaderize inline"><a href="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/7c56131a7ea5a5088742a19e1ab22aff52e4c767d2b8001ceed7cfb37128bc3d.jpg"\n         class="submission__link"\n                  rel=""\n          target="_self"\n        ><img src="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_1x/7c56131a7ea5a5088742a19e1ab22aff52e4c767d2b8001ceed7cfb37128bc3d.jpg"\n               srcset="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_2x/7c56131a7ea5a5088742a19e1ab22aff52e4c767d2b8001ceed7cfb37128bc3d.jpg 2x"\n               class="submission__thumb"\n               alt=""\n               width="70"\n               height="70"\n               aria-hidden="true">PsBattle: Julia Louis-Dreyfus recieves National Medal of Arts from President Biden</a></h1>\n            \n            \n                      </div>\n\n          <p class="submission__info">\n            <span class="text-sm fg-muted">\n              Submitted by         <a href="/user/TheFergBurgler" class="submission__submitter fg-inherit"><strong>TheFergBurgler</strong></a>    <small class="fg-grey text-sm user-flag">t3_11z574v</small>\n   <time class="submission__timestamp"\n        data-controller="relative-time"\n        datetime="2023-03-23T02:06:30+00:00"\n        title="March 23, 2023 at 2:06:30 AM UTC">on March 23, 2023 at 2:06 AM</time>\n\n                          </span>\n          </p>\n        </header>\n\n                \n        <nav class="submission__nav">\n          <ul class="unlistify fg-muted flex flex--guttered">\n                  <li>\n    <a href="/f/photoshopbattles/131459/psbattle-julia-louis-dreyfus-recieves-national-medal-of-arts"\n         class="text-sm"><strong>No comments</strong></a><span class="js-display-new-comments submission__new-comments text-sm fg-green"\n            data-submission-id="131459"\n            data-comment-count="0">\n      </span></li>\n\n        \n    \n  \n  \n\n          </ul>\n        </nav>\n      </div>\n\n      <div class="submission__vote"><form action="/sv/131459"\n        method="post"\n        class="vote"\n        >\n\n        \n          <button type="submit"\n          name="choice"\n          value="1"\n          class="unbuttonize vote__button vote__up"\n          title="Upvote"\n          data-action="vote#up"\n          data-vote-target="up">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="up"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#up"/></svg></span></span>\n  </button>\n    \n    <span class="vote__net-score" data-vote-target="score">2</span>\n\n    <span class="vote__spinner"><span class="icon icon--with-alt-text icon--pulse"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="loading"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#spinner"/></svg></span></span>\n\n          <button type="submit"\n          name="choice"\n          value="-1"\n          class="unbuttonize vote__button vote__down"\n          title="Downvote"\n          data-action="vote#down"\n          data-vote-target="down">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="down"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#down"/></svg></span></span>\n  </button>\n      </form></div>\n    </div>\n  </article>\n\n      <article class="  submission\n  \n  submission--has-body\n  submission--collapsed\n  \n  \n  submission--has-thumbnail\n  submission--visibility-visible\n">\n    <div class="submission__row">\n\n      <div class="submission__inner">\n        <header class="submission__header">\n          <div class="submission__title-row break-text"><h1 class="submission__title unheaderize inline"><a href="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/d0fcf1f1b55afdd6a51ba364944b5404d0195fd7f02e1066f77829669cf5b41f.jpg"\n         class="submission__link"\n                  rel=""\n          target="_self"\n        ><img src="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_1x/d0fcf1f1b55afdd6a51ba364944b5404d0195fd7f02e1066f77829669cf5b41f.jpg"\n               srcset="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_2x/d0fcf1f1b55afdd6a51ba364944b5404d0195fd7f02e1066f77829669cf5b41f.jpg 2x"\n               class="submission__thumb"\n               alt=""\n               width="70"\n               height="70"\n               aria-hidden="true">PsBattle: women police on Mexico city.</a></h1>\n            \n            \n                      </div>\n\n          <p class="submission__info">\n            <span class="text-sm fg-muted">\n              Submitted by         <a href="/user/AbrahamBelmont_" class="submission__submitter fg-inherit"><strong>AbrahamBelmont_</strong></a>    <small class="fg-grey text-sm user-flag">t3_11xiwts</small>\n   <time class="submission__timestamp"\n        data-controller="relative-time"\n        datetime="2023-03-21T14:43:33+00:00"\n        title="March 21, 2023 at 2:43:33 PM UTC">on March 21, 2023 at 2:43 PM</time>\n\n                          </span>\n          </p>\n        </header>\n\n                \n        <nav class="submission__nav">\n          <ul class="unlistify fg-muted flex flex--guttered">\n                  <li>\n    <a href="/f/photoshopbattles/131458/psbattle-women-police-on-mexico-city"\n         class="text-sm"><strong>No comments</strong></a><span class="js-display-new-comments submission__new-comments text-sm fg-green"\n            data-submission-id="131458"\n            data-comment-count="0">\n      </span></li>\n\n        \n    \n  \n  \n\n          </ul>\n        </nav>\n      </div>\n\n      <div class="submission__vote"><form action="/sv/131458"\n        method="post"\n        class="vote"\n        >\n\n        \n          <button type="submit"\n          name="choice"\n          value="1"\n          class="unbuttonize vote__button vote__up"\n          title="Upvote"\n          data-action="vote#up"\n          data-vote-target="up">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="up"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#up"/></svg></span></span>\n  </button>\n    \n    <span class="vote__net-score" data-vote-target="score">4</span>\n\n    <span class="vote__spinner"><span class="icon icon--with-alt-text icon--pulse"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="loading"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#spinner"/></svg></span></span>\n\n          <button type="submit"\n          name="choice"\n          value="-1"\n          class="unbuttonize vote__button vote__down"\n          title="Downvote"\n          data-action="vote#down"\n          data-vote-target="down">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="down"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#down"/></svg></span></span>\n  </button>\n      </form></div>\n    </div>\n  </article>\n\n      <article class="  submission\n  \n  submission--has-body\n  submission--collapsed\n  \n  \n  submission--has-thumbnail\n  submission--visibility-visible\n">\n    <div class="submission__row">\n\n      <div class="submission__inner">\n        <header class="submission__header">\n          <div class="submission__title-row break-text"><h1 class="submission__title unheaderize inline"><a href="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/2f81818f67dbaa9cba34e329d184176b91bdf1a39aef18964529d01ae408174a.jpg"\n         class="submission__link"\n                  rel=""\n          target="_self"\n        ><img src="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_1x/2f81818f67dbaa9cba34e329d184176b91bdf1a39aef18964529d01ae408174a.jpg"\n               srcset="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_2x/2f81818f67dbaa9cba34e329d184176b91bdf1a39aef18964529d01ae408174a.jpg 2x"\n               class="submission__thumb"\n               alt=""\n               width="70"\n               height="70"\n               aria-hidden="true">PsBattle: This cat in a cat bed</a></h1>\n            \n            \n                      </div>\n\n          <p class="submission__info">\n            <span class="text-sm fg-muted">\n              Submitted by         <a href="/user/m33gs" class="submission__submitter fg-inherit"><strong>m33gs</strong></a>    <small class="fg-grey text-sm user-flag">t3_11vx0t4</small>\n   <time class="submission__timestamp"\n        data-controller="relative-time"\n        datetime="2023-03-19T20:41:17+00:00"\n        title="March 19, 2023 at 8:41:17 PM UTC">on March 19, 2023 at 8:41 PM</time>\n\n                          </span>\n          </p>\n        </header>\n\n                \n        <nav class="submission__nav">\n          <ul class="unlistify fg-muted flex flex--guttered">\n                  <li>\n    <a href="/f/photoshopbattles/131457/psbattle-this-cat-in-a-cat-bed"\n         class="text-sm"><strong>No comments</strong></a><span class="js-display-new-comments submission__new-comments text-sm fg-green"\n            data-submission-id="131457"\n            data-comment-count="0">\n      </span></li>\n\n        \n    \n  \n  \n\n          </ul>\n        </nav>\n      </div>\n\n      <div class="submission__vote"><form action="/sv/131457"\n        method="post"\n        class="vote"\n        >\n\n        \n          <button type="submit"\n          name="choice"\n          value="1"\n          class="unbuttonize vote__button vote__up"\n          title="Upvote"\n          data-action="vote#up"\n          data-vote-target="up">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="up"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#up"/></svg></span></span>\n  </button>\n    \n    <span class="vote__net-score" data-vote-target="score">4</span>\n\n    <span class="vote__spinner"><span class="icon icon--with-alt-text icon--pulse"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="loading"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#spinner"/></svg></span></span>\n\n          <button type="submit"\n          name="choice"\n          value="-1"\n          class="unbuttonize vote__button vote__down"\n          title="Downvote"\n          data-action="vote#down"\n          data-vote-target="down">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="down"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#down"/></svg></span></span>\n  </button>\n      </form></div>\n    </div>\n  </article>\n\n      <article class="  submission\n  \n  submission--has-body\n  submission--collapsed\n  \n  \n  submission--has-thumbnail\n  submission--visibility-visible\n">\n    <div class="submission__row">\n\n      <div class="submission__inner">\n        <header class="submission__header">\n          <div class="submission__title-row break-text"><h1 class="submission__title unheaderize inline"><a href="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/69534bd8ad826dabfb38c8ce2ab4c7e2616b49e671992a1d5a43482cbfdd5b61.jpg"\n         class="submission__link"\n                  rel=""\n          target="_self"\n        ><img src="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_1x/69534bd8ad826dabfb38c8ce2ab4c7e2616b49e671992a1d5a43482cbfdd5b61.jpg"\n               srcset="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_2x/69534bd8ad826dabfb38c8ce2ab4c7e2616b49e671992a1d5a43482cbfdd5b61.jpg 2x"\n               class="submission__thumb"\n               alt=""\n               width="70"\n               height="70"\n               aria-hidden="true">PsBattle: A turtle in a clear lake</a></h1>\n            \n            \n                      </div>\n\n          <p class="submission__info">\n            <span class="text-sm fg-muted">\n              Submitted by         <a href="/user/kioviks" class="submission__submitter fg-inherit"><strong>kioviks</strong></a>    <small class="fg-grey text-sm user-flag">t3_11uwos6</small>\n   <time class="submission__timestamp"\n        data-controller="relative-time"\n        datetime="2023-03-18T18:56:40+00:00"\n        title="March 18, 2023 at 6:56:40 PM UTC">on March 18, 2023 at 6:56 PM</time>\n\n                          </span>\n          </p>\n        </header>\n\n                \n        <nav class="submission__nav">\n          <ul class="unlistify fg-muted flex flex--guttered">\n                  <li>\n    <a href="/f/photoshopbattles/131456/psbattle-a-turtle-in-a-clear-lake"\n         class="text-sm"><strong>No comments</strong></a><span class="js-display-new-comments submission__new-comments text-sm fg-green"\n            data-submission-id="131456"\n            data-comment-count="0">\n      </span></li>\n\n        \n    \n  \n  \n\n          </ul>\n        </nav>\n      </div>\n\n      <div class="submission__vote"><form action="/sv/131456"\n        method="post"\n        class="vote"\n        >\n\n        \n          <button type="submit"\n          name="choice"\n          value="1"\n          class="unbuttonize vote__button vote__up"\n          title="Upvote"\n          data-action="vote#up"\n          data-vote-target="up">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="up"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#up"/></svg></span></span>\n  </button>\n    \n    <span class="vote__net-score" data-vote-target="score">3</span>\n\n    <span class="vote__spinner"><span class="icon icon--with-alt-text icon--pulse"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="loading"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#spinner"/></svg></span></span>\n\n          <button type="submit"\n          name="choice"\n          value="-1"\n          class="unbuttonize vote__button vote__down"\n          title="Downvote"\n          data-action="vote#down"\n          data-vote-target="down">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="down"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#down"/></svg></span></span>\n  </button>\n      </form></div>\n    </div>\n  </article>\n\n      <article class="  submission\n  \n  submission--has-body\n  submission--collapsed\n  \n  \n  submission--has-thumbnail\n  submission--visibility-visible\n">\n    <div class="submission__row">\n\n      <div class="submission__inner">\n        <header class="submission__header">\n          <div class="submission__title-row break-text"><h1 class="submission__title unheaderize inline"><a href="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/c4db3ff25ae953053e90193ad9ccbd64778e1b85846e34d31cc06cf49d1cac9e.jpg"\n         class="submission__link"\n                  rel=""\n          target="_self"\n        ><img src="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_1x/c4db3ff25ae953053e90193ad9ccbd64778e1b85846e34d31cc06cf49d1cac9e.jpg"\n               srcset="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_2x/c4db3ff25ae953053e90193ad9ccbd64778e1b85846e34d31cc06cf49d1cac9e.jpg 2x"\n               class="submission__thumb"\n               alt=""\n               width="70"\n               height="70"\n               aria-hidden="true">PsBattle: President Joe Biden stumbling on airplane stairs</a></h1>\n            \n            \n                      </div>\n\n          <p class="submission__info">\n            <span class="text-sm fg-muted">\n              Submitted by         <a href="/user/Sort_of_Frightening" class="submission__submitter fg-inherit"><strong>Sort_of_Frightening</strong></a>    <small class="fg-grey text-sm user-flag">t3_11tmtpt</small>\n   <time class="submission__timestamp"\n        data-controller="relative-time"\n        datetime="2023-03-17T10:05:59+00:00"\n        title="March 17, 2023 at 10:05:59 AM UTC">on March 17, 2023 at 10:05 AM</time>\n\n                          </span>\n          </p>\n        </header>\n\n                \n        <nav class="submission__nav">\n          <ul class="unlistify fg-muted flex flex--guttered">\n                  <li>\n    <a href="/f/photoshopbattles/131455/psbattle-president-joe-biden-stumbling-on-airplane-stairs"\n         class="text-sm"><strong>No comments</strong></a><span class="js-display-new-comments submission__new-comments text-sm fg-green"\n            data-submission-id="131455"\n            data-comment-count="0">\n      </span></li>\n\n        \n    \n  \n  \n\n          </ul>\n        </nav>\n      </div>\n\n      <div class="submission__vote"><form action="/sv/131455"\n        method="post"\n        class="vote"\n        >\n\n        \n          <button type="submit"\n          name="choice"\n          value="1"\n          class="unbuttonize vote__button vote__up"\n          title="Upvote"\n          data-action="vote#up"\n          data-vote-target="up">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="up"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#up"/></svg></span></span>\n  </button>\n    \n    <span class="vote__net-score" data-vote-target="score">2</span>\n\n    <span class="vote__spinner"><span class="icon icon--with-alt-text icon--pulse"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="loading"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#spinner"/></svg></span></span>\n\n          <button type="submit"\n          name="choice"\n          value="-1"\n          class="unbuttonize vote__button vote__down"\n          title="Downvote"\n          data-action="vote#down"\n          data-vote-target="down">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="down"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#down"/></svg></span></span>\n  </button>\n      </form></div>\n    </div>\n  </article>\n\n      <article class="  submission\n  \n  submission--has-body\n  submission--collapsed\n  \n  \n  submission--has-thumbnail\n  submission--visibility-visible\n">\n    <div class="submission__row">\n\n      <div class="submission__inner">\n        <header class="submission__header">\n          <div class="submission__title-row break-text"><h1 class="submission__title unheaderize inline"><a href="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/f765eca74981315ca92400a56a61378b20e690d66c048ffe82464626b53dbf57.jpg"\n         class="submission__link"\n                  rel=""\n          target="_self"\n        ><img src="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_1x/f765eca74981315ca92400a56a61378b20e690d66c048ffe82464626b53dbf57.jpg"\n               srcset="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_2x/f765eca74981315ca92400a56a61378b20e690d66c048ffe82464626b53dbf57.jpg 2x"\n               class="submission__thumb"\n               alt=""\n               width="70"\n               height="70"\n               aria-hidden="true">PsBattle: Jamie Lee Curtis doing a celebration jump at the Oscar&#039;s</a></h1>\n            \n            \n                      </div>\n\n          <p class="submission__info">\n            <span class="text-sm fg-muted">\n              Submitted by         <a href="/user/FriendlyBabyFrog" class="submission__submitter fg-inherit"><strong>FriendlyBabyFrog</strong></a>    <small class="fg-grey text-sm user-flag">t3_11q0eyo</small>\n   <time class="submission__timestamp"\n        data-controller="relative-time"\n        datetime="2023-03-13T04:48:54+00:00"\n        title="March 13, 2023 at 4:48:54 AM UTC">on March 13, 2023 at 4:48 AM</time>\n\n                          </span>\n          </p>\n        </header>\n\n                \n        <nav class="submission__nav">\n          <ul class="unlistify fg-muted flex flex--guttered">\n                  <li>\n    <a href="/f/photoshopbattles/131454/psbattle-jamie-lee-curtis-doing-a-celebration-jump-at-the"\n         class="text-sm"><strong>No comments</strong></a><span class="js-display-new-comments submission__new-comments text-sm fg-green"\n            data-submission-id="131454"\n            data-comment-count="0">\n      </span></li>\n\n        \n    \n  \n  \n\n          </ul>\n        </nav>\n      </div>\n\n      <div class="submission__vote"><form action="/sv/131454"\n        method="post"\n        class="vote"\n        >\n\n        \n          <button type="submit"\n          name="choice"\n          value="1"\n          class="unbuttonize vote__button vote__up"\n          title="Upvote"\n          data-action="vote#up"\n          data-vote-target="up">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="up"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#up"/></svg></span></span>\n  </button>\n    \n    <span class="vote__net-score" data-vote-target="score">5</span>\n\n    <span class="vote__spinner"><span class="icon icon--with-alt-text icon--pulse"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="loading"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#spinner"/></svg></span></span>\n\n          <button type="submit"\n          name="choice"\n          value="-1"\n          class="unbuttonize vote__button vote__down"\n          title="Downvote"\n          data-action="vote#down"\n          data-vote-target="down">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="down"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#down"/></svg></span></span>\n  </button>\n      </form></div>\n    </div>\n  </article>\n\n      <article class="  submission\n  \n  submission--has-body\n  submission--collapsed\n  \n  \n  submission--has-thumbnail\n  submission--visibility-visible\n">\n    <div class="submission__row">\n\n      <div class="submission__inner">\n        <header class="submission__header">\n          <div class="submission__title-row break-text"><h1 class="submission__title unheaderize inline"><a href="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/3b677a6afe891d02163ab882503284385593c5a7a698bead286e645ba157b22d.jpg"\n         class="submission__link"\n                  rel=""\n          target="_self"\n        ><img src="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_1x/3b677a6afe891d02163ab882503284385593c5a7a698bead286e645ba157b22d.jpg"\n               srcset="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_2x/3b677a6afe891d02163ab882503284385593c5a7a698bead286e645ba157b22d.jpg 2x"\n               class="submission__thumb"\n               alt=""\n               width="70"\n               height="70"\n               aria-hidden="true">PsBattle: Long Exposure Picture of Firework</a></h1>\n            \n            \n                      </div>\n\n          <p class="submission__info">\n            <span class="text-sm fg-muted">\n              Submitted by         <a href="/user/dafunkmunk" class="submission__submitter fg-inherit"><strong>dafunkmunk</strong></a>    <small class="fg-grey text-sm user-flag">t3_11nagbp</small>\n   <time class="submission__timestamp"\n        data-controller="relative-time"\n        datetime="2023-03-10T01:24:16+00:00"\n        title="March 10, 2023 at 1:24:16 AM UTC">on March 10, 2023 at 1:24 AM</time>\n\n                          </span>\n          </p>\n        </header>\n\n                \n        <nav class="submission__nav">\n          <ul class="unlistify fg-muted flex flex--guttered">\n                  <li>\n    <a href="/f/photoshopbattles/131453/psbattle-long-exposure-picture-of-firework"\n         class="text-sm"><strong>No comments</strong></a><span class="js-display-new-comments submission__new-comments text-sm fg-green"\n            data-submission-id="131453"\n            data-comment-count="0">\n      </span></li>\n\n        \n    \n  \n  \n\n          </ul>\n        </nav>\n      </div>\n\n      <div class="submission__vote"><form action="/sv/131453"\n        method="post"\n        class="vote"\n        >\n\n        \n          <button type="submit"\n          name="choice"\n          value="1"\n          class="unbuttonize vote__button vote__up"\n          title="Upvote"\n          data-action="vote#up"\n          data-vote-target="up">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="up"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#up"/></svg></span></span>\n  </button>\n    \n    <span class="vote__net-score" data-vote-target="score">0</span>\n\n    <span class="vote__spinner"><span class="icon icon--with-alt-text icon--pulse"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="loading"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#spinner"/></svg></span></span>\n\n          <button type="submit"\n          name="choice"\n          value="-1"\n          class="unbuttonize vote__button vote__down"\n          title="Downvote"\n          data-action="vote#down"\n          data-vote-target="down">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="down"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#down"/></svg></span></span>\n  </button>\n      </form></div>\n    </div>\n  </article>\n\n      <article class="  submission\n  \n  submission--has-body\n  submission--collapsed\n  \n  \n  submission--has-thumbnail\n  submission--visibility-visible\n">\n    <div class="submission__row">\n\n      <div class="submission__inner">\n        <header class="submission__header">\n          <div class="submission__title-row break-text"><h1 class="submission__title unheaderize inline"><a href="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/96ab892c12e439fba48c25cf81f37c489c8d2cb2f5c8c6b9d09d4c844c025c0c.jpg"\n         class="submission__link"\n                  rel=""\n          target="_self"\n        ><img src="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_1x/96ab892c12e439fba48c25cf81f37c489c8d2cb2f5c8c6b9d09d4c844c025c0c.jpg"\n               srcset="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_2x/96ab892c12e439fba48c25cf81f37c489c8d2cb2f5c8c6b9d09d4c844c025c0c.jpg 2x"\n               class="submission__thumb"\n               alt=""\n               width="70"\n               height="70"\n               aria-hidden="true">PsBattle: Billy Corgan on an Amusement Park Ride</a></h1>\n            \n            \n                      </div>\n\n          <p class="submission__info">\n            <span class="text-sm fg-muted">\n              Submitted by         <a href="/user/rant5150" class="submission__submitter fg-inherit"><strong>rant5150</strong></a>    <small class="fg-grey text-sm user-flag">t3_11lfcce</small>\n   <time class="submission__timestamp"\n        data-controller="relative-time"\n        datetime="2023-03-07T23:32:56+00:00"\n        title="March 7, 2023 at 11:32:56 PM UTC">on March 7, 2023 at 11:32 PM</time>\n\n                          </span>\n          </p>\n        </header>\n\n                \n        <nav class="submission__nav">\n          <ul class="unlistify fg-muted flex flex--guttered">\n                  <li>\n    <a href="/f/photoshopbattles/131452/psbattle-billy-corgan-on-an-amusement-park-ride"\n         class="text-sm"><strong>No comments</strong></a><span class="js-display-new-comments submission__new-comments text-sm fg-green"\n            data-submission-id="131452"\n            data-comment-count="0">\n      </span></li>\n\n        \n    \n  \n  \n\n          </ul>\n        </nav>\n      </div>\n\n      <div class="submission__vote"><form action="/sv/131452"\n        method="post"\n        class="vote"\n        >\n\n        \n          <button type="submit"\n          name="choice"\n          value="1"\n          class="unbuttonize vote__button vote__up"\n          title="Upvote"\n          data-action="vote#up"\n          data-vote-target="up">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="up"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#up"/></svg></span></span>\n  </button>\n    \n    <span class="vote__net-score" data-vote-target="score">1</span>\n\n    <span class="vote__spinner"><span class="icon icon--with-alt-text icon--pulse"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="loading"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#spinner"/></svg></span></span>\n\n          <button type="submit"\n          name="choice"\n          value="-1"\n          class="unbuttonize vote__button vote__down"\n          title="Downvote"\n          data-action="vote#down"\n          data-vote-target="down">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="down"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#down"/></svg></span></span>\n  </button>\n      </form></div>\n    </div>\n  </article>\n\n      <article class="  submission\n  \n  submission--has-body\n  submission--collapsed\n  \n  \n  submission--has-thumbnail\n  submission--visibility-visible\n">\n    <div class="submission__row">\n\n      <div class="submission__inner">\n        <header class="submission__header">\n          <div class="submission__title-row break-text"><h1 class="submission__title unheaderize inline"><a href="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/8d9e85624f6c8f32ba042190855c18fe708ea5b552e891a5a2f39e6dbe16e819.jpg"\n         class="submission__link"\n                  rel=""\n          target="_self"\n        ><img src="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_1x/8d9e85624f6c8f32ba042190855c18fe708ea5b552e891a5a2f39e6dbe16e819.jpg"\n               srcset="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_2x/8d9e85624f6c8f32ba042190855c18fe708ea5b552e891a5a2f39e6dbe16e819.jpg 2x"\n               class="submission__thumb"\n               alt=""\n               width="70"\n               height="70"\n               aria-hidden="true">PsBattle: This hawk being rescued.</a></h1>\n            \n            \n                      </div>\n\n          <p class="submission__info">\n            <span class="text-sm fg-muted">\n              Submitted by         <a href="/user/trIeNe_mY_Best" class="submission__submitter fg-inherit"><strong>trIeNe_mY_Best</strong></a>    <small class="fg-grey text-sm user-flag">t3_11gmr5x</small>\n   <time class="submission__timestamp"\n        data-controller="relative-time"\n        datetime="2023-03-03T01:04:52+00:00"\n        title="March 3, 2023 at 1:04:52 AM UTC">on March 3, 2023 at 1:04 AM</time>\n\n                          </span>\n          </p>\n        </header>\n\n                \n        <nav class="submission__nav">\n          <ul class="unlistify fg-muted flex flex--guttered">\n                  <li>\n    <a href="/f/photoshopbattles/131451/psbattle-this-hawk-being-rescued"\n         class="text-sm"><strong>No comments</strong></a><span class="js-display-new-comments submission__new-comments text-sm fg-green"\n            data-submission-id="131451"\n            data-comment-count="0">\n      </span></li>\n\n        \n    \n  \n  \n\n          </ul>\n        </nav>\n      </div>\n\n      <div class="submission__vote"><form action="/sv/131451"\n        method="post"\n        class="vote"\n        >\n\n        \n          <button type="submit"\n          name="choice"\n          value="1"\n          class="unbuttonize vote__button vote__up"\n          title="Upvote"\n          data-action="vote#up"\n          data-vote-target="up">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="up"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#up"/></svg></span></span>\n  </button>\n    \n    <span class="vote__net-score" data-vote-target="score">4</span>\n\n    <span class="vote__spinner"><span class="icon icon--with-alt-text icon--pulse"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="loading"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#spinner"/></svg></span></span>\n\n          <button type="submit"\n          name="choice"\n          value="-1"\n          class="unbuttonize vote__button vote__down"\n          title="Downvote"\n          data-action="vote#down"\n          data-vote-target="down">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="down"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#down"/></svg></span></span>\n  </button>\n      </form></div>\n    </div>\n  </article>\n\n      <article class="  submission\n  \n  submission--has-body\n  submission--collapsed\n  \n  \n  submission--has-thumbnail\n  submission--visibility-visible\n">\n    <div class="submission__row">\n\n      <div class="submission__inner">\n        <header class="submission__header">\n          <div class="submission__title-row break-text"><h1 class="submission__title unheaderize inline"><a href="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/0475798eac594eeae628bf525e68adec59ae346ab76d060830ae0d6b52ed5d6b.jpg"\n         class="submission__link"\n                  rel=""\n          target="_self"\n        ><img src="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_1x/0475798eac594eeae628bf525e68adec59ae346ab76d060830ae0d6b52ed5d6b.jpg"\n               srcset="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_2x/0475798eac594eeae628bf525e68adec59ae346ab76d060830ae0d6b52ed5d6b.jpg 2x"\n               class="submission__thumb"\n               alt=""\n               width="70"\n               height="70"\n               aria-hidden="true">PsBattle: Horse with a smokestack behind it</a></h1>\n            \n            \n                      </div>\n\n          <p class="submission__info">\n            <span class="text-sm fg-muted">\n              Submitted by         <a href="/user/UpstairsTonight9666" class="submission__submitter fg-inherit"><strong>UpstairsTonight9666</strong></a>    <small class="fg-grey text-sm user-flag">t3_11g1a4a</small>\n   <time class="submission__timestamp"\n        data-controller="relative-time"\n        datetime="2023-03-02T12:14:08+00:00"\n        title="March 2, 2023 at 12:14:08 PM UTC">on March 2, 2023 at 12:14 PM</time>\n\n                          </span>\n          </p>\n        </header>\n\n                \n        <nav class="submission__nav">\n          <ul class="unlistify fg-muted flex flex--guttered">\n                  <li>\n    <a href="/f/photoshopbattles/131450/psbattle-horse-with-a-smokestack-behind-it"\n         class="text-sm"><strong>No comments</strong></a><span class="js-display-new-comments submission__new-comments text-sm fg-green"\n            data-submission-id="131450"\n            data-comment-count="0">\n      </span></li>\n\n        \n    \n  \n  \n\n          </ul>\n        </nav>\n      </div>\n\n      <div class="submission__vote"><form action="/sv/131450"\n        method="post"\n        class="vote"\n        >\n\n        \n          <button type="submit"\n          name="choice"\n          value="1"\n          class="unbuttonize vote__button vote__up"\n          title="Upvote"\n          data-action="vote#up"\n          data-vote-target="up">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="up"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#up"/></svg></span></span>\n  </button>\n    \n    <span class="vote__net-score" data-vote-target="score">0</span>\n\n    <span class="vote__spinner"><span class="icon icon--with-alt-text icon--pulse"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="loading"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#spinner"/></svg></span></span>\n\n          <button type="submit"\n          name="choice"\n          value="-1"\n          class="unbuttonize vote__button vote__down"\n          title="Downvote"\n          data-action="vote#down"\n          data-vote-target="down">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="down"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#down"/></svg></span></span>\n  </button>\n      </form></div>\n    </div>\n  </article>\n\n      <article class="  submission\n  \n  submission--has-body\n  submission--collapsed\n  \n  \n  submission--has-thumbnail\n  submission--visibility-visible\n">\n    <div class="submission__row">\n\n      <div class="submission__inner">\n        <header class="submission__header">\n          <div class="submission__title-row break-text"><h1 class="submission__title unheaderize inline"><a href="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/eebb03fea5cb663def88c565e225ed6e903be543fc1cba2dc3dae7b9fca35a9d.jpg"\n         class="submission__link"\n                  rel=""\n          target="_self"\n        ><img src="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_1x/eebb03fea5cb663def88c565e225ed6e903be543fc1cba2dc3dae7b9fca35a9d.jpg"\n               srcset="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_2x/eebb03fea5cb663def88c565e225ed6e903be543fc1cba2dc3dae7b9fca35a9d.jpg 2x"\n               class="submission__thumb"\n               alt=""\n               width="70"\n               height="70"\n               aria-hidden="true">PsBattle: Boat full of people</a></h1>\n            \n            \n                      </div>\n\n          <p class="submission__info">\n            <span class="text-sm fg-muted">\n              Submitted by         <a href="/user/RoyBratty" class="submission__submitter fg-inherit"><strong>RoyBratty</strong></a>    <small class="fg-grey text-sm user-flag">t3_1283sjr</small>\n   <time class="submission__timestamp"\n        data-controller="relative-time"\n        datetime="2023-03-31T23:32:25+00:00"\n        title="March 31, 2023 at 11:32:25 PM UTC">on March 31, 2023 at 11:32 PM</time>\n\n                          </span>\n          </p>\n        </header>\n\n                \n        <nav class="submission__nav">\n          <ul class="unlistify fg-muted flex flex--guttered">\n                  <li>\n    <a href="/f/photoshopbattles/131449/psbattle-boat-full-of-people"\n         class="text-sm"><strong>7 comments</strong></a><span class="js-display-new-comments submission__new-comments text-sm fg-green"\n            data-submission-id="131449"\n            data-comment-count="7">\n      </span></li>\n\n        \n    \n  \n  \n\n          </ul>\n        </nav>\n      </div>\n\n      <div class="submission__vote"><form action="/sv/131449"\n        method="post"\n        class="vote"\n        >\n\n        \n          <button type="submit"\n          name="choice"\n          value="1"\n          class="unbuttonize vote__button vote__up"\n          title="Upvote"\n          data-action="vote#up"\n          data-vote-target="up">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="up"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#up"/></svg></span></span>\n  </button>\n    \n    <span class="vote__net-score" data-vote-target="score">2</span>\n\n    <span class="vote__spinner"><span class="icon icon--with-alt-text icon--pulse"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="loading"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#spinner"/></svg></span></span>\n\n          <button type="submit"\n          name="choice"\n          value="-1"\n          class="unbuttonize vote__button vote__down"\n          title="Downvote"\n          data-action="vote#down"\n          data-vote-target="down">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="down"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#down"/></svg></span></span>\n  </button>\n      </form></div>\n    </div>\n  </article>\n\n      <article class="  submission\n  \n  submission--has-body\n  submission--collapsed\n  \n  \n  submission--has-thumbnail\n  submission--visibility-visible\n">\n    <div class="submission__row">\n\n      <div class="submission__inner">\n        <header class="submission__header">\n          <div class="submission__title-row break-text"><h1 class="submission__title unheaderize inline"><a href="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/78b9709f2f047ece0c87dab62104b8163de6d91a785bacf92898574ebb3e0841.jpg"\n         class="submission__link"\n                  rel=""\n          target="_self"\n        ><img src="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_1x/78b9709f2f047ece0c87dab62104b8163de6d91a785bacf92898574ebb3e0841.jpg"\n               srcset="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_2x/78b9709f2f047ece0c87dab62104b8163de6d91a785bacf92898574ebb3e0841.jpg 2x"\n               class="submission__thumb"\n               alt=""\n               width="70"\n               height="70"\n               aria-hidden="true">PsBattle: Dog chasing another dog</a></h1>\n            \n            \n                      </div>\n\n          <p class="submission__info">\n            <span class="text-sm fg-muted">\n              Submitted by         <a href="/user/lwotl" class="submission__submitter fg-inherit"><strong>lwotl</strong></a>    <small class="fg-grey text-sm user-flag">t3_1283888</small>\n   <time class="submission__timestamp"\n        data-controller="relative-time"\n        datetime="2023-03-31T23:13:02+00:00"\n        title="March 31, 2023 at 11:13:02 PM UTC">on March 31, 2023 at 11:13 PM</time>\n\n                          </span>\n          </p>\n        </header>\n\n                \n        <nav class="submission__nav">\n          <ul class="unlistify fg-muted flex flex--guttered">\n                  <li>\n    <a href="/f/photoshopbattles/131448/psbattle-dog-chasing-another-dog"\n         class="text-sm"><strong>5 comments</strong></a><span class="js-display-new-comments submission__new-comments text-sm fg-green"\n            data-submission-id="131448"\n            data-comment-count="5">\n      </span></li>\n\n        \n    \n  \n  \n\n          </ul>\n        </nav>\n      </div>\n\n      <div class="submission__vote"><form action="/sv/131448"\n        method="post"\n        class="vote"\n        >\n\n        \n          <button type="submit"\n          name="choice"\n          value="1"\n          class="unbuttonize vote__button vote__up"\n          title="Upvote"\n          data-action="vote#up"\n          data-vote-target="up">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="up"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#up"/></svg></span></span>\n  </button>\n    \n    <span class="vote__net-score" data-vote-target="score">14</span>\n\n    <span class="vote__spinner"><span class="icon icon--with-alt-text icon--pulse"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="loading"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#spinner"/></svg></span></span>\n\n          <button type="submit"\n          name="choice"\n          value="-1"\n          class="unbuttonize vote__button vote__down"\n          title="Downvote"\n          data-action="vote#down"\n          data-vote-target="down">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="down"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#down"/></svg></span></span>\n  </button>\n      </form></div>\n    </div>\n  </article>\n\n      <article class="  submission\n  \n  submission--has-body\n  submission--collapsed\n  \n  \n  submission--has-thumbnail\n  submission--visibility-visible\n">\n    <div class="submission__row">\n\n      <div class="submission__inner">\n        <header class="submission__header">\n          <div class="submission__title-row break-text"><h1 class="submission__title unheaderize inline"><a href="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/183a9b1d7b4252d17d929b2f573e814a4156891e76b80d98a9be02e64b363efd.jpg"\n         class="submission__link"\n                  rel=""\n          target="_self"\n        ><img src="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_1x/183a9b1d7b4252d17d929b2f573e814a4156891e76b80d98a9be02e64b363efd.jpg"\n               srcset="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_2x/183a9b1d7b4252d17d929b2f573e814a4156891e76b80d98a9be02e64b363efd.jpg 2x"\n               class="submission__thumb"\n               alt=""\n               width="70"\n               height="70"\n               aria-hidden="true">PsBattle: This cosplay deserves a better background!</a></h1>\n            \n            \n                      </div>\n\n          <p class="submission__info">\n            <span class="text-sm fg-muted">\n              Submitted by         <a href="/user/Zestyclose_Profile44" class="submission__submitter fg-inherit"><strong>Zestyclose_Profile44</strong></a>    <small class="fg-grey text-sm user-flag">t3_127o181</small>\n   <time class="submission__timestamp"\n        data-controller="relative-time"\n        datetime="2023-03-31T14:55:33+00:00"\n        title="March 31, 2023 at 2:55:33 PM UTC">on March 31, 2023 at 2:55 PM</time>\n\n                          </span>\n          </p>\n        </header>\n\n                \n        <nav class="submission__nav">\n          <ul class="unlistify fg-muted flex flex--guttered">\n                  <li>\n    <a href="/f/photoshopbattles/131447/psbattle-this-cosplay-deserves-a-better-background"\n         class="text-sm"><strong>36 comments</strong></a><span class="js-display-new-comments submission__new-comments text-sm fg-green"\n            data-submission-id="131447"\n            data-comment-count="36">\n      </span></li>\n\n        \n    \n  \n  \n\n          </ul>\n        </nav>\n      </div>\n\n      <div class="submission__vote"><form action="/sv/131447"\n        method="post"\n        class="vote"\n        >\n\n        \n          <button type="submit"\n          name="choice"\n          value="1"\n          class="unbuttonize vote__button vote__up"\n          title="Upvote"\n          data-action="vote#up"\n          data-vote-target="up">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="up"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#up"/></svg></span></span>\n  </button>\n    \n    <span class="vote__net-score" data-vote-target="score">3,145</span>\n\n    <span class="vote__spinner"><span class="icon icon--with-alt-text icon--pulse"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="loading"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#spinner"/></svg></span></span>\n\n          <button type="submit"\n          name="choice"\n          value="-1"\n          class="unbuttonize vote__button vote__down"\n          title="Downvote"\n          data-action="vote#down"\n          data-vote-target="down">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="down"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#down"/></svg></span></span>\n  </button>\n      </form></div>\n    </div>\n  </article>\n\n      <article class="  submission\n  \n  submission--has-body\n  submission--collapsed\n  \n  \n  submission--has-thumbnail\n  submission--visibility-visible\n">\n    <div class="submission__row">\n\n      <div class="submission__inner">\n        <header class="submission__header">\n          <div class="submission__title-row break-text"><h1 class="submission__title unheaderize inline"><a href="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/d3eb9f16a5835b7a270fc575ea03eadffa0aeca637b38a68eaee5e1ebefadc39.jpg"\n         class="submission__link"\n                  rel=""\n          target="_self"\n        ><img src="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_1x/d3eb9f16a5835b7a270fc575ea03eadffa0aeca637b38a68eaee5e1ebefadc39.jpg"\n               srcset="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_2x/d3eb9f16a5835b7a270fc575ea03eadffa0aeca637b38a68eaee5e1ebefadc39.jpg 2x"\n               class="submission__thumb"\n               alt=""\n               width="70"\n               height="70"\n               aria-hidden="true">PsBattle: Prince Harry and Meghan Markle greeting the public</a></h1>\n            \n            \n                      </div>\n\n          <p class="submission__info">\n            <span class="text-sm fg-muted">\n              Submitted by         <a href="/user/Brizzo7" class="submission__submitter fg-inherit"><strong>Brizzo7</strong></a>    <small class="fg-grey text-sm user-flag">t3_127mard</small>\n   <time class="submission__timestamp"\n        data-controller="relative-time"\n        datetime="2023-03-31T13:56:55+00:00"\n        title="March 31, 2023 at 1:56:55 PM UTC">on March 31, 2023 at 1:56 PM</time>\n\n                          </span>\n          </p>\n        </header>\n\n                \n        <nav class="submission__nav">\n          <ul class="unlistify fg-muted flex flex--guttered">\n                  <li>\n    <a href="/f/photoshopbattles/131446/psbattle-prince-harry-and-meghan-markle-greeting-the-public"\n         class="text-sm"><strong>8 comments</strong></a><span class="js-display-new-comments submission__new-comments text-sm fg-green"\n            data-submission-id="131446"\n            data-comment-count="8">\n      </span></li>\n\n        \n    \n  \n  \n\n          </ul>\n        </nav>\n      </div>\n\n      <div class="submission__vote"><form action="/sv/131446"\n        method="post"\n        class="vote"\n        >\n\n        \n          <button type="submit"\n          name="choice"\n          value="1"\n          class="unbuttonize vote__button vote__up"\n          title="Upvote"\n          data-action="vote#up"\n          data-vote-target="up">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="up"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#up"/></svg></span></span>\n  </button>\n    \n    <span class="vote__net-score" data-vote-target="score">61</span>\n\n    <span class="vote__spinner"><span class="icon icon--with-alt-text icon--pulse"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="loading"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#spinner"/></svg></span></span>\n\n          <button type="submit"\n          name="choice"\n          value="-1"\n          class="unbuttonize vote__button vote__down"\n          title="Downvote"\n          data-action="vote#down"\n          data-vote-target="down">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="down"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#down"/></svg></span></span>\n  </button>\n      </form></div>\n    </div>\n  </article>\n\n      <article class="  submission\n  \n  submission--has-body\n  submission--collapsed\n  \n  \n  submission--has-thumbnail\n  submission--visibility-visible\n">\n    <div class="submission__row">\n\n      <div class="submission__inner">\n        <header class="submission__header">\n          <div class="submission__title-row break-text"><h1 class="submission__title unheaderize inline"><a href="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/d15ae74a1589eef8ff7bb45d5138366c6d4aadb65e2e3622f8ba7b976ccc15b8.jpg"\n         class="submission__link"\n                  rel=""\n          target="_self"\n        ><img src="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_1x/d15ae74a1589eef8ff7bb45d5138366c6d4aadb65e2e3622f8ba7b976ccc15b8.jpg"\n               srcset="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_2x/d15ae74a1589eef8ff7bb45d5138366c6d4aadb65e2e3622f8ba7b976ccc15b8.jpg 2x"\n               class="submission__thumb"\n               alt=""\n               width="70"\n               height="70"\n               aria-hidden="true">PsBattle: Dog jumping</a></h1>\n            \n            \n                      </div>\n\n          <p class="submission__info">\n            <span class="text-sm fg-muted">\n              Submitted by         <a href="/user/WhippetBowie" class="submission__submitter fg-inherit"><strong>WhippetBowie</strong></a>    <small class="fg-grey text-sm user-flag">t3_127lnir</small>\n   <time class="submission__timestamp"\n        data-controller="relative-time"\n        datetime="2023-03-31T13:33:43+00:00"\n        title="March 31, 2023 at 1:33:43 PM UTC">on March 31, 2023 at 1:33 PM</time>\n\n                          </span>\n          </p>\n        </header>\n\n                \n        <nav class="submission__nav">\n          <ul class="unlistify fg-muted flex flex--guttered">\n                  <li>\n    <a href="/f/photoshopbattles/131445/psbattle-dog-jumping"\n         class="text-sm"><strong>6 comments</strong></a><span class="js-display-new-comments submission__new-comments text-sm fg-green"\n            data-submission-id="131445"\n            data-comment-count="6">\n      </span></li>\n\n        \n    \n  \n  \n\n          </ul>\n        </nav>\n      </div>\n\n      <div class="submission__vote"><form action="/sv/131445"\n        method="post"\n        class="vote"\n        >\n\n        \n          <button type="submit"\n          name="choice"\n          value="1"\n          class="unbuttonize vote__button vote__up"\n          title="Upvote"\n          data-action="vote#up"\n          data-vote-target="up">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="up"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#up"/></svg></span></span>\n  </button>\n    \n    <span class="vote__net-score" data-vote-target="score">11</span>\n\n    <span class="vote__spinner"><span class="icon icon--with-alt-text icon--pulse"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="loading"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#spinner"/></svg></span></span>\n\n          <button type="submit"\n          name="choice"\n          value="-1"\n          class="unbuttonize vote__button vote__down"\n          title="Downvote"\n          data-action="vote#down"\n          data-vote-target="down">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="down"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#down"/></svg></span></span>\n  </button>\n      </form></div>\n    </div>\n  </article>\n\n      <article class="  submission\n  \n  submission--has-body\n  submission--collapsed\n  \n  \n  submission--has-thumbnail\n  submission--visibility-visible\n">\n    <div class="submission__row">\n\n      <div class="submission__inner">\n        <header class="submission__header">\n          <div class="submission__title-row break-text"><h1 class="submission__title unheaderize inline"><a href="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/40e95c98b69ae187b9d95faa3ebb0f81bea257210d9efd4e1252f9afecb46db9.jpg"\n         class="submission__link"\n                  rel=""\n          target="_self"\n        ><img src="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_1x/40e95c98b69ae187b9d95faa3ebb0f81bea257210d9efd4e1252f9afecb46db9.jpg"\n               srcset="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_2x/40e95c98b69ae187b9d95faa3ebb0f81bea257210d9efd4e1252f9afecb46db9.jpg 2x"\n               class="submission__thumb"\n               alt=""\n               width="70"\n               height="70"\n               aria-hidden="true">PsBattle: Formula One driver Max Verstappen wearing a wig.</a></h1>\n            \n            \n                      </div>\n\n          <p class="submission__info">\n            <span class="text-sm fg-muted">\n              Submitted by         <a href="/user/TrainWreck661" class="submission__submitter fg-inherit"><strong>TrainWreck661</strong></a>    <small class="fg-grey text-sm user-flag">t3_127e1y4</small>\n   <time class="submission__timestamp"\n        data-controller="relative-time"\n        datetime="2023-03-31T07:45:36+00:00"\n        title="March 31, 2023 at 7:45:36 AM UTC">on March 31, 2023 at 7:45 AM</time>\n\n                          </span>\n          </p>\n        </header>\n\n                \n        <nav class="submission__nav">\n          <ul class="unlistify fg-muted flex flex--guttered">\n                  <li>\n    <a href="/f/photoshopbattles/131444/psbattle-formula-one-driver-max-verstappen-wearing-a-wig"\n         class="text-sm"><strong>5 comments</strong></a><span class="js-display-new-comments submission__new-comments text-sm fg-green"\n            data-submission-id="131444"\n            data-comment-count="5">\n      </span></li>\n\n        \n    \n  \n  \n\n          </ul>\n        </nav>\n      </div>\n\n      <div class="submission__vote"><form action="/sv/131444"\n        method="post"\n        class="vote"\n        >\n\n        \n          <button type="submit"\n          name="choice"\n          value="1"\n          class="unbuttonize vote__button vote__up"\n          title="Upvote"\n          data-action="vote#up"\n          data-vote-target="up">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="up"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#up"/></svg></span></span>\n  </button>\n    \n    <span class="vote__net-score" data-vote-target="score">14</span>\n\n    <span class="vote__spinner"><span class="icon icon--with-alt-text icon--pulse"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="loading"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#spinner"/></svg></span></span>\n\n          <button type="submit"\n          name="choice"\n          value="-1"\n          class="unbuttonize vote__button vote__down"\n          title="Downvote"\n          data-action="vote#down"\n          data-vote-target="down">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="down"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#down"/></svg></span></span>\n  </button>\n      </form></div>\n    </div>\n  </article>\n\n      <article class="  submission\n  \n  submission--has-body\n  submission--collapsed\n  \n  \n  submission--has-thumbnail\n  submission--visibility-visible\n">\n    <div class="submission__row">\n\n      <div class="submission__inner">\n        <header class="submission__header">\n          <div class="submission__title-row break-text"><h1 class="submission__title unheaderize inline"><a href="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/b4a9da1a39d8170d842eac0ede256bd93d9bb9b5b381f455740515fd73dc445a.jpg"\n         class="submission__link"\n                  rel=""\n          target="_self"\n        ><img src="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_1x/b4a9da1a39d8170d842eac0ede256bd93d9bb9b5b381f455740515fd73dc445a.jpg"\n               srcset="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_2x/b4a9da1a39d8170d842eac0ede256bd93d9bb9b5b381f455740515fd73dc445a.jpg 2x"\n               class="submission__thumb"\n               alt=""\n               width="70"\n               height="70"\n               aria-hidden="true">PsBattle: Dog resting head on Sofa</a></h1>\n            \n            \n                      </div>\n\n          <p class="submission__info">\n            <span class="text-sm fg-muted">\n              Submitted by         <a href="/user/grafxguy1" class="submission__submitter fg-inherit"><strong>grafxguy1</strong></a>    <small class="fg-grey text-sm user-flag">t3_12738ap</small>\n   <time class="submission__timestamp"\n        data-controller="relative-time"\n        datetime="2023-03-30T23:38:26+00:00"\n        title="March 30, 2023 at 11:38:26 PM UTC">on March 30, 2023 at 11:38 PM</time>\n\n                          </span>\n          </p>\n        </header>\n\n                \n        <nav class="submission__nav">\n          <ul class="unlistify fg-muted flex flex--guttered">\n                  <li>\n    <a href="/f/photoshopbattles/131443/psbattle-dog-resting-head-on-sofa"\n         class="text-sm"><strong>17 comments</strong></a><span class="js-display-new-comments submission__new-comments text-sm fg-green"\n            data-submission-id="131443"\n            data-comment-count="17">\n      </span></li>\n\n        \n    \n  \n  \n\n          </ul>\n        </nav>\n      </div>\n\n      <div class="submission__vote"><form action="/sv/131443"\n        method="post"\n        class="vote"\n        >\n\n        \n          <button type="submit"\n          name="choice"\n          value="1"\n          class="unbuttonize vote__button vote__up"\n          title="Upvote"\n          data-action="vote#up"\n          data-vote-target="up">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="up"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#up"/></svg></span></span>\n  </button>\n    \n    <span class="vote__net-score" data-vote-target="score">617</span>\n\n    <span class="vote__spinner"><span class="icon icon--with-alt-text icon--pulse"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="loading"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#spinner"/></svg></span></span>\n\n          <button type="submit"\n          name="choice"\n          value="-1"\n          class="unbuttonize vote__button vote__down"\n          title="Downvote"\n          data-action="vote#down"\n          data-vote-target="down">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="down"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#down"/></svg></span></span>\n  </button>\n      </form></div>\n    </div>\n  </article>\n\n      <article class="  submission\n  \n  submission--has-body\n  submission--collapsed\n  \n  \n  submission--has-thumbnail\n  submission--visibility-visible\n">\n    <div class="submission__row">\n\n      <div class="submission__inner">\n        <header class="submission__header">\n          <div class="submission__title-row break-text"><h1 class="submission__title unheaderize inline"><a href="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/cc1a0aaa7cd57ee63b9e7c4c7d90319c54e55dda811b90ff8aed361026e449a7.jpg"\n         class="submission__link"\n                  rel=""\n          target="_self"\n        ><img src="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_1x/cc1a0aaa7cd57ee63b9e7c4c7d90319c54e55dda811b90ff8aed361026e449a7.jpg"\n               srcset="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_2x/cc1a0aaa7cd57ee63b9e7c4c7d90319c54e55dda811b90ff8aed361026e449a7.jpg 2x"\n               class="submission__thumb"\n               alt=""\n               width="70"\n               height="70"\n               aria-hidden="true">PsBattle: Philippines former Vice President in Japan</a></h1>\n            \n            \n                      </div>\n\n          <p class="submission__info">\n            <span class="text-sm fg-muted">\n              Submitted by         <a href="/user/CowGoesM00" class="submission__submitter fg-inherit"><strong>CowGoesM00</strong></a>    <small class="fg-grey text-sm user-flag">t3_126w47y</small>\n   <time class="submission__timestamp"\n        data-controller="relative-time"\n        datetime="2023-03-30T19:02:36+00:00"\n        title="March 30, 2023 at 7:02:36 PM UTC">on March 30, 2023 at 7:02 PM</time>\n\n                          </span>\n          </p>\n        </header>\n\n                \n        <nav class="submission__nav">\n          <ul class="unlistify fg-muted flex flex--guttered">\n                  <li>\n    <a href="/f/photoshopbattles/131442/psbattle-philippines-former-vice-president-in-japan"\n         class="text-sm"><strong>61 comments</strong></a><span class="js-display-new-comments submission__new-comments text-sm fg-green"\n            data-submission-id="131442"\n            data-comment-count="61">\n      </span></li>\n\n        \n    \n  \n  \n\n          </ul>\n        </nav>\n      </div>\n\n      <div class="submission__vote"><form action="/sv/131442"\n        method="post"\n        class="vote"\n        >\n\n        \n          <button type="submit"\n          name="choice"\n          value="1"\n          class="unbuttonize vote__button vote__up"\n          title="Upvote"\n          data-action="vote#up"\n          data-vote-target="up">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="up"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#up"/></svg></span></span>\n  </button>\n    \n    <span class="vote__net-score" data-vote-target="score">3,646</span>\n\n    <span class="vote__spinner"><span class="icon icon--with-alt-text icon--pulse"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="loading"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#spinner"/></svg></span></span>\n\n          <button type="submit"\n          name="choice"\n          value="-1"\n          class="unbuttonize vote__button vote__down"\n          title="Downvote"\n          data-action="vote#down"\n          data-vote-target="down">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="down"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#down"/></svg></span></span>\n  </button>\n      </form></div>\n    </div>\n  </article>\n\n      <article class="  submission\n  \n  submission--has-body\n  submission--collapsed\n  \n  \n  submission--has-thumbnail\n  submission--visibility-visible\n">\n    <div class="submission__row">\n\n      <div class="submission__inner">\n        <header class="submission__header">\n          <div class="submission__title-row break-text"><h1 class="submission__title unheaderize inline"><a href="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/32552747eedd4950d77e5072acdbfb80210db4b779b3714978168411aabb0267.png"\n         class="submission__link"\n                  rel=""\n          target="_self"\n        ><img src="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_1x/32552747eedd4950d77e5072acdbfb80210db4b779b3714978168411aabb0267.png"\n               srcset="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_2x/32552747eedd4950d77e5072acdbfb80210db4b779b3714978168411aabb0267.png 2x"\n               class="submission__thumb"\n               alt=""\n               width="70"\n               height="70"\n               aria-hidden="true">PsBattle: Formula 1 driver, Charles Leclrec, wearing vision inverting glasses</a></h1>\n            \n            \n                      </div>\n\n          <p class="submission__info">\n            <span class="text-sm fg-muted">\n              Submitted by         <a href="/user/newTARwhoDIS" class="submission__submitter fg-inherit"><strong>newTARwhoDIS</strong></a>    <small class="fg-grey text-sm user-flag">t3_126vhbp</small>\n   <time class="submission__timestamp"\n        data-controller="relative-time"\n        datetime="2023-03-30T18:37:42+00:00"\n        title="March 30, 2023 at 6:37:42 PM UTC">on March 30, 2023 at 6:37 PM</time>\n\n                          </span>\n          </p>\n        </header>\n\n                \n        <nav class="submission__nav">\n          <ul class="unlistify fg-muted flex flex--guttered">\n                  <li>\n    <a href="/f/photoshopbattles/131441/psbattle-formula-1-driver-charles-leclrec-wearing-vision"\n         class="text-sm"><strong>9 comments</strong></a><span class="js-display-new-comments submission__new-comments text-sm fg-green"\n            data-submission-id="131441"\n            data-comment-count="9">\n      </span></li>\n\n        \n    \n  \n  \n\n          </ul>\n        </nav>\n      </div>\n\n      <div class="submission__vote"><form action="/sv/131441"\n        method="post"\n        class="vote"\n        >\n\n        \n          <button type="submit"\n          name="choice"\n          value="1"\n          class="unbuttonize vote__button vote__up"\n          title="Upvote"\n          data-action="vote#up"\n          data-vote-target="up">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="up"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#up"/></svg></span></span>\n  </button>\n    \n    <span class="vote__net-score" data-vote-target="score">20</span>\n\n    <span class="vote__spinner"><span class="icon icon--with-alt-text icon--pulse"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="loading"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#spinner"/></svg></span></span>\n\n          <button type="submit"\n          name="choice"\n          value="-1"\n          class="unbuttonize vote__button vote__down"\n          title="Downvote"\n          data-action="vote#down"\n          data-vote-target="down">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="down"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#down"/></svg></span></span>\n  </button>\n      </form></div>\n    </div>\n  </article>\n\n      <article class="  submission\n  \n  submission--has-body\n  submission--collapsed\n  \n  \n  submission--has-thumbnail\n  submission--visibility-visible\n">\n    <div class="submission__row">\n\n      <div class="submission__inner">\n        <header class="submission__header">\n          <div class="submission__title-row break-text"><h1 class="submission__title unheaderize inline"><a href="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/de2739383a767ad5ba14a00c1de6af2cb1cee94b435dc2e8a8d24cdc5d0a6dd8.jpg"\n         class="submission__link"\n                  rel=""\n          target="_self"\n        ><img src="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_1x/de2739383a767ad5ba14a00c1de6af2cb1cee94b435dc2e8a8d24cdc5d0a6dd8.jpg"\n               srcset="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_2x/de2739383a767ad5ba14a00c1de6af2cb1cee94b435dc2e8a8d24cdc5d0a6dd8.jpg 2x"\n               class="submission__thumb"\n               alt=""\n               width="70"\n               height="70"\n               aria-hidden="true">PsBattle: Hand Sculptures coming out of water, Venice.</a></h1>\n            \n            \n                      </div>\n\n          <p class="submission__info">\n            <span class="text-sm fg-muted">\n              Submitted by         <a href="/user/GrantBloomer" class="submission__submitter fg-inherit"><strong>GrantBloomer</strong></a>    <small class="fg-grey text-sm user-flag">t3_126lioh</small>\n   <time class="submission__timestamp"\n        data-controller="relative-time"\n        datetime="2023-03-30T12:29:36+00:00"\n        title="March 30, 2023 at 12:29:36 PM UTC">on March 30, 2023 at 12:29 PM</time>\n\n                          </span>\n          </p>\n        </header>\n\n                \n        <nav class="submission__nav">\n          <ul class="unlistify fg-muted flex flex--guttered">\n                  <li>\n    <a href="/f/photoshopbattles/131440/psbattle-hand-sculptures-coming-out-of-water-venice"\n         class="text-sm"><strong>100 comments</strong></a><span class="js-display-new-comments submission__new-comments text-sm fg-green"\n            data-submission-id="131440"\n            data-comment-count="100">\n      </span></li>\n\n        \n    \n  \n  \n\n          </ul>\n        </nav>\n      </div>\n\n      <div class="submission__vote"><form action="/sv/131440"\n        method="post"\n        class="vote"\n        >\n\n        \n          <button type="submit"\n          name="choice"\n          value="1"\n          class="unbuttonize vote__button vote__up"\n          title="Upvote"\n          data-action="vote#up"\n          data-vote-target="up">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="up"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#up"/></svg></span></span>\n  </button>\n    \n    <span class="vote__net-score" data-vote-target="score">9,287</span>\n\n    <span class="vote__spinner"><span class="icon icon--with-alt-text icon--pulse"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="loading"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#spinner"/></svg></span></span>\n\n          <button type="submit"\n          name="choice"\n          value="-1"\n          class="unbuttonize vote__button vote__down"\n          title="Downvote"\n          data-action="vote#down"\n          data-vote-target="down">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="down"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#down"/></svg></span></span>\n  </button>\n      </form></div>\n    </div>\n  </article>\n\n      <article class="  submission\n  \n  submission--has-body\n  submission--collapsed\n  \n  \n  submission--has-thumbnail\n  submission--visibility-visible\n">\n    <div class="submission__row">\n\n      <div class="submission__inner">\n        <header class="submission__header">\n          <div class="submission__title-row break-text"><h1 class="submission__title unheaderize inline"><a href="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/cfe63fb7acc9affcce2b6754d3961270f94e0e1f15c79fe18bebef2d239bc9ea.jpg"\n         class="submission__link"\n                  rel=""\n          target="_self"\n        ><img src="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_1x/cfe63fb7acc9affcce2b6754d3961270f94e0e1f15c79fe18bebef2d239bc9ea.jpg"\n               srcset="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_2x/cfe63fb7acc9affcce2b6754d3961270f94e0e1f15c79fe18bebef2d239bc9ea.jpg 2x"\n               class="submission__thumb"\n               alt=""\n               width="70"\n               height="70"\n               aria-hidden="true">PsBattle: Steam locomotive leaving tunnel</a></h1>\n            \n            \n                      </div>\n\n          <p class="submission__info">\n            <span class="text-sm fg-muted">\n              Submitted by         <a href="/user/GrantBloomer" class="submission__submitter fg-inherit"><strong>GrantBloomer</strong></a>    <small class="fg-grey text-sm user-flag">t3_1266klf</small>\n   <time class="submission__timestamp"\n        data-controller="relative-time"\n        datetime="2023-03-30T00:56:08+00:00"\n        title="March 30, 2023 at 12:56:08 AM UTC">on March 30, 2023 at 12:56 AM</time>\n\n                          </span>\n          </p>\n        </header>\n\n                \n        <nav class="submission__nav">\n          <ul class="unlistify fg-muted flex flex--guttered">\n                  <li>\n    <a href="/f/photoshopbattles/131439/psbattle-steam-locomotive-leaving-tunnel"\n         class="text-sm"><strong>136 comments</strong></a><span class="js-display-new-comments submission__new-comments text-sm fg-green"\n            data-submission-id="131439"\n            data-comment-count="136">\n      </span></li>\n\n        \n    \n  \n  \n\n          </ul>\n        </nav>\n      </div>\n\n      <div class="submission__vote"><form action="/sv/131439"\n        method="post"\n        class="vote"\n        >\n\n        \n          <button type="submit"\n          name="choice"\n          value="1"\n          class="unbuttonize vote__button vote__up"\n          title="Upvote"\n          data-action="vote#up"\n          data-vote-target="up">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="up"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#up"/></svg></span></span>\n  </button>\n    \n    <span class="vote__net-score" data-vote-target="score">11,000</span>\n\n    <span class="vote__spinner"><span class="icon icon--with-alt-text icon--pulse"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="loading"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#spinner"/></svg></span></span>\n\n          <button type="submit"\n          name="choice"\n          value="-1"\n          class="unbuttonize vote__button vote__down"\n          title="Downvote"\n          data-action="vote#down"\n          data-vote-target="down">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="down"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#down"/></svg></span></span>\n  </button>\n      </form></div>\n    </div>\n  </article>\n\n      <article class="  submission\n  \n  submission--has-body\n  submission--collapsed\n  \n  \n  submission--has-thumbnail\n  submission--visibility-visible\n">\n    <div class="submission__row">\n\n      <div class="submission__inner">\n        <header class="submission__header">\n          <div class="submission__title-row break-text"><h1 class="submission__title unheaderize inline"><a href="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/33bd7de804324dd59cb5c6de63039a98c6ff9518233d8998373220361d8987d7.jpg"\n         class="submission__link"\n                  rel=""\n          target="_self"\n        ><img src="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_1x/33bd7de804324dd59cb5c6de63039a98c6ff9518233d8998373220361d8987d7.jpg"\n               srcset="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_2x/33bd7de804324dd59cb5c6de63039a98c6ff9518233d8998373220361d8987d7.jpg 2x"\n               class="submission__thumb"\n               alt=""\n               width="70"\n               height="70"\n               aria-hidden="true">PsBattle: hockey goalie stretching</a></h1>\n            \n            \n                      </div>\n\n          <p class="submission__info">\n            <span class="text-sm fg-muted">\n              Submitted by         <a href="/user/andobodando" class="submission__submitter fg-inherit"><strong>andobodando</strong></a>    <small class="fg-grey text-sm user-flag">t3_1266j6r</small>\n   <time class="submission__timestamp"\n        data-controller="relative-time"\n        datetime="2023-03-30T00:54:27+00:00"\n        title="March 30, 2023 at 12:54:27 AM UTC">on March 30, 2023 at 12:54 AM</time>\n\n                          </span>\n          </p>\n        </header>\n\n                \n        <nav class="submission__nav">\n          <ul class="unlistify fg-muted flex flex--guttered">\n                  <li>\n    <a href="/f/photoshopbattles/131438/psbattle-hockey-goalie-stretching"\n         class="text-sm"><strong>12 comments</strong></a><span class="js-display-new-comments submission__new-comments text-sm fg-green"\n            data-submission-id="131438"\n            data-comment-count="12">\n      </span></li>\n\n        \n    \n  \n  \n\n          </ul>\n        </nav>\n      </div>\n\n      <div class="submission__vote"><form action="/sv/131438"\n        method="post"\n        class="vote"\n        >\n\n        \n          <button type="submit"\n          name="choice"\n          value="1"\n          class="unbuttonize vote__button vote__up"\n          title="Upvote"\n          data-action="vote#up"\n          data-vote-target="up">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="up"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#up"/></svg></span></span>\n  </button>\n    \n    <span class="vote__net-score" data-vote-target="score">27</span>\n\n    <span class="vote__spinner"><span class="icon icon--with-alt-text icon--pulse"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="loading"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#spinner"/></svg></span></span>\n\n          <button type="submit"\n          name="choice"\n          value="-1"\n          class="unbuttonize vote__button vote__down"\n          title="Downvote"\n          data-action="vote#down"\n          data-vote-target="down">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="down"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#down"/></svg></span></span>\n  </button>\n      </form></div>\n    </div>\n  </article>\n\n      <article class="  submission\n  \n  submission--has-body\n  submission--collapsed\n  \n  \n  submission--has-thumbnail\n  submission--visibility-visible\n">\n    <div class="submission__row">\n\n      <div class="submission__inner">\n        <header class="submission__header">\n          <div class="submission__title-row break-text"><h1 class="submission__title unheaderize inline"><a href="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/submission_images/e3bbc73f1ec8a4421e82d6ec18d3f3f5810b701b140483fb2fb8207df15ba800.jpg"\n         class="submission__link"\n                  rel=""\n          target="_self"\n        ><img src="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_1x/e3bbc73f1ec8a4421e82d6ec18d3f3f5810b701b140483fb2fb8207df15ba800.jpg"\n               srcset="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/media/cache/resolve/submission_thumbnail_2x/e3bbc73f1ec8a4421e82d6ec18d3f3f5810b701b140483fb2fb8207df15ba800.jpg 2x"\n               class="submission__thumb"\n               alt=""\n               width="70"\n               height="70"\n               aria-hidden="true">PsBattle: Child&#039;s Eye Exam</a></h1>\n            \n            \n                      </div>\n\n          <p class="submission__info">\n            <span class="text-sm fg-muted">\n              Submitted by         <a href="/user/RoyBratty" class="submission__submitter fg-inherit"><strong>RoyBratty</strong></a>    <small class="fg-grey text-sm user-flag">t3_1265bqn</small>\n   <time class="submission__timestamp"\n        data-controller="relative-time"\n        datetime="2023-03-30T00:03:33+00:00"\n        title="March 30, 2023 at 12:03:33 AM UTC">on March 30, 2023 at 12:03 AM</time>\n\n                          </span>\n          </p>\n        </header>\n\n                \n        <nav class="submission__nav">\n          <ul class="unlistify fg-muted flex flex--guttered">\n                  <li>\n    <a href="/f/photoshopbattles/131437/psbattle-child-s-eye-exam"\n         class="text-sm"><strong>10 comments</strong></a><span class="js-display-new-comments submission__new-comments text-sm fg-green"\n            data-submission-id="131437"\n            data-comment-count="10">\n      </span></li>\n\n        \n    \n  \n  \n\n          </ul>\n        </nav>\n      </div>\n\n      <div class="submission__vote"><form action="/sv/131437"\n        method="post"\n        class="vote"\n        >\n\n        \n          <button type="submit"\n          name="choice"\n          value="1"\n          class="unbuttonize vote__button vote__up"\n          title="Upvote"\n          data-action="vote#up"\n          data-vote-target="up">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="up"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#up"/></svg></span></span>\n  </button>\n    \n    <span class="vote__net-score" data-vote-target="score">67</span>\n\n    <span class="vote__spinner"><span class="icon icon--with-alt-text icon--pulse"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="loading"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#spinner"/></svg></span></span>\n\n          <button type="submit"\n          name="choice"\n          value="-1"\n          class="unbuttonize vote__button vote__down"\n          title="Downvote"\n          data-action="vote#down"\n          data-vote-target="down">\n    <span aria-hidden="true"><span class="icon icon--with-alt-text icon--no-align"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E"\n                 alt="down"\n                 class="icon__alt "\n                 aria-hidden="true"\n                 width="0"\n                 height="0"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#down"/></svg></span></span>\n  </button>\n      </form></div>\n    </div>\n  </article>\n\n  \n        <nav class="pagination" role="navigation">\n      <ul class="flex flex--guttered unlistify">\n        <span class="flex__grow" aria-hidden="true"></span>\n\n        \n        \n                  <li class="next">\n                          <a href="http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/f/photoshopbattles/new?next%5Bid%5D=131436"\n                 class="button button--secondary"\n                 rel="next">\n                More\n              </a>\n                      </li>\n        \n        <span class="flex__grow" aria-hidden="true"></span>\n      </ul>\n    </nav>\n  </main>\n        <aside class="site-content__sidebar sidebar flow" id="sidebar">  <section class="sidebar__section flow">\n    <h1 class="sidebar__title forum-title break-text">\n      <a href="/f/photoshopbattles">photoshopbattles</a>\n          </h1>\n\n    \n          <div class="forum-sidebar-content break-text text-flow"><p lang="en" dir="ltr">t5_2tecy</p>\n</div>\n\n      <hr>\n    \n    <ul class="text-sm unlistify">\n      <li class="fg-muted">Created <time class=""\n        data-controller="relative-time"\n        datetime="2022-10-01T01:01:33+00:00"\n        title="October 1, 2022 at 1:01:33 AM UTC">October 1, 2022</time></li>\n\n      <li>\n        <a href="/f/photoshopbattles/new.atom"\n           rel="alternate"\n           type="application/atom+xml"\n           class="no-underline"><span class="icon  fg-orange"><svg width="16" height="16"><use xlink:href="/build/images/icons.64b6a2fd.svg#rss-squared"/></svg></span>\n          <span class="no-underline__exempt">Subscribe via RSS</span>\n        </a>\n      </li>\n    </ul>\n  </section>\n\n  \n      <section class="sidebar__section flow">\n      <h1 class="sidebar__title">Toolbox</h1>\n\n      \n      <ul class="unlistify sidebar__no-padding">\n                            <li>\n            <a href="/f/photoshopbattles/bans"\n              class="menu-item ">Bans</a>\n          </li>\n                            <li>\n            <a href="/f/photoshopbattles/moderation_log"\n              class="menu-item ">Moderation log</a>\n          </li>\n              </ul>\n    </section>\n  \n        \n  </aside>\n      </div>\n    \n                <footer class="site-footer">\n        <p>\n          <span class="fg-muted text-xs page-shadow">Running <a href="https://postmill.xyz/">Postmill</a> </span>\n        </p>\n      </footer>\n    \n          <script src="/bundles/bazingajstranslation/js/translator.min.js?aee7f7cac8e57879"></script>\n      <script src="/bundles/fosjsrouting/js/router.js?cee7b3016ac52c0d"></script>\n\n              <script src="/js/translations/config.js?95e71d595f9f19b9"></script>\n        <script src="/js/translations/en.js?05d2ae8c44538212"></script>\n        <script src="/js/routing.js?8a3c719cedc7be73"></script>\n      \n      \n      <script src="/build/runtime.b14b009f.js" integrity="sha384-MgZw8IY9d7+hcyKbUpMK8N4JsJ72yHbhDRUxB8I5qUy996yMrBn+PnbVTuDVh7Wd"></script><script src="/build/1.2885d39a.js" integrity="sha384-TX3isy5uTDbSugz7sw4Jn8Kbvq7imgsI6UCaHiEv8JLDZyxZsNp0TBu6eFlJEKqE"></script><script src="/build/main.db4d0044.js" integrity="sha384-vaebNPtqpmdNsv2HU8kA/6KxeW61WvAkMeGoR4lR4OEpqTRPRtRhTdCyW5kIRKtk"></script>\n      </body>\n</html>\n'
+
+Step 5:
+act - **IPythonRunCellAction**
+THOUGHT: The HTML response is quite lengthy, but we need to extract the latest post and the user who made it. To do this, we will parse the HTML to find the relevant information.
+
+### Step 2: Parse the HTML to find the latest post and the user who made it
+CODE:
+from bs4 import BeautifulSoup
+
+# Parse the HTML response
+soup = BeautifulSoup(response.text, 'html.parser')
+
+# Find the latest post
+latest_post = soup.find('article', class_='submission')
+
+# Extract the user who made the latest post
+user_link = latest_post.find('a', class_='submission__submitter')
+latest_user = user_link.text.strip()
+
+latest_user
+obs - **IPythonRunCellObservation**
+'Proud_Idiot'
+
+Step 6:
+act - **IPythonRunCellAction**
+THOUGHT: We have identified the user who made the latest post in the "photoshopbattles" forum: `Proud_Idiot`.
+
+### Step 3: Retrieve all comments made by this user
+CODE:
+# Retrieve all comments made by the user
+user_comments_response = requests.get(f"{base_url}/user/Proud_Idiot/comments")
+user_comments_response.json()
+obs - **IPythonRunCellObservation**
+---------------------------------------------------------------------------
+JSONDecodeError                           Traceback (most recent call last)
+File ~/.local/lib/python3.10/site-packages/requests/models.py:974, in Response.json(self, **kwargs)
+    973 try:
+--> 974     return complexjson.loads(self.text, **kwargs)
+    975 except JSONDecodeError as e:
+    976     # Catch JSON-related errors and raise as requests.JSONDecodeError
+    977     # This aliases json.JSONDecodeError and simplejson.JSONDecodeError
+
+File /usr/lib/python3.10/json/__init__.py:346, in loads(s, cls, object_hook, parse_float, parse_int, parse_constant, object_pairs_hook, **kw)
+    343 if (cls is None and object_hook is None and
+    344         parse_int is None and parse_float is None and
+    345         parse_constant is None and object_pairs_hook is None and not kw):
+--> 346     return _default_decoder.decode(s)
+    347 if cls is None:
+
+File /usr/lib/python3.10/json/decoder.py:337, in JSONDecoder.decode(self, s, _w)
+    333 """Return the Python representation of ``s`` (a ``str`` instance
+    334 containing a JSON document).
+    335 
+    336 """
+--> 337 obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+    338 end = _w(s, end).end()
+
+File /usr/lib/python3.10/json/decoder.py:355, in JSONDecoder.raw_decode(self, s, idx)
+    354 except StopIteration as err:
+--> 355     raise JSONDecodeError("Expecting value", s, err.value) from None
+    356 return obj, end
+
+JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+During handling of the above exception, another exception occurred:
+
+JSONDecodeError                           Traceback (most recent call last)
+Cell In[1], line 3
+      1 # Retrieve all comments made by the user
+      2 user_comments_response = requests.get(f"{base_url}/user/Proud_Idiot/comments")
+----> 3 user_comments_response.json()
+
+File ~/.local/lib/python3.10/site-packages/requests/models.py:978, in Response.json(self, **kwargs)
+    974     return complexjson.loads(self.text, **kwargs)
+    975 except JSONDecodeError as e:
+    976     # Catch JSON-related errors and raise as requests.JSONDecodeError
+    977     # This aliases json.JSONDecodeError and simplejson.JSONDecodeError
+--> 978     raise RequestsJSONDecodeError(e.msg, e.doc, e.pos)
+
+JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+Step 7:
+act - **BrowseInteractiveAction**
+BROWSER_ACTIONS: goto("http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/user/Proud_Idiot/comments")
+obs - **BrowserOutputObservation**
+URL: http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/user/Proud_Idiot/comments
+Status code: 200
+Error: False
+Open pages: ['http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/user/Proud_Idiot/comments']
+Active page index: 0
+Last browser action: goto("http://ec2-18-219-239-190.us-east-2.compute.amazonaws.com:9999/user/Proud_Idiot/comments")
+Last browser action error: 
+Focused element bid: 17
+CONTENT: Jump to main content  Jump to sidebar 
+
+[ **Postmill** ](/)
+
+  * [ Forums ](/forums)
+  * [ Wiki ](/wiki)
+
+
+
+  * [ ](/notifications "Notifications \(0\)")
+  * [ Submit  ](/submit)
+  * **MarvelsGrantMan136** <::after>
+    * Logged in as **MarvelsGrantMan136**
+    * * * *
+
+    * [ Profile ](/user/MarvelsGrantMan136)
+    * [ My account ](/user/MarvelsGrantMan136/account)
+    * [ User settings ](/user/MarvelsGrantMan136/preferences)
+    * [ Block list ](/user/MarvelsGrantMan136/block_list)
+    * * * *
+
+    * Dark mode  Light mode 
+    * Log out 
+
+
+
+  * [ Overview ](/user/Proud_Idiot)
+  * [ Submissions ](/user/Proud_Idiot/submissions)
+  * [ Comments ](/user/Proud_Idiot/comments)
+
+
+
+#  Proud_Idiot 
+
+There are no entries to display. 
+
+#  [ Proud_Idiot ](/user/Proud_Idiot)
+
+Registered  9 years ago 
+
+t2_qa08j 
+
+#  Toolbox 
+
+  * [ Block user ](/user/Proud_Idiot/block_user)
+  * [ Send message ](/user/Proud_Idiot/compose_message)
+
+
+
+Running [ Postmill ](https://postmill.xyz/)
+
+
+
+Step 8:
+act - AgentFinishAction(outputs={}, thought='It appears that the user `Proud_Idiot` has no comments to display. Therefore, the count of comments that have received more downvotes than upvotes for this user is zero.\n\nFinish[0]', action='finish')
+obs - NullObservation(content='', observation='null')
+
