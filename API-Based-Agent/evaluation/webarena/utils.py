@@ -25,8 +25,7 @@ os.environ['GITLAB'] = 'http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:
 os.environ['WIKIPEDIA'] = 'http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:8888'
 os.environ['MAP'] = 'http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:3000'
 os.environ['HOMEPAGE'] = 'HOMEPAGE'
-os.environ['OPENAI_API_KEY'] = ""
-
+os.environ['OPENAI_API_KEY'] = ''
 from playwright.sync_api import sync_playwright
 try:
     from webarena.evaluation_harness.helper_functions import (
@@ -86,7 +85,7 @@ def get_shopping_admin_admin_auth_token():
     return response.json()
 
 def parse_test_file():
-    json_file_path = '/API-Based-Agent/evaluation/webarena/test.raw.json'
+    json_file_path = '/Users/jianhaonan/Desktop/API-Based-Agent/evaluation/webarena/test.raw.json'
     with open(json_file_path, 'r') as file:
         file = file.read()
         file = file.replace('__GITLAB__', os.getenv('GITLAB'))
@@ -215,7 +214,7 @@ def get_gitlab_apis():
     return api_file
 
 def get_shopping_apis(shopping_html_pages = []):
-    api_file_path = 'API-Based-Agent/evaluation/webarena/api/shopping/shopping.txt'
+    api_file_path = '/Users/jianhaonan/Desktop/API-Based-Agent/evaluation/webarena/api/shopping/shopping.txt'
     with open(api_file_path, 'r') as file:
         api_file = file.read()
     shopping_html_pages = [shopping_html_page for shopping_html_page in shopping_html_pages if shopping_html_page != os.getenv('SHOPPING')]
@@ -227,7 +226,7 @@ def get_shopping_apis(shopping_html_pages = []):
     return new_api_file
 
 def get_map_apis(map_html_pages = []):
-    api_file_path = 'API-Based-Agent/evaluation/webarena/api/map/map.txt'
+    api_file_path = '/Users/jianhaonan/Desktop/API-Based-Agent/evaluation/webarena/api/map/map.txt'
     with open(api_file_path, 'r') as file:
         api_file = file.read()
     map_html_pages = [map_html_page for map_html_page in map_html_pages if map_html_page != os.getenv('MAP')]
@@ -243,61 +242,92 @@ def get_reddit_apis():
         f = f.read()
     return f
 
+def get_wikipedia_apis():
+    try:
+        with open('API-Based-Agent/evaluation/webarena/api/wikipedia/wikipedia.txt', 'r') as f:
+            return f.read()
+    except FileNotFoundError:
+        try:
+            with open('/Users/jianhaonan/Desktop/API-Based-Agent/workspace/api/wikipedia/wikipedia.txt', 'r') as f:
+                return f.read()
+        except FileNotFoundError:
+            return 'Wikipedia API documentation not found'
+
 def get_initial_prompt_from_task(task):
-    sites = task['sites']
-    if sites == ['gitlab'] or ('gitlab' in sites and 'wikipedia' in sites): 
-        site_name = 'gitlab'
-        site_base = os.getenv('GITLAB')
-        os.environ['GITLAB_START_URL'] = task['start_url']
-        logger.info(f"os.environ['GITLAB_START_URL']: {os.environ['GITLAB_START_URL']}")
-        return get_initial_prompt(site_name, site_base, task, get_gitlab_apis(), gitlab_token)
-    if sites == ['shopping']: 
-        site_name = 'shopping'
-        site_base = os.getenv('SHOPPING')
-        shopping_api_file = get_shopping_apis()
-        os.environ['SHOPPING_START_URL'] = task['start_url']
-        logger.info(f"os.environ['SHOPPING_START_URL']: {os.environ['SHOPPING_START_URL']}")
-        admin_token = get_shopping_admin_auth_token()
-        customer_token = get_shopping_customer_auth_token()
-        extra_user_info = f'You should always use my access token {admin_token} in general. However, only when using the endpoints that contains `/V1/carts/mine` in the API, you must use this access token: {customer_token}, which you must not use for any other endpoints. For example, for the API endpoint `V1/products` you should use {admin_token}; while for the `/V1/carts/mine/items` endpoint, you should use {customer_token}.\n'
-        return get_initial_prompt(site_name, site_base, task, shopping_api_file, '', extra_user_info)
-    if sites == ['shopping_admin']:
-        site_name = 'shopping_admin'
-        site_base = os.getenv('SHOPPING_ADMIN')
-        shopping_api_file = get_shopping_apis()
-        os.environ['SHOPPING_ADMIN_START_URL'] = task['start_url']
-        logger.info(f"os.environ['SHOPPING_ADMIN_START_URL']: {os.environ['SHOPPING_ADMIN_START_URL']}")
-        admin_token = get_shopping_admin_admin_auth_token()
-        return get_initial_prompt(site_name, site_base, task, shopping_api_file, admin_token, '')
-    if sites == ['map'] or ('map' in sites and 'wikipedia' in sites):
-        site_name = 'map'
-        site_base = os.getenv('MAP')
-        map_api_file = get_map_apis()
-        os.environ['MAP_START_URL'] = task['start_url']
-        logger.info(f"os.environ['MAP_START_URL']: {os.environ['MAP_START_URL']}")
-        return get_initial_prompt(site_name, site_base, task, map_api_file, '', '')
-    if sites == ['reddit']:
-        site_name = 'reddit'
-        site_base = os.getenv('REDDIT')
-        reddit_api_file = get_reddit_apis()
-        os.environ['REDDIT_START_URL'] = task['start_url']
-        logger.info(f"os.environ['REDDIT_START_URL']: {os.environ['REDDIT_START_URL']}")
-        return get_initial_prompt(site_name, site_base, task, reddit_api_file, '', '')
-    if sites == ['map', 'shopping_admin']:
-        shopping_admin_site = {'site_base': os.getenv('SHOPPING_ADMIN'), 'api_info': get_shopping_apis(), 'api_token': get_shopping_admin_admin_auth_token(), 'extra_user_info': ''}
-        map_site = {'site_base': os.getenv('MAP'), 'api_info': get_map_apis(), 'api_token': '', 'extra_user_info': ''}
-        sites = {'shopping_admin': shopping_admin_site, 'map': map_site}
-        return get_initial_prompt_multi(sites, task)
-    if sites == ['shopping', 'reddit']:
-        shopping_site = {'site_base': os.getenv('SHOPPING'), 'api_info': get_shopping_apis(), 'api_token': get_shopping_admin_auth_token(), 'extra_user_info': ''}
-        reddit_site = {'site_base': os.getenv('REDDIT'), 'api_info': get_reddit_apis(), 'api_token': '', 'extra_user_info': ''}
-        sites = {'shopping': shopping_site, 'reddit': reddit_site}
-        return get_initial_prompt_multi(sites, task)
-    if sites == ['gitlab', 'reddit'] or sites == ['reddit', 'gitlab']:
-        gitlab_site = {'site_base': os.getenv('GITLAB'), 'api_info': get_gitlab_apis(), 'api_token': gitlab_token, 'extra_user_info': ''}
-        reddit_site = {'site_base': os.getenv('REDDIT'), 'api_info': get_reddit_apis(), 'api_token': '', 'extra_user_info': ''}
-        sites = {'gitlab': gitlab_site, 'reddit': reddit_site}
-        return get_initial_prompt_multi(sites, task)
+    sites_list = task['sites']
+    
+    # Helper function to create site configuration
+    def create_site_config(site_name):
+        config = {
+            'site_base': '',
+            'api_info': '',
+            'api_token': '',
+            'extra_user_info': ''
+        }
+        
+        if site_name == 'gitlab':
+            config['site_base'] = os.getenv('GITLAB')
+            config['api_info'] = get_gitlab_apis()
+            config['api_token'] = gitlab_token
+            os.environ['GITLAB_START_URL'] = task['start_url']
+            logger.info(f"os.environ['GITLAB_START_URL']: {os.environ['GITLAB_START_URL']}")
+            
+        elif site_name == 'shopping':
+            config['site_base'] = os.getenv('SHOPPING')
+            config['api_info'] = get_shopping_apis()
+            admin_token = get_shopping_admin_auth_token()
+            customer_token = get_shopping_customer_auth_token()
+            config['extra_user_info'] = f'You should always use my access token {admin_token} in general. However, only when using the endpoints that contains `/V1/carts/mine` in the API, you must use this access token: {customer_token}, which you must not use for any other endpoints. For example, for the API endpoint `V1/products` you should use {admin_token}; while for the `/V1/carts/mine/items` endpoint, you should use {customer_token}.\n'
+            os.environ['SHOPPING_START_URL'] = task['start_url']
+            logger.info(f"os.environ['SHOPPING_START_URL']: {os.environ['SHOPPING_START_URL']}")
+            
+        elif site_name == 'shopping_admin':
+            config['site_base'] = os.getenv('SHOPPING_ADMIN')
+            config['api_info'] = get_shopping_apis()
+            config['api_token'] = get_shopping_admin_admin_auth_token()
+            os.environ['SHOPPING_ADMIN_START_URL'] = task['start_url']
+            logger.info(f"os.environ['SHOPPING_ADMIN_START_URL']: {os.environ['SHOPPING_ADMIN_START_URL']}")
+            
+        elif site_name == 'map':
+            config['site_base'] = os.getenv('MAP')
+            config['api_info'] = get_map_apis()
+            os.environ['MAP_START_URL'] = task['start_url']
+            logger.info(f"os.environ['MAP_START_URL']: {os.environ['MAP_START_URL']}")
+            
+        elif site_name == 'reddit':
+            config['site_base'] = os.getenv('REDDIT')
+            config['api_info'] = get_reddit_apis()
+            os.environ['REDDIT_START_URL'] = task['start_url']
+            logger.info(f"os.environ['REDDIT_START_URL']: {os.environ['REDDIT_START_URL']}")
+            
+        elif site_name == 'wikipedia':
+            config['site_base'] = os.getenv('WIKIPEDIA')
+            config['api_info'] = get_wikipedia_apis()
+            # Wikipedia doesn't need special tokens or env vars typically
+            
+        return config
+    
+    # Handle single-site cases
+    if len(sites_list) == 1:
+        site_name = sites_list[0]
+        config = create_site_config(site_name)
+        return get_initial_prompt(
+            site_name, 
+            config['site_base'], 
+            task, 
+            config['api_info'], 
+            config['api_token'], 
+            config['extra_user_info']
+        )
+    
+    # Handle multi-site cases
+    elif len(sites_list) > 1:
+        sites_dict = {}
+        for site_name in sites_list:
+            sites_dict[site_name] = create_site_config(site_name)
+        
+        return get_initial_prompt_multi(sites_dict, task)
+    
     return ''
 
 def clean_answer(answer: str) -> str:
@@ -315,38 +345,193 @@ def exact_match(ref: str, pred: str) -> float:
     return float(clean_answer(pred) == clean_answer(ref))
 
 def must_include(ref: str, pred: str, tokenize: bool = False) -> float:
+    # Extract answer from Finish[] tag if present, similar to exact_match
+    pattern = r'Finish\[(.*?)\]'
+    matches = re.findall(pattern, pred)
+    if matches != []: 
+        pred = matches[-1]  # Use the last Finish[] tag
+        logger.info(f"must_include - extracted answer from Finish[]: '{pred}'")
+    
     clean_ref = clean_answer(ref)
     clean_pred = clean_answer(pred)
-    return float(clean_ref in clean_pred)
+    
+    # For must_include, always check containment (not exact match)
+    # This ensures "180" is found within "000000180"
+    logger.info(f"must_include - containment check: '{clean_ref}' in '{clean_pred}'")
+    result = clean_ref in clean_pred
+    
+    logger.info(f"must_include - result: {result}")
+    return float(result)
 
-def fuzzy_match(ref, pred, intent, max_len=2000, retries=2):
-    # Truncate to avoid context length errors
+def fuzzy_match(ref, pred, intent, max_len=8000, retries=2):
+    # Log input parameters for debugging
+    logger.info(f"fuzzy_match called with:")
+    logger.info(f"  Reference: '{ref}'")
+    logger.info(f"  Prediction (truncated): '{pred[:100]}...'")  # Only log first 100 chars
+    logger.info(f"  Intent: '{intent}'")
+    
+    # Extract ONLY the answer from the Finish[] tag - this is the most important part
+    extracted_answer = None
+    task_completed = False
+    
+    # Find the LAST occurrence of "Finish[" in the entire text
+    finish_idx = pred.rfind("Finish[")
+    if finish_idx >= 0:
+        end_idx = pred.find("]", finish_idx)
+        if end_idx >= 0:
+            extracted_answer = pred[finish_idx+7:end_idx].strip()
+            task_completed = True
+            logger.info(f"  Extracted final answer from last Finish[]: '{extracted_answer}'")
+    
+    # If we couldn't find Finish[] or extract an answer, the task was not completed
+    if extracted_answer is None or extracted_answer == "":
+        if not task_completed:
+            # Agent never completed the task - this should be marked as failure
+            logger.info(f"  No Finish[] tag found - agent did not complete task")
+            return (0.0, "Agent did not complete the task (no Finish[] tag found)")
+        else:
+            # Found Finish[] but it was empty
+            extracted_answer = ""
+            logger.info(f"  Found empty Finish[] tag")
+    
+    # Use the extracted answer for comparison
+    pred_to_compare = extracted_answer
+    logger.info(f"  Using for comparison: '{pred_to_compare}'")
+    
+    # Truncate if needed to avoid context length errors
     ref = ref[:max_len]
-    pred = pred[:max_len]
+    pred_to_compare = pred_to_compare[:max_len]
+    
+    # If simple approach didn't work, proceed with OpenAI API
     for attempt in range(retries):
         try:
-            return llm_fuzzy_match(pred, ref, intent)
-        except openai.error.RateLimitError:
-            print(f"Rate limit hit, waiting and retrying... (attempt {attempt+1})")
-            time.sleep(1)
-        except openai.error.APIConnectionError:
-            print(f"Connection error, waiting and retrying... (attempt {attempt+1})")
-            time.sleep(1)
-        except openai.error.InvalidRequestError as e:
-            if "context length" in str(e):
-                print("Context length exceeded, waiting and skipping this instance.")
-                time.sleep(1)
-                return 0.0
+            logger.info(f"Attempt {attempt+1}: Calling OpenAI API")
+            # Create a new client instance using the new OpenAI API format
+            client = openai.OpenAI(
+                api_key=os.environ.get('OPENAI_API_KEY', '')
+            )
+            
+            # Use a more detailed prompt that asks for reasoning
+            message = 'Determine if the student answer contains the reference information:\n'
+            message += f'Question: {intent}\n'
+            message += f'Reference information to find: {ref}\n'
+            message += f'Student answer: {pred_to_compare}\n\n'
+            message += 'IMPORTANT EVALUATION RULES:\n'
+            message += '- The student answer was extracted from a Finish[] tag, meaning the agent completed the task\n'
+            message += f'- If the reference is "N/A" or similar, it means "no results found" is the correct answer\n'
+            message += '- If the reference is "N/A" and the student found no results/nothing available, this is correct\n'
+            message += '- If the reference is "N/A" and the student did not finish the task, this should be false\n'
+            message += '- If the reference is specific content and the student answer contains that content, this is CORRECT\n'
+            message += '- If the reference is time, an approximate equal time in other unit is correct, for example, 782 seconds is correct for 13 minutes\n'
+            message += '- If the reference is address, an approxiamate address with enough information is correct'
+            message += '- Focus on semantic meaning, not exact wording\n\n'
+            message += 'Please provide your reasoning first, then give your final answer.\n'
+            message += 'Format: REASONING: [explain why] FINAL: [correct/incorrect]'
+
+            
+            # Call the OpenAI API with the new format
+            response = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": "You are a helpful assistant that evaluates answers based on semantic meaning, not exact wording."},
+                    {"role": "user", "content": message}
+                ],
+                temperature=0,
+                max_tokens=200
+            )
+            
+            # Get the LLM's response
+            full_response = response.choices[0].message.content.strip()
+            logger.info(f"OpenAI API full response: '{full_response}'")
+            
+            # Parse reasoning and result
+            reasoning = "No reasoning provided"
+            result = full_response.lower()
+            
+            if 'reasoning:' in full_response.lower() and 'final:' in full_response.lower():
+                parts = full_response.lower().split('final:')
+                reasoning_part = parts[0].replace('reasoning:', '').strip()
+                result = parts[1].strip()
+                reasoning = reasoning_part
+            
+            if 'incorrect' in result:
+                logger.info("OpenAI considers the answer incorrect - returning (0.0, reasoning)")
+                return (0.0, reasoning)
             else:
-                raise
+                logger.info("OpenAI considers the answer correct - returning (1.0, None)")
+                return (1.0, None)
+            
+        except openai.RateLimitError:
+            logger.warning(f"Rate limit hit, waiting and retrying... (attempt {attempt+1})")
+            time.sleep(1)
+        except openai.APIConnectionError:
+            logger.warning(f"Connection error, waiting and retrying... (attempt {attempt+1})")
+            time.sleep(1)
+        except openai.BadRequestError as e:
+            if "context length" in str(e):
+                logger.warning("Context length exceeded, truncating and retrying.")
+                max_len = max_len // 2
+                pred_to_compare = pred_to_compare[:max_len]
+                ref = ref[:max_len]
+                continue
+            else:
+                logger.error(f"Bad request error: {str(e)}")
+                return (0.0, f"API error: {str(e)}")
         except Exception as e:
-            print(f"Other error: {e}")
-            return 0.0
-    print("Max retries exceeded, skipping this instance.")
-    return 0.0
+            logger.error(f"Other error: {str(e)}")
+            return (0.0, f"Error: {str(e)}")
+    
+    logger.warning("Max retries exceeded, skipping this instance.")
+    return (0.0, "Max retries exceeded")
 
 def ua_match(ref: str, pred: str, intent: str) -> float:
-    return llm_ua_match(pred, ref, intent)
+    # Extract ONLY the answer from the Finish[] tag - consistent with fuzzy_match
+    extracted_answer = None
+    task_completed = False
+    
+    # Find the LAST occurrence of "Finish[" in the entire text
+    finish_idx = pred.rfind("Finish[")
+    if finish_idx >= 0:
+        end_idx = pred.find("]", finish_idx)
+        if end_idx >= 0:
+            extracted_answer = pred[finish_idx+7:end_idx].strip()
+            task_completed = True
+            logger.info(f"  UA match - extracted final answer: '{extracted_answer}'")
+    
+    # If we couldn't find Finish[] or extract an answer, the task was not completed
+    if extracted_answer is None or extracted_answer == "":
+        if not task_completed:
+            # Agent never completed the task - this should be marked as failure
+            logger.info(f"  UA match - No Finish[] tag found - agent did not complete task")
+            return 0.0
+        else:
+            # Found Finish[] but it was empty
+            extracted_answer = ""
+            logger.info(f"  UA match - Found empty Finish[] tag")
+    
+    # Use the extracted answer for comparison
+    pred_to_compare = extracted_answer
+    
+    # Create a new client instance using the new OpenAI API format
+    client = openai.OpenAI(
+        api_key=os.environ.get('OPENAI_API_KEY', '')
+    )
+    
+    # Call the OpenAI API with the new format
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant that evaluates answers based on semantic meaning, not exact wording."},
+            {"role": "user", "content": f"Determine if these two answers convey the same meaning about why something is not possible or not available:\n\nContext: {intent}\nAnswer 1: {pred_to_compare}\nAnswer 2: {ref}\n\nIMPORTANT: Focus on meaning, not exact wording. If both texts convey that something is not available, not possible, or doesn't exist, they should be considered the same.\n\nAnswer only with 'Yes' or 'No'."}
+        ],
+        temperature=0,
+        max_tokens=10
+    )
+    
+    # Get the LLM's response
+    result = response.choices[0].message.content.strip().lower()
+    logger.info(f"  UA match - OpenAI API result: '{result}'")
+    return float('yes' in result)
 
 def string_match(configs, pred) -> float:
     score = 1.0
@@ -366,31 +551,46 @@ def string_match(configs, pred) -> float:
             case 'fuzzy_match':
                 intent = configs['intent']
                 if value == 'N/A':
-                    # if the instruction only asks the model to generate N/A when encountering an unachievable task
-                    # without more concrete reasons
-                    score *= exact_match(ref=value, pred=pred)
-                    # if the instruction also asks the model to generate the reason why the task is unachievable
-                    # this should be the default as it will prevent false positive N/A`
-                    if score != 1:
-                        score = 1.0 * ua_match(
-                            intent=configs['intent'],
-                            ref=configs['eval']['string_note'],
-                            pred=pred,
-                        )
+                    # For N/A answers, skip the ua_match and use fuzzy_match directly
+                    # This ensures we're using our improved Finish[] extraction logic
+                    assert isinstance(configs['eval'].get('string_note', ''), str)
+                    fuzzy_result = fuzzy_match(
+                        ref=configs['eval'].get('string_note', 'Task is not achievable'), 
+                        pred=pred, 
+                        intent=intent
+                    )
+                    # Handle tuple return type
+                    if isinstance(fuzzy_result, tuple):
+                        fuzzy_score, fuzzy_reasoning = fuzzy_result
+                        if fuzzy_reasoning:
+                            logger.info(f"Fuzzy match reasoning for false result: {fuzzy_reasoning}")
+                        score *= fuzzy_score
+                    else:
+                        # Backward compatibility if still returns float
+                        score *= fuzzy_result
                 else:
                     assert isinstance(value, list)
                     for reference in value:
-                        score *= fuzzy_match(
+                        fuzzy_result = fuzzy_match(
                             ref=reference, pred=pred, intent=intent
                         )
+                        # Handle tuple return type
+                        if isinstance(fuzzy_result, tuple):
+                            fuzzy_score, fuzzy_reasoning = fuzzy_result
+                            if fuzzy_reasoning:
+                                logger.info(f"Fuzzy match reasoning for false result: {fuzzy_reasoning}")
+                            score *= fuzzy_score
+                        else:
+                            # Backward compatibility if still returns float
+                            score *= fuzzy_result
     return score
 
 def parse_urls(history) -> List[str]:
     urls = []
     for line in history.split('\n'):
-        # Handle browser-based agent format
-        if line.startswith('url: '):
-            urls.append(line.split('url: ')[1])
+        # Handle browser-based agent format (case-insensitive)
+        if line.lower().startswith('url: '):
+            urls.append(line.split(': ', 1)[1])  # Use split with maxsplit=1 to handle URLs with colons
         # Handle API-based agent format
         elif 'call_function' in line:
             # Extract URL from call_function output
@@ -420,7 +620,7 @@ def parse_url(url: str) -> tuple[str, dict[str, list[str]]]:
     query = urllib.parse.parse_qs(parsed_url.query)
     return base_path, query
 
-def parse_urls(urls: list[str]) -> tuple[list[str], dict[str, set[str]]]:
+def parse_url_list(urls: list[str]) -> tuple[list[str], dict[str, set[str]]]:
     """Parse a list of URLs."""
     base_paths = []
     queries = collections.defaultdict(set)
@@ -437,365 +637,914 @@ def parse_parameter(param):
     Returns: dict[str, list[str]]
     """
     import urllib.parse
+    import ast
     if isinstance(param, dict):
-        return {k: [str(v)] if not isinstance(v, list) else [str(x) for x in v] for k, v in param.items()}
+        # URL decode values in the dictionary
+        result = {}
+        for k, v in param.items():
+            if isinstance(v, list):
+                result[k] = [urllib.parse.unquote_plus(str(x)) for x in v]
+            else:
+                result[k] = [urllib.parse.unquote_plus(str(v))]
+        return result
     elif isinstance(param, str):
+        # Try to parse as dict if it looks like one
+        try:
+            parsed = ast.literal_eval(param)
+            if isinstance(parsed, dict):
+                result = {}
+                for k, v in parsed.items():
+                    if isinstance(v, list):
+                        result[k] = [urllib.parse.unquote_plus(str(x)) for x in v]
+                    else:
+                        result[k] = [urllib.parse.unquote_plus(str(v))]
+                return result
+            if isinstance(parsed, list) and len(parsed) > 0 and isinstance(parsed[0], dict):
+                # If it's a list of dicts, merge all keys
+                merged = {}
+                for d in parsed:
+                    for k, v in d.items():
+                        if k not in merged:
+                            merged[k] = []
+                        if isinstance(v, list):
+                            merged[k].extend([urllib.parse.unquote_plus(str(x)) for x in v])
+                        else:
+                            merged[k].append(urllib.parse.unquote_plus(str(v)))
+                return merged
+        except Exception:
+            pass
+        # Otherwise, parse as query string
         parsed_url = urllib.parse.urlparse(param)
-        return urllib.parse.parse_qs(parsed_url.query)
+        parsed_params = urllib.parse.parse_qs(parsed_url.query)
+        # URL decode all values
+        result = {}
+        for k, v_list in parsed_params.items():
+            result[k] = [urllib.parse.unquote_plus(v) for v in v_list]
+        return result
     else:
         return {}
 
-def url_match(configs, pred, history, check_all_history=False) -> float:
+def url_match(configs, pred, history, check_all_history=False, log_file=None):
+    def create_simple_details(score, method='parameter_matching', extra_info=None):
+        """Helper to create simple details for non-LLM evaluations"""
+        details = {
+            'evaluation_method': method,
+            'check_all_history': check_all_history,
+            'success': score > 0,
+            'html_url_detected': False
+        }
+        if extra_info:
+            details.update(extra_info)
+        return score, details
+    
     # Only run if 'url_match' is in eval_types
     if 'url_match' not in configs['eval'].get('eval_types', []):
-        return 1.0
+        return create_simple_details(1.0, 'not_required')
 
     # Get the reference URLs
     ref_urls = configs['eval'].get('reference_url', '')
     if not ref_urls:
-        return 1.0
+        return create_simple_details(1.0, 'no_reference_urls')
 
     ref_urls = ref_urls.split(' |OR| ')
     ref_urls = [clean_url(url) for url in ref_urls]
     matching_rule = configs['eval'].get('url_note', 'GOLD in PRED')
 
-    def queries_match(q1, q2):
-        # Only require that all keys in q1 are present in q2 (q2 can have extra keys)
-        if not set(q1.keys()).issubset(set(q2.keys())):
-            return False
-        for k in q1:
-            if sorted(q1[k]) != sorted(q2[k]):
+    # Debug: Print reference URLs for inspection
+    logger.info(f"URL Match - Reference URLs: {ref_urls}")
+    def queries_match(ref_params, pred_params):
+        """Check if the reference query parameters are contained in the prediction parameters"""
+        logger.info(f"URL Match - Comparing params: {ref_params} vs {pred_params}")
+        
+        # Special handling for GitLab label parameters
+        # GitLab web UI uses label_name[] while API uses labels
+        if 'label_name[]' in ref_params and 'labels' in pred_params:
+            ref_labels = ref_params['label_name[]']
+            pred_labels = pred_params['labels']
+            
+            logger.info(f"URL Match - Found GitLab label parameters: {ref_labels} vs {pred_labels}")
+            
+            # Check if all reference labels are in the prediction labels
+            # For GitLab, labels in API can be comma-separated
+            pred_label_set = set()
+            for label_str in pred_labels:
+                for label in label_str.split(','):
+                    pred_label_set.add(label.strip().lower())
+            
+            ref_label_set = {label.strip().lower() for label in ref_labels}
+            
+            logger.info(f"URL Match - Comparing label sets: {ref_label_set} vs {pred_label_set}")
+            
+            # Check if all ref labels are found in pred labels
+            if ref_label_set.issubset(pred_label_set):
+                logger.info("URL Match - GitLab labels match successfully")
+                return True
+            else:
+                missing_labels = ref_label_set - pred_label_set
+                logger.info(f"URL Match - GitLab labels don't match - missing: {missing_labels}")
                 return False
-        return True
-
-    def parse_parameter(param):
-        import urllib.parse
-        import ast
-        if isinstance(param, dict):
-            return {k: [str(v)] if not isinstance(v, list) else [str(x) for x in v] for k, v in param.items()}
-        elif isinstance(param, str):
-            # Try to parse as dict if it looks like one
-            try:
-                parsed = ast.literal_eval(param)
-                if isinstance(parsed, dict):
-                    return {k: [str(v)] if not isinstance(v, list) else [str(x) for x in v] for k, v in parsed.items()}
-                if isinstance(parsed, list) and len(parsed) > 0 and isinstance(parsed[0], dict):
-                    # If it's a list of dicts, merge all keys
-                    merged = {}
-                    for d in parsed:
-                        for k, v in d.items():
-                            if k not in merged:
-                                merged[k] = []
-                            if isinstance(v, list):
-                                merged[k].extend([str(x) for x in v])
-                            else:
-                                merged[k].append(str(v))
-                    return merged
-            except Exception:
-                pass
-            # Otherwise, parse as query string
-            parsed_url = urllib.parse.urlparse(param)
-            return urllib.parse.parse_qs(parsed_url.query)
+        
+        # Simple value-based matching: collect all values from both ref and pred, then compare
+        logger.info("URL Match - Using simple value-based matching (ignore key names)")
+        
+        # Collect all reference values
+        ref_all_values = set()
+        for ref_key, ref_values in ref_params.items():
+            for value in ref_values:
+                ref_all_values.add(str(value).lower())
+        
+        # Collect all prediction values  
+        pred_all_values = set()
+        for pred_key, pred_values in pred_params.items():
+            for value in pred_values:
+                pred_all_values.add(str(value).lower())
+        
+        logger.info(f"URL Match - Reference values: {ref_all_values}")
+        logger.info(f"URL Match - Prediction values: {pred_all_values}")
+        
+        # Check if all ref values can be found in pred values
+        if ref_all_values.issubset(pred_all_values):
+            logger.info(f"URL Match - All reference values found in prediction: {ref_all_values} ⊆ {pred_all_values}")
+            return True
         else:
-            return {}
+            missing_values = ref_all_values - pred_all_values
+            logger.info(f"URL Match - Missing values in prediction: {missing_values}")
+            return False
 
-    if check_all_history:
-        all_urls = []
-        all_params = []
-        lines = history.split('\n')
-        i = 0
-        while i < len(lines):
-            line = lines[i]
-            if line.startswith('url: '):
-                url = line.split('url: ')[1].strip()
-                all_urls.append(clean_url(url))
-                # Look ahead for parameter or content
-                param_dict = None
-                for j in range(1, 4):  # look up to 3 lines ahead
-                    if i + j < len(lines):
-                        next_line = lines[i + j].strip()
-                        if next_line.startswith('parameter:'):
-                            param_str = next_line[len('parameter:'):].strip()
-                            param_dict = parse_parameter(param_str)
-                            break
-                        elif next_line.startswith('content:'):
-                            content_str = next_line[len('content:'):].strip()
-                            param_dict = parse_parameter(content_str)
-                            break
-                if param_dict is None:
-                    param_dict = parse_parameter(url)  # fallback to query string
-                all_params.append(param_dict)
-            elif 'call_function' in line:
-                url_match = re.search(r'url: (.*?)(?=\n|$)', line)
-                if url_match:
-                    url = url_match.group(1).strip()
-                    all_urls.append(clean_url(url))
-                    # Look ahead for parameter or content
-                    param_dict = None
-                    for j in range(1, 4):
-                        if i + j < len(lines):
-                            next_line = lines[i + j].strip()
-                            if next_line.startswith('parameter:'):
-                                param_str = next_line[len('parameter:'):].strip()
-                                param_dict = parse_parameter(param_str)
-                                break
-                            elif next_line.startswith('content:'):
-                                content_str = next_line[len('content:'):].strip()
-                                param_dict = parse_parameter(content_str)
-                                break
-                    if param_dict is None:
-                        param_dict = parse_parameter(url)
-                    all_params.append(param_dict)
-            i += 1
-        last_url = get_url(history, pred)
-        if last_url:
-            all_urls.append(clean_url(last_url))
-            all_params.append(parse_parameter(last_url))
-        if not all_urls:
-            return 0.0
-        for ref_url in ref_urls:
-            ref_base_path = ''
-            if isinstance(ref_url, str):
-                parsed_url = urllib.parse.urlparse(ref_url)
-                ref_base_path = parsed_url.netloc + parsed_url.path
-            ref_query = parse_parameter(ref_url)
-            for url, param in zip(all_urls, all_params):
-                pred_base_path = ''
-                if isinstance(url, str):
-                    parsed_url = urllib.parse.urlparse(url)
-                    pred_base_path = parsed_url.netloc + parsed_url.path
-                pred_query = param
-                if matching_rule == 'GOLD in PRED':
-                    if ref_base_path in pred_base_path and queries_match(ref_query, pred_query):
-                        return 1.0
-                elif matching_rule == 'PRED in GOLD':
-                    if pred_base_path in ref_base_path and queries_match(ref_query, pred_query):
-                        return 1.0
-                else:  # exact match
-                    if ref_url == url:
-                        return 1.0
-        return 0.0
-    else:
-        last_url = get_url(history, pred)
-        last_url = clean_url(last_url)
-        if last_url == '':
-            return 0.0
-        ref_base_path = ''
-        if isinstance(ref_urls[0], str):
-            parsed_url = urllib.parse.urlparse(ref_urls[0])
-            ref_base_path = parsed_url.netloc + parsed_url.path
-        ref_query = parse_parameter(ref_urls[0])
-        pred_base_path = ''
-        if isinstance(last_url, str):
-            parsed_url = urllib.parse.urlparse(last_url)
-            pred_base_path = parsed_url.netloc + parsed_url.path
-        pred_query = parse_parameter(last_url)
-        if matching_rule == 'GOLD in PRED':
-            return 1.0 if ref_base_path in pred_base_path and queries_match(ref_query, pred_query) else 0.0
-        elif matching_rule == 'PRED in GOLD':
-            return 1.0 if pred_base_path in ref_base_path and queries_match(ref_query, pred_query) else 0.0
-        else:  # exact match
-            return 1.0 if last_url in ref_urls else 0.0
-
-def program_html(configs, config_file, pred, page, history) -> float:
-    targets = configs['eval']['program_html']
-    score = 1.0
-    for target in targets:
-        target_url: str = target['url']  # which url to check
-        if target_url.startswith('func'):
-            func = target_url.split('func:')[1]
-            last_url = get_url(history, pred)
-            last_url = clean_url(last_url)
-            if last_url == '': 
-                # For API-based agents, try to get content from API responses
-                api_response_match = re.search(r'content: (.*?)(?=\n\n|\Z)', history, re.DOTALL)
-                if api_response_match:
-                    selected_element = api_response_match.group(1)
-                    selected_element = html.unescape(selected_element)
-                    
-                    if 'exact_match' in target['required_contents']:
-                        required_contents = target['required_contents']['exact_match']
-                        cur_score = exact_match(ref=required_contents, pred=selected_element)
-                        score *= float(cur_score)
-                    elif 'must_include' in target['required_contents']:
-                        required_contents = target['required_contents']['must_include']
-                        assert isinstance(required_contents, list)
-                        for content in required_contents:
-                            content_or = content.split(' |OR| ')
-                            cur_score = any([must_include(ref=content, pred=selected_element, tokenize=False) 
-                                          for content in content_or])
-                            score *= float(cur_score)
-                    continue
-                return 0.0
+    # First, try LLM evaluation for HTML URLs (indicating web page navigation)
+    for ref_url in ref_urls:
+        if '.html' in ref_url:
+            logger.info(f"URL Match - HTML URL detected, using LLM to evaluate task completion")
             
-            page.goto(last_url)
-            time.sleep(3)
-            func = func.replace('__last_url__', page.url)
-            target_url = eval(func)
+          
+            extracted_answer = None
             
-        locator: str = target['locator']  # js element locator
-        if target_url != 'last':
-            page.goto(target_url)
-            time.sleep(3)
-        else:
-            last_url = get_url(history, pred)
-            last_url = clean_url(last_url)
-            if last_url == '':
-                # For API-based agents, try to get content from API responses
-                api_response_match = re.search(r'content: (.*?)(?=\n\n|\Z)', history, re.DOTALL)
-                if api_response_match:
-                    selected_element = api_response_match.group(1)
-                    selected_element = html.unescape(selected_element)
-                    
-                    if 'exact_match' in target['required_contents']:
-                        required_contents = target['required_contents']['exact_match']
-                        cur_score = exact_match(ref=required_contents, pred=selected_element)
-                        score *= float(cur_score)
-                    elif 'must_include' in target['required_contents']:
-                        required_contents = target['required_contents']['must_include']
-                        assert isinstance(required_contents, list)
-                        for content in required_contents:
-                            content_or = content.split(' |OR| ')
-                            cur_score = any([must_include(ref=content, pred=selected_element, tokenize=False) 
-                                          for content in content_or])
-                            score *= float(cur_score)
-                    continue
-                return 0.0
+            # Extract final answer from Finish[] tag if present (but don't require it)
+            finish_idx = pred.rfind("Finish[")
+            if finish_idx >= 0:
+                end_idx = pred.find("]", finish_idx)
+                if end_idx >= 0:
+                    extracted_answer = pred[finish_idx+7:end_idx].strip()
+                    logger.info(f"URL Match - Extracted final answer: '{extracted_answer}'")
+            else:
+                logger.info("URL Match - No Finish[] tag found, will evaluate based on agent behavior")
                 
-            page.goto(last_url)
-            time.sleep(3)
+            # Extract URLs from history for the new prompt
+            url_calls = []
+            lines = history.split('\n')
+            url_line_count = 0
+            for line in lines:
+                # Look for URL: or url: patterns (case insensitive)
+                stripped_line = line.strip()
+                if stripped_line.lower().startswith('url:'):
+                    url_calls.append(stripped_line)
+                    url_line_count += 1
             
-        try:
-            if not locator.strip():
-                selected_element = page.content()
-            elif locator.startswith('document.') or locator.startswith('[...document.'):
-                if 'prep_actions' in target:
-                    try:
-                        for prep_action in target['prep_actions']:
-                            page.evaluate(f'() => {prep_action}')
-                    except Exception:
-                        pass
-                try:
-                    selected_element = str(page.evaluate(f'() => {locator}'))
-                    if not selected_element: selected_element = ''
-                except Exception:
-                    # the page is wrong, return empty
-                    selected_element = ''
-            elif locator.startswith('func:'):  # a helper function
-                func = locator.split('func:')[1]
-                func = func.replace('__page__', 'page')
-                selected_element = eval(func)
-            else: raise ValueError(f'Unknown locator: {locator}')
-        except Exception as e:
-            logger.info(f'exception in program_html: {e}')
-            selected_element = ''
-        selected_element = html.unescape(selected_element)
-        if 'exact_match' in target['required_contents']:
-            required_contents = target['required_contents']['exact_match']
-            cur_score = exact_match(
-                ref=required_contents, pred=selected_element
-            )
-            score *= float(cur_score)
-        elif 'must_include' in target['required_contents']:
-            required_contents = target['required_contents']['must_include']
-            assert isinstance(required_contents, list)
-            for content in required_contents:
-                content_or = content.split(' |OR| ')
-                cur_score = any(
-                    [
-                        must_include(
-                            ref=content,
-                            pred=selected_element,
-                            tokenize=False,
-                        )
-                        for content in content_or
-                    ]
+            url_calls_str = '\n'.join(url_calls) if url_calls else "No URLs found in execution log"
+            logger.info(f"URL Match - Found {url_line_count} URL lines in history, extracted {len(url_calls)} URLs")
+            if url_calls:
+                logger.info(f"URL Match - Sample extracted URLs: {url_calls_str[:300]}...")
+            
+            # Extract reasoning from logs using helper function (similar to html_match)
+            try:
+                # Import the helper function
+                import sys
+                import os
+                sys.path.append('/Users/jianhaonan/Desktop/API-Based-Agent')
+                from extract_log import extract_agent_info
+                
+                # Use helper function if log_file is available, otherwise fallback to history
+                if log_file:
+                    extracted_log = extract_agent_info(log_file, num_last_steps=18)
+                    logger.info(f"URL Match - Used helper function to extract agent reasoning from {log_file}")
+                    logger.info(f"URL Match - Extracted log content preview: {extracted_log[:300]}...")
+                else:
+                    # Fallback to using recent history when log_file not available
+                    if isinstance(history, str):
+                        extracted_log = history[-2000:] if len(history) > 2000 else history
+                    else:
+                        history_str = str(history) if history else ""
+                        extracted_log = history_str[-2000:] if len(history_str) > 2000 else history_str
+                    logger.info(f"URL Match - No log_file available, using {len(extracted_log)} characters from history")
+                
+            except Exception as e:
+                logger.warning(f"URL Match - Failed to extract log with helper function: {e}")
+                # Fallback to using final answer and recent history
+                if isinstance(history, str):
+                    extracted_log = history[-2000:] if len(history) > 2000 else history
+                else:
+                    extracted_log = str(history)[-2000:] if len(str(history)) > 2000 else str(history)
+                
+            # Use LLM to evaluate if the task was completed based on final answer and task intent
+            try:
+                client = openai.OpenAI(
+                    api_key=os.environ.get('OPENAI_API_KEY', '')
                 )
-                score *= float(cur_score)
-        else:
-            raise ValueError(
-                f"Unknown required_contents: {target['required_contents'].keys()}"
-            )
-    return score
+                
+                task_intent = configs.get('intent', 'No task intent provided')
+                
+                # Use your new prompt format for HTML URLs
+                prompt = f"""You are evaluating an API agent's performance on the task: {task_intent}
 
-def html_match(configs, pred, page, history) -> float:
-    temp_dir = tempfile.mkdtemp()
-    config_file = f"{temp_dir}/{configs['task_id']}.json"
-    with open(config_file, 'w') as f:
-        json.dump(configs, f)
-    score = program_html(configs, config_file, pred, page, history)
-    return score
+The reference implementation accesses {ref_url}, but this agent uses a different API ecosystem. Your goal is to determine if the agent's API calls accomplish the same functional objective, regardless of specific endpoints used.
+
+**Evaluation Criteria:**
+1. **Functional Alignment**: Do the API calls serve the same purpose as the reference URL?
+2. **Parameter Relevance**: Are the parameters extracted from the query and used appropriately?
+3. **Logical Sequence**: Do the API calls follow a reasonable order to accomplish the task?
+4. **Error Handling**: Does the agent handle failures gracefully and attempt alternatives?
+
+**Assessment Guidelines:**
+- SUCCESS if the agent's API calls would reasonably accomplish the same goal as the reference URL
+- SUCCESS if the agent uses equivalent but different endpoints (e.g., different weather APIs for weather queries)
+- SUCCESS if the agent makes multiple related calls that collectively achieve the objective
+- FAIL only if the API calls are clearly unrelated to the task or would not achieve the intended outcome
+- Consider the agent's reasoning process from the logs, not just the final API calls
+
+**Agent Execution:**
+
+URLs accessed:
+{url_calls_str}
+
+Execution log:
+{extracted_log}
+
+**Your Assessment:**
+REASON: [One sentence explaining whether the agent's approach would accomplish the same objective as the reference URL, considering functional equivalence rather than exact matching]
+DECISION: [success/fail]
+"""
+                
+                response = client.chat.completions.create(
+                    model="gpt-4o",
+                    messages=[
+                        {"role": "system", "content": "You are a helpful assistant that evaluates task completion based on final answers."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    temperature=0,
+                    max_tokens=300
+                )
+                
+                llm_response = response.choices[0].message.content.strip()
+                logger.info(f"URL Match - LLM evaluation response: {llm_response}")
+                
+                # Parse LLM response in new format (handle markdown formatting)
+                reason_match = re.search(r'(\*\*)?REASON:(\*\*)?\s*(.+)', llm_response, re.DOTALL)
+                decision_match = re.search(r'(\*\*)?DECISION:(\*\*)?\s*(success|fail)', llm_response, re.IGNORECASE)
+                
+                llm_score = 0.0  # Default to fail if parsing fails
+                llm_reasoning = "LLM evaluation failed to parse"
+                
+                if reason_match:
+                    llm_reasoning = reason_match.group(3).strip()
+                    # Clean up reasoning (remove any DECISION part that might be included)
+                    if '**DECISION:**' in llm_reasoning:
+                        llm_reasoning = llm_reasoning.split('**DECISION:**')[0].strip()
+                    elif 'DECISION:' in llm_reasoning:
+                        llm_reasoning = llm_reasoning.split('DECISION:')[0].strip()
+                    
+                if decision_match:
+                    decision = decision_match.group(3).lower()
+                    llm_score = 1.0 if decision == 'success' else 0.0
+                
+                # Create detailed results with LLM reasoning
+                url_match_details = {
+                    'evaluation_method': 'llm_evaluation',
+                    'check_all_history': check_all_history,
+                    'success': llm_score > 0,
+                    'llm_prompt': prompt,
+                    'llm_response': llm_response,
+                    'llm_reasoning': llm_reasoning,
+                    'extracted_answer': extracted_answer,
+                    'task_intent': task_intent,
+                    'html_url_detected': True,
+                    'extracted_log_length': len(extracted_log)
+                }
+                
+                if llm_score > 0:
+                    logger.info("URL Match - LLM determined task was completed successfully")
+                else:
+                    logger.info("URL Match - LLM determined task was not completed successfully")
+                
+                return llm_score, url_match_details
+                    
+            except Exception as e:
+                logger.error(f"URL Match - Error in LLM evaluation: {e}")
+                error_details = {
+                    'evaluation_method': 'llm_evaluation',
+                    'check_all_history': check_all_history,
+                    'success': False,
+                    'error': str(e),
+                    'html_url_detected': True
+                }
+                return 0.0, error_details
+
+    # Unified evaluation logic - only difference is number of URLs examined
+    # Get URLs to examine based on check_all_history flag
+    if check_all_history:
+        urls_to_examine = parse_urls(history)  # All URLs
+        logger.info(f"URL Match - All History Mode: examining {len(urls_to_examine)} URLs")
+    else:
+        last_url = get_url(history, pred)  # Last URL only
+        urls_to_examine = [last_url] if last_url else []
+        logger.info(f"URL Match - Last Response Mode: examining {len(urls_to_examine)} URLs")
+    
+    # Extract parameters from URLs and parameter lines using identical logic
+    all_params = []
+    
+    # Process URLs
+    for url in urls_to_examine:
+        if url:  # Skip empty URLs
+            clean_url_val = clean_url(url)
+            all_params.append(parse_parameter(clean_url_val))
+            logger.info(f"URL Match - Found URL: {clean_url_val}")
+    
+    # Extract parameters from 'parameter:' lines (same for both modes)
+    lines = history.split('\n')
+    for line in lines:
+        if line.strip().startswith('parameter:'):
+            param_str = line.strip()[len('parameter:'):].strip()
+            try:
+                # Parse parameters in the format "key1=value1, key2=value2"
+                param_dict = {}
+                for pair in param_str.split(', '):
+                    if '=' in pair:
+                        key, value = pair.split('=', 1)
+                        # URL decode the value to handle cases like 'usb+wifi' -> 'usb wifi'
+                        param_dict[key] = [urllib.parse.unquote_plus(value)]
+                all_params.append(param_dict)
+                logger.info(f"URL Match - Found parameter line: {param_dict}")
+            except Exception as e:
+                logger.warning(f"URL Match - Error parsing parameter line: {e}")
+    
+    if not all_params:
+        method_name = 'no_parameters_in_history' if check_all_history else 'no_parameters_found'
+        logger.info(f"URL Match - No parameters found")
+        return create_simple_details(0.0, method_name)
+    
+    # Check if any parameter set matches any reference URL (same logic for both modes)
+    exact_match_found = False
+    overlap_data = None
+    
+    for ref_url in ref_urls:
+        ref_params = parse_parameter(ref_url)
+        
+        for params in all_params:
+            # First try exact parameter matching
+            if queries_match(ref_params, params):
+                exact_match_found = True
+                method_name = 'parameter_matching_all_history' if check_all_history else 'parameter_matching'
+                logger.info(f"URL Match - Found exact matching parameters: {params}")
+                return create_simple_details(1.0, method_name, {
+                    'matched_params': params,
+                    'ref_params': ref_params
+                })
+            
+            # If exact match fails, check for overlap (for LLM evaluation)
+            if not overlap_data:
+                # Collect all reference parameter values
+                ref_all_values = set()
+                for ref_key, ref_values in ref_params.items():
+                    for value in ref_values:
+                        ref_all_values.add(str(value).lower())
+                
+                # Collect all prediction parameter values  
+                pred_all_values = set()
+                for pred_key, pred_values in params.items():
+                    for value in pred_values:
+                        pred_all_values.add(str(value).lower())
+                
+                # Check if there's any overlap
+                overlap = ref_all_values.intersection(pred_all_values)
+                if overlap:
+                    overlap_data = {
+                        'ref_values': list(ref_all_values),
+                        'pred_values': list(pred_all_values),
+                        'overlap': list(overlap),
+                        'ref_params': ref_params,
+                        'pred_params': params
+                    }
+                    logger.info(f"URL Match - Found parameter overlap: {overlap}")
+    
+    # If no exact match but there's overlap, use LLM evaluation
+    if not exact_match_found and overlap_data:
+        logger.info(f"URL Match - No exact match found, but overlap detected. Using LLM evaluation.")
+        
+        try:
+            # Extract reasoning from logs using helper function
+            try:
+                import sys
+                import os
+                sys.path.append('/Users/jianhaonan/Desktop/API-Based-Agent')
+                from extract_log import extract_agent_info
+                
+                # Use helper function if log_file is available, otherwise fallback to history
+                if log_file:
+                    extracted_log = extract_agent_info(log_file, num_last_steps=18)
+                    logger.info(f"URL Match - Used helper function to extract agent reasoning from {log_file}")
+                else:
+                    # Fallback to using recent history when log_file not available
+                    if isinstance(history, str):
+                        extracted_log = history[-2000:] if len(history) > 2000 else history
+                    else:
+                        extracted_log = str(history)[-2000:] if len(str(history)) > 2000 else str(history)
+                    logger.info(f"URL Match - No log_file available, using {len(extracted_log)} characters from history")
+                
+            except Exception as e:
+                logger.warning(f"URL Match - Failed to extract log with helper function: {e}")
+                extracted_log = str(history)[-1000:] if len(str(history)) > 1000 else str(history)
+            
+            task_intent = configs.get('intent', 'Complete the given task')
+            
+            # Build overlap description
+            overlap_list = overlap_data['overlap']  # Already a list
+            ref_set = set(overlap_data['ref_values'])
+            pred_set = set(overlap_data['pred_values'])
+            missing_list = list(ref_set - pred_set)
+            
+            overlap_str = f"Found parameters: {', '.join(overlap_list)}"
+            if missing_list:
+                overlap_str += f" | Missing parameters: {', '.join(missing_list)}"
+            
+            # Use the same template format for consistency
+            ref_urls_str = ', '.join(configs.get('url', []))
+            
+            llm_prompt = f"""You are evaluating an API agent's performance on the task: {task_intent}
+
+The reference implementation accesses {ref_urls_str}, but this agent uses a different API ecosystem. Your goal is to determine if the agent's API calls accomplish the same functional objective, regardless of specific endpoints used.
+
+**Evaluation Criteria:**
+1. **Functional Alignment**: Do the API calls serve the same purpose as the reference URL?
+2. **Parameter Relevance**: Are the parameters extracted from the query and used appropriately?
+3. **Logical Sequence**: Do the API calls follow a reasonable order to accomplish the task?
+4. **Error Handling**: Does the agent handle failures gracefully and attempt alternatives?
+
+**Assessment Guidelines:**
+- SUCCESS if the agent's API calls would reasonably accomplish the same goal as the reference URL
+- SUCCESS if the agent uses equivalent but different endpoints (e.g., different weather APIs for weather queries)  
+- SUCCESS if the agent makes multiple related calls that collectively achieve the objective
+- FAIL only if the API calls are clearly unrelated to the task or would not achieve the intended outcome
+- Consider the agent's reasoning process from the logs, not just the final API calls
+
+**Parameter Analysis:**
+{overlap_str}
+Required parameters: {', '.join(overlap_data['ref_values'])}
+Agent parameters: {', '.join(overlap_data['pred_values'])}
+
+**Agent Execution:**
+
+Execution log:
+{extracted_log}
+
+**Your Assessment:**
+REASON: [One sentence explaining whether the agent's approach would accomplish the same objective as the reference URL, considering functional equivalence rather than exact matching]
+DECISION: [success/fail]
+"""
+            
+            client = openai.OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+            llm_response = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[{"role": "user", "content": llm_prompt}],
+                temperature=0
+            )
+            
+            llm_content = llm_response.choices[0].message.content
+            
+            # Parse LLM response in new format (handle markdown formatting)
+            reason_match = re.search(r'(\*\*)?REASON:(\*\*)?\s*(.+)', llm_content, re.DOTALL)
+            decision_match = re.search(r'(\*\*)?DECISION:(\*\*)?\s*(success|fail)', llm_content, re.IGNORECASE)
+            
+            llm_score = 0.0  # Default to fail if parsing fails
+            llm_reasoning = "LLM evaluation failed to parse"
+            
+            if reason_match:
+                llm_reasoning = reason_match.group(3).strip()
+                if '**DECISION:**' in llm_reasoning:
+                    llm_reasoning = llm_reasoning.split('**DECISION:**')[0].strip()
+                elif 'DECISION:' in llm_reasoning:
+                    llm_reasoning = llm_reasoning.split('DECISION:')[0].strip()
+                
+            if decision_match:
+                decision = decision_match.group(3).lower()
+                llm_score = 1.0 if decision == 'success' else 0.0
+            
+            method_name = 'llm_overlap_evaluation_all_history' if check_all_history else 'llm_overlap_evaluation'
+            
+            details = {
+                'evaluation_method': method_name,
+                'check_all_history': check_all_history,
+                'success': llm_score > 0,
+                'html_url_detected': False,
+                'overlap_found': True,
+                'llm_prompt': llm_prompt,
+                'llm_response': llm_content,
+                'llm_reasoning': llm_reasoning,
+                'overlap_data': overlap_data
+            }
+            
+            logger.info(f"URL Match - LLM overlap evaluation score: {llm_score}")
+            return llm_score, details
+            
+        except Exception as e:
+            logger.error(f"URL Match - Error in LLM overlap evaluation: {e}")
+            # Fall through to no match
+    
+    # No exact match and no overlap (or LLM evaluation failed)
+    method_name = 'no_parameter_match_in_history' if check_all_history else 'no_parameter_match'
+    logger.info("URL Match - No matching parameters found")
+    return create_simple_details(0.0, method_name)
+
+def html_match(task, response, log_file, history):
+    """
+    HTML evaluation function that always uses LLM for scoring.
+    Text matching is only used to identify targets for LLM evaluation.
+    
+    Process:
+    1. Extract task requirements and final answer
+    2. Use text matching to identify relevant targets
+    3. Always use LLM to evaluate if the task has been completed successfully
+    
+    Args:
+        task: Task dictionary containing evaluation targets
+        response: Agent response containing final answer
+        log_file: Path to log file (can be None, will use history instead)
+        history: Execution history data
+        
+    Returns:
+        tuple: (html_score, html_details) where html_score is float and html_details is dict
+    """
+    # Extract targets from task and convert to proper format
+    program_html_configs = task.get('eval', {}).get('program_html', [])
+    targets = []
+    
+    for config in program_html_configs:
+        required_contents = config.get('required_contents', {})
+        
+        # Handle must_include requirements
+        must_include = required_contents.get('must_include', [])
+        if isinstance(must_include, list):
+            for must_include_item in must_include:
+                targets.append({
+                    'verification_type': 'must_include',
+                    'value': must_include_item
+                })
+        elif must_include:  # Handle single string case
+            targets.append({
+                'verification_type': 'must_include',
+                'value': must_include
+            })
+        
+        # Handle exact_match requirements
+        exact_match = required_contents.get('exact_match', [])
+        if isinstance(exact_match, list):
+            for exact_match_item in exact_match:
+                targets.append({
+                    'verification_type': 'exact_match', 
+                    'value': exact_match_item
+                })
+        elif exact_match:  # Handle single string case (like task 448)
+            targets.append({
+                'verification_type': 'exact_match',
+                'value': exact_match
+            })
+    
+    logger.info(f"HTML Match - Starting evaluation for {len(targets)} targets")
+    
+    try:
+        # Use history data instead of log file if log_file is None
+        if log_file is None:
+            # Convert history to string content for processing
+            if isinstance(history, list):
+                log_content = '\n'.join([str(item) for item in history])
+            else:
+                log_content = str(history) if history else ""
+        else:
+            # Read log file
+            with open(log_file, 'r', encoding='utf-8') as f:
+                log_content = f.read()
+        
+        # Skip initial task description lines before execution starts
+        execution_start_patterns = [
+            r'Step \d+:',
+            r'act - \*\*',
+            r'CONTENT: Think step by step',
+            r'CODE:',
+            r'obs - \*\*'
+        ]
+        
+        log_lines = log_content.split('\n')
+        execution_start_idx = 0
+        
+        for i, line in enumerate(log_lines):
+            if any(re.search(pattern, line) for pattern in execution_start_patterns):
+                execution_start_idx = i
+                break
+        
+        # Extract execution history (skip task description)
+        execution_content = '\n'.join(log_lines[execution_start_idx:])
+        logger.info(f"HTML Match - Skipped {execution_start_idx} initial task description lines")
+        
+        # Extract API responses from execution history using case-insensitive patterns
+        api_response_pattern = re.compile(r'CONTENT:\s*(.*?)(?=\nobs|\nStep|\Z)', re.IGNORECASE | re.DOTALL)
+        content_pattern = re.compile(r'content:\s*(.*?)(?=\nobs|\nStep|\Z)', re.IGNORECASE | re.DOTALL)
+        
+        api_responses = []
+        
+        # Try both uppercase and lowercase patterns
+        for pattern in [api_response_pattern, content_pattern]:
+            matches = pattern.findall(execution_content)
+            api_responses.extend([match.strip() for match in matches if match.strip()])
+        
+        combined_api_content = '\n'.join(api_responses)
+        logger.info(f"HTML Match - Extracted {len(api_responses)} API response sections")
+        
+        # Extract final answer from Finish[] tag
+        finish_pattern = re.compile(r'Finish\[(.*?)\]', re.IGNORECASE | re.DOTALL)
+        finish_matches = finish_pattern.findall(response)
+        final_answer = finish_matches[-1].strip() if finish_matches else ""
+        
+        logger.info(f"HTML Match - Extracted final answer: {final_answer[:100]}...")
+        
+        # Perform text matching to identify relevant targets
+        target_results = []
+        targets_passed_text_matching = []
+        search_content = combined_api_content + '\n' + final_answer
+        text_matching_used = True  # Flag to indicate if text matching was used
+        
+        for i, target in enumerate(targets):
+            verification_type = target.get('verification_type', '')
+            target_value = target.get('value', '')
+            
+            logger.info(f"HTML Match - Evaluating target {i}: {verification_type} = '{target_value}'")
+            
+            target_result = {
+                'target_index': i,
+                'verification_type': verification_type,
+                'target_value': target_value,
+                'score': 0.0,
+                'success': False,
+                'text_match_result': False,  # Track text matching result separately
+                'evaluation_method': 'pending_llm'  # Will be updated after LLM evaluation
+            }
+            
+            # Direct text matching for exact_match and must_include
+            if verification_type in ['exact_match', 'must_include']:
+                if verification_type == 'exact_match':
+                    # Case-sensitive exact match
+                    if target_value in search_content:
+                        target_result['text_match_result'] = True
+                        targets_passed_text_matching.append(i)
+                        logger.info(f"HTML Match - Target {i}: Exact match found in text")
+                    else:
+                        logger.info(f"HTML Match - Target {i}: Exact match not found in text")
+                
+                elif verification_type == 'must_include':
+                    # Case-insensitive inclusion check
+                    if target_value.lower() in search_content.lower():
+                        target_result['text_match_result'] = True
+                        targets_passed_text_matching.append(i)
+                        logger.info(f"HTML Match - Target {i}: Must include found in text")
+                    else:
+                        logger.info(f"HTML Match - Target {i}: Must include not found in text")
+            else:
+                # For other verification types, mark as unsupported
+                logger.warning(f"HTML Match - Target {i}: Unsupported verification type '{verification_type}'")
+                target_result['evaluation_method'] = 'unsupported'
+            
+            target_results.append(target_result)
+        
+        # Always use LLM for evaluation, even if no text matches were found
+        # This ensures we rely on LLM judgment rather than text matching
+        task_intent = task.get('intent', 'Complete the given task')
+        
+        # Build list of all requirements for LLM evaluation
+        requirements_list = []
+        for i, target in enumerate(targets):
+            requirements_list.append(f"{target['verification_type']}: '{target['value']}'")
+        
+        evaluator_str = ', '.join(requirements_list)
+        
+        # Extract reasoning from logs using helper function
+        try:
+            # Import the helper function
+            import sys
+            import os
+            sys.path.append('/Users/jianhaonan/Desktop/API-Based-Agent')
+            from extract_log import extract_agent_info
+            
+            # Extract last 5 steps of agent reasoning
+            if log_file:
+                extracted_log = extract_agent_info(log_file, num_last_steps=18)
+                logger.info(f"HTML Match - Extracted log from file for LLM evaluation")
+            else:
+                # Fallback: use the history content if no log file
+                extracted_log = history[-2000:] if len(history) > 2000 else history
+            
+            logger.info(f"HTML Match - Extracted {len(extracted_log)} characters from log for LLM evaluation")
+            
+        except Exception as e:
+            logger.warning(f"HTML Match - Failed to extract log with helper function: {e}")
+            # Fallback to using execution content
+            extracted_log = execution_content[-2000:] if len(execution_content) > 2000 else execution_content
+        
+        
+        llm_prompt = f"""You are evaluating an agent's performance on the task: {task_intent}
+
+Below are the truncated execution logs. Determine whether the agent has successfully completed the task based on the requirements.
+{extracted_log}
+
+IMPORTANT: Your evaluation should be based on whether the agent achieved the task's objective, not just on exact text matches.
+Focus on the logical reasoning path and the final outcome.
+
+AGENT'S FINAL ANSWER: {final_answer}
+
+Provide your assessment in this exact format:
+REASON: [One sentence explaining your decision]
+DECISION: [success/fail]
+
+
+"""
+        
+        try:
+            client = openai.OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+            llm_response = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[{"role": "user", "content": llm_prompt}],
+                temperature=0
+            )
+            
+            llm_content = llm_response.choices[0].message.content
+            
+            # Parse LLM response in new format (handle both markdown and plain text)
+            reason_match = re.search(r'(\*\*)?REASON:(\*\*)?\s*(.+)', llm_content, re.DOTALL)
+            decision_match = re.search(r'(\*\*)?DECISION:(\*\*)?\s*(success|fail)', llm_content, re.IGNORECASE)
+            
+            llm_score = 0.0  # Default to fail if parsing fails
+            llm_reasoning = "LLM evaluation failed to parse"
+            
+            if reason_match:
+                llm_reasoning = reason_match.group(3).strip()
+                # Clean up reasoning (remove any DECISION part that might be included)
+                if '**DECISION:**' in llm_reasoning:
+                    llm_reasoning = llm_reasoning.split('**DECISION:**')[0].strip()
+                elif 'DECISION:' in llm_reasoning:
+                    llm_reasoning = llm_reasoning.split('DECISION:')[0].strip()
+                
+            if decision_match:
+                decision = decision_match.group(3).lower()
+                llm_score = 1.0 if decision == 'success' else 0.0
+            
+            # Apply LLM result to all targets
+            for i in range(len(target_results)):
+                target_results[i]['llm_response'] = llm_content
+                target_results[i]['llm_prompt'] = llm_prompt
+                target_results[i]['llm_reasoning'] = llm_reasoning
+                target_results[i]['evaluation_method'] = 'llm_evaluation'
+                target_results[i]['score'] = llm_score  # Use LLM score for all targets
+                target_results[i]['success'] = llm_score >= 0.5
+            
+            logger.info(f"HTML Match - LLM evaluation completed with score = {llm_score}")
+            
+            # Create detailed results for return
+            html_details = {
+                'target_evaluations': target_results,
+                'overall_success': llm_score >= 0.5,
+                'total_targets': len(targets),
+                'text_matching_used': text_matching_used,
+                'text_matching_results': {
+                    'targets_passed': len(targets_passed_text_matching),
+                    'targets_failed': len(targets) - len(targets_passed_text_matching),
+                    'passed_indices': targets_passed_text_matching
+                },
+                'llm_evaluation': {
+                    'score': llm_score,
+                    'reasoning': llm_reasoning,
+                    'decision': 'success' if llm_score >= 0.5 else 'fail'
+                }
+            }
+            
+            logger.info(f"HTML Match - Overall evaluation complete: {llm_score}")
+            
+            return llm_score, html_details
+            
+        except Exception as e:
+            logger.error(f"HTML Match - LLM evaluation failed: {e}")
+            error_details = {
+                'target_evaluations': target_results,
+                'overall_success': False,
+                'total_targets': len(targets),
+                'text_matching_used': text_matching_used,
+                'text_matching_results': {
+                    'targets_passed': len(targets_passed_text_matching),
+                    'targets_failed': len(targets) - len(targets_passed_text_matching)
+                },
+                'error': str(e)
+            }
+            return 0.0, error_details
+        
+    except Exception as e:
+        logger.error(f"HTML Match - Evaluation failed: {e}")
+        error_details = {
+            'target_evaluations': [],
+            'overall_success': False,
+            'total_targets': len(targets),
+            'text_matching_used': False,
+            'error': str(e)
+        }
+        return 0.0, error_details
 
 def check_correctness(task, response, log_file, check_all_history=False):
-    # use the answer if the task requires string_match + exact_match;
-    # use the response (the final message from the agent) if the task requires string_match but not exact_match
-    # do not use response nor answer if the task requires program_html match or url_match
+    # Check if this is a glycan task first
+    if task.get('sites') == ['glycan'] or 'glycan_gpt_evaluation' in task.get('eval', {}).get('eval_types', []):
+        try:
+            from glycan_evaluation import check_correctness_glycan
+            return check_correctness_glycan(task, response, log_file, check_all_history)
+        except ImportError as e:
+            logger.error(f"Could not import glycan evaluation: {e}")
+            return False, {'error': f'Could not import glycan evaluation: {e}'}
+    
+    # Original WebArena evaluation logic for non-glycan tasks
     score = 1.0
+    evaluation_details = {
+        'eval_types': task['eval']['eval_types'],
+        'string_match_score': None,
+        'string_match_details': None,
+        'url_match_score': None,
+        'url_match_details': None,
+        'html_match_score': None,
+        'html_match_details': None,
+        'overall_score': 0.0,
+        'overall_success': False,
+        'evaluation_breakdown': []
+    }
+    
     # string match
     if 'string_match' in task['eval']['eval_types']:
         string_match_score = string_match(task, response)
+        original_response = response
         if (string_match_score != 1.0):
             response = response.replace('"', '')
             response = response.replace("'", '')
             response = response.replace(' ', '')
             string_match_score = string_match(task, response)
+        
+        evaluation_details['string_match_score'] = string_match_score
+        evaluation_details['string_match_details'] = {
+            'original_response': original_response,
+            'processed_response': response,
+            'success': string_match_score > 0
+        }
+        evaluation_details['evaluation_breakdown'].append({
+            'type': 'string_match',
+            'score': string_match_score,
+            'success': string_match_score > 0
+        })
         score *= string_match_score
+    
     # url match
-    with open(log_file, 'r') as f: history = f.read()
+    with open(log_file, 'r') as f: 
+        history = f.read()
+    
     if 'url_match' in task['eval']['eval_types']: 
-        score *= url_match(task, response, history, check_all_history=check_all_history)
-    if score != 1.0: return False
-    if 'program_html' not in task['eval']['eval_types']: return score == 1.0
-    # setup context manager
-    context_manager = sync_playwright()
-    playwright = context_manager.__enter__()
-    browser = playwright.chromium.launch(headless=True)
-    context = browser.new_context()
-    page = context.new_page()
-    sites = task['sites']
-    if 'gitlab' in sites:
-        username = 'byteblaze'
-        password = 'hello1234'
-        GITLAB_URL = os.environ['GITLAB']
-        page.goto(f'{GITLAB_URL}/users/sign_in')
-        page.get_by_test_id('username-field').click()
-        page.get_by_test_id('username-field').fill(username)
-        page.get_by_test_id('username-field').press('Tab')
-        page.get_by_test_id('password-field').fill(password)
-        page.get_by_test_id('sign-in-button').click()
-        context.storage_state(path='API-Based-Agent/evaluation/.auth/gitlab_state.json')
-    if 'shopping' in sites:
-        username = 'emma.lopez@gmail.com'
-        password = 'Password.123'
-        SHOPPING = os.environ['SHOPPING']
-        logger.info(f"[DEBUG] Navigating to shopping login page: {SHOPPING}/customer/account/login/")
-        page.goto(f'{SHOPPING}/customer/account/login/', timeout=10000)
-        logger.info("[DEBUG] Filling email field...")
-        page.get_by_label('Email', exact=True, timeout=10000).fill(username)
-        logger.info("[DEBUG] Filling password field...")
-        page.get_by_label('Password', exact=True, timeout=10000).fill(password)
-        logger.info("[DEBUG] Clicking Sign In button...")
-        page.get_by_role('button', name='Sign In', timeout=10000).click()
-        logger.info("[DEBUG] Finished shopping login steps.")
-        context.storage_state(path='API-Based-Agent/evaluation/.auth/shopping_state.json')
-    if 'shopping_admin' in sites:
-        username = 'admin'
-        password = 'admin1234'
-        SHOPPING_ADMIN = os.environ['SHOPPING_ADMIN']
-        page.goto(f'{SHOPPING_ADMIN}')
-        page.get_by_label('Username', exact=True).fill(username)
-        page.get_by_label('Password', exact=True).fill(password)
-        page.get_by_role('button', name='Sign in').click()
-        context.storage_state(path='API-Based-Agent/evaluation/.auth/shopping_admin_state.json')
-    if 'reddit' in sites:
-        username = 'MarvelsGrantMan136'
-        password = 'test1234'
-        REDDIT = os.environ['REDDIT']
-        page.goto(f'{REDDIT}/login')
-        page.get_by_label('Username').fill(username)
-        page.get_by_label('Password').fill(password)
-        page.get_by_role('button', name='Log in').click()
-        context.storage_state(path='API-Based-Agent/evaluation/.auth/reddit_state.json')
-    if 'program_html' in task['eval']['eval_types']: score *= html_match(task, response, page, history)
-    context_manager.__exit__()
-    return score == 1.0
+        url_match_result = url_match(task, response, history, check_all_history=check_all_history, log_file=log_file)
+        
+        # Handle both old format (float) and new format (tuple)
+        if isinstance(url_match_result, tuple):
+            url_match_score, url_match_details = url_match_result
+        else:
+            url_match_score = url_match_result
+            url_match_details = {
+                'check_all_history': check_all_history,
+                'success': url_match_score > 0
+            }
+        
+        evaluation_details['url_match_score'] = url_match_score
+        evaluation_details['url_match_details'] = url_match_details
+        evaluation_details['evaluation_breakdown'].append({
+            'type': 'url_match',
+            'score': url_match_score,
+            'success': url_match_score > 0
+        })
+        score *= url_match_score
+    
+    if score != 1.0: 
+        evaluation_details['overall_score'] = score
+        evaluation_details['overall_success'] = False
+        return False, evaluation_details
+    
+    # If program_html evaluation is needed, use our new LLM-based html_match
+    if 'program_html' in task['eval']['eval_types']: 
+        html_score, html_details = html_match(task, response, None, history)
+        evaluation_details['html_match_score'] = html_score
+        evaluation_details['html_match_details'] = html_details
+        evaluation_details['evaluation_breakdown'].append({
+            'type': 'html_match',
+            'score': html_score,
+            'success': html_score > 0,
+            'llm_evaluations': html_details
+        })
+        score *= html_score
+    
+    evaluation_details['overall_score'] = score
+    evaluation_details['overall_success'] = score == 1.0
+    
+    return score == 1.0, evaluation_details

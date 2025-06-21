@@ -37,10 +37,31 @@ For each task, follow this specific API workflow:
 
 This workflow must be followed for EVERY task.
 
+*** RESPONSE TRUNCATION SYSTEM ***
+When API responses are very long (over 500 characters), they will be automatically truncated and stored. You will see:
+- A truncated response showing only the first 500 characters
+- A message like "Response truncated. Stored as response ID: resp_12345"
+
+To work with truncated responses, you have these functions available:
+- get_response('resp_12345') - retrieves the full stored response
+- get_response('resp_12345', 'search_term') - searches for specific content within the stored response
+- list_stored_responses() - shows all available stored response IDs
+
+Example usage:
+CODE:
+# If you see "Response truncated. Stored as response ID: resp_12345"
+full_response = get_response('resp_12345')
+print(full_response)
+
+# Or search within the response
+search_results = get_response('resp_12345', 'home decoration')
+print(search_results)
+
 The Python requests library is already installed for you. Here are some hints about effective API usage:
 * It is better to actually view the API response and ensure the relevant information is correctly extracted and utilized before attempting any programmatic parsing.
 * Make use of HTTP headers when making API calls, and be careful of the input parameters to each API call.
 * Be careful about pagination of the API response, the response might only contain the first few instances, so make sure you look at all instances.
+* When responses are truncated, always use get_response() to retrieve the full content before analyzing or extracting data.
 
 """
 
@@ -139,6 +160,66 @@ The customer with email user@example.com has been found:
 - Customer ID: 42
 - Name: John Doe
 - Email: user@example.com
+<finish></finish>
+
+USER: Find all orders from January 2023 and calculate the total amount spent on home decoration items.
+
+A:
+I'll help you search for orders from January 2023 and analyze them for home decoration spending:
+act - IPythonRunCellAction
+CODE:
+from utils import list_tools, get_documentation, call_function, get_response
+# First, let's see what tools are available for orders
+list_tools(site='shopping')
+
+USER:
+OBSERVATION:
+['list_orders_GET_admin', 'search_orders_by_status_GET_admin', ...]
+
+A:
+Now I'll search for orders from January 2023:
+act - IPythonRunCellAction
+CODE:
+result = call_function('list_orders_GET_admin', site='shopping',
+                      searchCriteria_filterGroups_0_filters_0_field='created_at',
+                      searchCriteria_filterGroups_0_filters_0_value='2023-01',
+                      searchCriteria_filterGroups_0_filters_0_conditionType='like')
+print(result)
+
+USER:
+OBSERVATION:
+{
+  "status_code": 200,
+  "content": "[{\"entity_id\": 1001, \"created_at\": \"2023-01-15\", \"items\": [{\"name\": \"Home Decor Vase\", \"price\": 29.99}, {\"name\": \"Kitchen Towels\", \"price\": 15.99}]}, {\"entity_id\": 1002, \"created_at\": \"2023-01-20\", \"items\": [{\"name\": \"Wall Art\", \"price\": 45.00}..."
+}
+Response truncated. Stored as response ID: resp_8901
+
+A:
+I can see the response was truncated. Let me retrieve the full response to analyze all orders:
+act - IPythonRunCellAction
+CODE:
+full_response = get_response('resp_8901')
+print("Full response length:", len(full_response))
+# Now search for home decoration items specifically
+home_decor_items = get_response('resp_8901', 'home decor')
+print("Home decoration items found:")
+print(home_decor_items)
+
+USER:
+OBSERVATION:
+Full response length: 15847
+Home decoration items found:
+Found 3 matches for 'home decor':
+1. "name": "Home Decor Vase", "price": 29.99
+2. "name": "Home Decor Mirror", "price": 89.99  
+3. "name": "Home Decor Candles", "price": 19.99
+
+A:
+Based on the search results, I found home decoration items totaling $139.97 in January 2023:
+- Home Decor Vase: $29.99
+- Home Decor Mirror: $89.99
+- Home Decor Candles: $19.99
+Total spent on home decoration: $139.97
 <finish></finish>
 
 --- END OF EXAMPLE ---

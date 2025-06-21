@@ -11,8 +11,8 @@ COMMAND="poetry run python evaluation/webarena/run_infer.py \
   --llm-config llm \
   -m openai/gpt-4o
   -e SSH_PASSWORD='"hello"'
-  --start_task_id 792\
-  --eval-n-limit 7\
+  --start_task_id 97\
+  --eval-n-limit 20\
   --max-iterations 18 \
   --data-split validation \
   --max-chars 10000000 \

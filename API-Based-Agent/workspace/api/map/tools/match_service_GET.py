@@ -1,84 +1,62 @@
-import requests, json
-from urllib.parse import quote
+import requests
 
-
-def match_service(coordinates=None, steps=None, geometries=None, overview=None, annotations=None):
+def match_service(profile=None, coordinates=None, steps=None, geometries='polyline', overview='simplified', annotations=None, timestamps=None, radiuses=None):
     """
     Map matching matches/snaps given GPS points to the road network in the most plausible way.
     
     Parameters:
     -----------
+    profile : str
+        Mode of transportation, typically 'car', 'bike' or 'foot'.
+        Example: 'driving'
+    
     coordinates : str
-        String of format `{longitude},{latitude};{longitude},{latitude}[;{longitude},{latitude} ...]`.
-        Example: "13.388860,52.517037;13.397634,52.529407;13.428555,52.523219"
+        String of format '{longitude},{latitude};{longitude},{latitude}[;{longitude},{latitude} ...]'
+        Example: '13.388860,52.517037;13.397634,52.529407;13.428555,52.523219'
+    
     steps : bool, optional
-        Returned route steps for each route. Default is False.
+        Return route steps for each route. Default is False.
+    
     geometries : str, optional
-        Returned route geometry format. One of "polyline" (default), "polyline6", "geojson".
+        Returned route geometry format. One of 'polyline', 'polyline6', 'geojson'. Default is 'polyline'.
+    
     overview : str, optional
-        Add overview geometry either "simplified" (default), "full", or "false".
-    annotations : bool or str, optional
-        Returns additional metadata for each coordinate along the route geometry.
-        Can be True, False (default), "nodes", "distance", "duration", "datasources", "weight", "speed".
+        Add overview geometry either 'simplified', 'full', or 'false'. Default is 'simplified'.
+    
+    annotations : bool, optional
+        Returns additional metadata for each coordinate along the route geometry. Default is False.
+    
+    timestamps : str, optional
+        Timestamps for the input locations in seconds since UNIX epoch.
+        Example: '1609459200;1609459260;1609459320'
+    
+    radiuses : str, optional
+        Standard deviation of GPS precision used for map matching.
+        Example: '10;15;20'
     
     Returns:
     --------
-    requests.Response
-        The response from the OSRM API.
-    
-    Example:
-    --------
-    >>> match_service(coordinates="13.388860,52.517037;13.397634,52.529407;13.428555,52.523219", 
-    ...               steps=True, 
-    ...               geometries="geojson", 
-    ...               overview="simplified", 
-    ...               annotations=True)
+    response : requests.Response
+        The HTTP response from the OSRM API.
     """
-    base_url = "http://router.project-osrm.org/match/v1/test/"
-    
+    assert profile is not None, 'Missing required parameter: profile'
     assert coordinates is not None, 'Missing required parameter: coordinates'
     
-    # Convert boolean parameters to lowercase strings
-    if steps is not None:
-        steps = str(steps).lower()
-    if annotations is not None and isinstance(annotations, bool):
-        annotations = str(annotations).lower()
+    base_url = f"http://router.project-osrm.org/match/v1/{profile}/{coordinates}"
     
-    querystring = {}
+    params = {}
     if steps is not None:
-        querystring['steps'] = steps
+        params['steps'] = 'true' if steps else 'false'
     if geometries is not None:
-        querystring['geometries'] = geometries
+        params['geometries'] = geometries
     if overview is not None:
-        querystring['overview'] = overview
+        params['overview'] = overview
     if annotations is not None:
-        querystring['annotations'] = annotations
+        params['annotations'] = 'true' if annotations else 'false'
+    if timestamps is not None:
+        params['timestamps'] = timestamps
+    if radiuses is not None:
+        params['radiuses'] = radiuses
     
-    api_url = f"{base_url}{quote(coordinates, safe='')}"
-    
-    headers = {
-        "Authorization": "Bearer " + "glpat-XzuH4hDT8YsJtYY3HMcE",
-        "PRIVATE-TOKEN": "glpat-XzuH4hDT8YsJtYY3HMcE",
-        "Private-Token": "glpat-XzuH4hDT8YsJtYY3HMcE",
-    }
-    
-    response = requests.get(url=api_url, headers=headers, params=querystring, timeout=50, verify=False)
-    if response.status_code != 200:
-        response2 = requests.get(url=api_url, timeout=50)  # in case API can't handle redundant params
-        response = response2
+    response = requests.get(url=base_url, params=params)
     return response
-
-if __name__ == '__main__':
-    r = match_service(coordinates='13.388860,52.517037;13.397634,52.529407;13.428555,52.523219', steps=False, geometries='geojson', overview='simplified', annotations=True)
-    r_json = None
-    try:
-        r_json = r.json()
-    except:
-        pass
-    import json
-    result_dict = dict()
-    result_dict['status_code'] = r.status_code
-    result_dict['text'] = r.text
-    result_dict['json'] = r_json
-    result_dict['content'] = r.content.decode("utf-8")
-    print(json.dumps(result_dict, indent=4))

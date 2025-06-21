@@ -1,0 +1,649 @@
+2025-06-16 19:00:51,990 - opendevin - INFO - Processing glycan task 46
+2025-06-16 19:00:51,990 - opendevin - INFO - Question: Identify active glycan compounds based on assay results and obtain detailed chemical properties.
+1. Use the `assay_description` tool with `aid=1750` to retrieve information about a specific glycan assay that targets enzyme inhibition.
+2. From the assay results, extract a list of compound IDs (CIDs) for those compounds marked as 'Active' or meeting a specific IC50 threshold.
+3. Use the `compound_property_tables` tool with the extracted CIDs and `property_tags="MolecularFormula,MolecularWeight,CanonicalSMILES"` to obtain detailed chemical property data for each compound.
+2025-06-16 19:00:51,990 - opendevin - INFO - Expected trajectory: assay_description -> compound_property_tables
+2025-06-16 19:00:51,991 - opendevin.core.config - INFO - Loading llm config from llm
+2025-06-16 19:00:51,992 - opendevin - INFO - Running agent CodeActAgent (model: gpt-4o, llm_config: llm) with task: "You are a glycomics research assistant with access to comprehensive glycan research APIs.
+
+RESEARCH QUESTION: Identify active glycan compounds based on assay results and obtain detailed chemical properties.
+1. Use the `assay_description` tool with `aid=1750` to retrieve information about a specific glycan assay that targets enzyme inhibition.
+2. From the assay results, extract a list of compound IDs (CIDs) for those compounds marked as 'Active' or meeting a specific IC50 threshold.
+3. Use the `compound_property_tables` tool with the extracted CIDs and `property_tags="MolecularFormula,MolecularWeight,CanonicalSMILES"` to obtain detailed chemical property data for each compound.
+
+You have access to 12 specialized glycan API modules:
+- WURCSFramework: Structure validation and mass calculation
+- GlycanFormatConverter: Format conversions (IUPAC, WURCS, etc.)
+- GlyGen: Protein-glycan interaction data
+- UniLectin: Lectin-glycan binding analysis
+- PubChem: Chemical properties and bioassays
+- SwaggerProteinAPI: Comprehensive protein analysis
+- GlyTouCanData: Glycan registry and identification
+- GlycanImage: Glycan structure visualization
+- GlycoSMOS-OtherAPIs: Multi-format conversion tools
+- Composition: Composition-based analysis
+- KEGG: Pathway and metabolic context
+- O-GlcNAc: Specific PTM analysis
+
+CRITICAL WORKFLOW:
+1. Start with list_tools(site='glycan') to see all available modules
+2. Use list_tools(site='glycan', module='MODULE_NAME') to see tools in specific modules
+3. Use get_documentation(tool_name, site='glycan', module='MODULE_NAME') for tool details
+4. Use call_function(tool_name, site='glycan', module='MODULE_NAME', **parameters) to execute APIs
+
+IMPORTANT: You MUST use Python code blocks to call these functions. Always format your code as:
+
+<execute_ipython>
+from utils import list_tools, get_documentation, call_function
+
+# Example calls:
+result = list_tools(site='glycan')
+print(result)
+
+# For specific modules:
+tools = list_tools(site='glycan', module='GlycanFormatConverter')
+print(tools)
+
+# For documentation:
+doc = get_documentation('convert_iupac_to_wurcs', site='glycan', module='GlycanFormatConverter')
+print(doc)
+
+# For function calls:
+response = call_function('convert_iupac_to_wurcs', site='glycan', module='GlycanFormatConverter', iupac_string='your_input')
+print(response)
+</execute_ipython>
+
+Remember: Always specify both site='glycan' and module='MODULE_NAME' when calling glycan functions.
+
+
+Please solve this glycan research question step by step.When you think you have completed the request, please run the following command: <execute_bash> exit </execute_bash>.
+"
+2025-06-16 19:00:51,993 - opendevin - INFO - Initializing LLM with model: gpt-4o
+2025-06-16 19:00:51,994 - opendevin - WARNING - model_name: gpt-4o; api_key: sk-litellm-master-key-123; base_url: http://localhost:4000; custom_llm_provider: None
+2025-06-16 19:00:52,020 - opendevin - INFO - SSHBox is running as opendevin user with USER_ID=502 in the sandbox
+2025-06-16 19:00:52,066 - opendevin - INFO - Detected initial session.
+2025-06-16 19:00:52,066 - opendevin - INFO - Creating new Docker container
+2025-06-16 19:00:52,068 - opendevin - WARNING - Using port forwarding till the enable host network mode of Docker is out of experimental mode.Check the 897th issue on https://github.com/OpenDevin/OpenDevin/issues/ for more information.
+2025-06-16 19:00:52,068 - opendevin - INFO - Mounting workspace directory: /Users/jianhaonan/Desktop/API-Based-Agent/workspace
+2025-06-16 19:00:52,068 - opendevin - INFO - Mounting volumes: {'/Users/jianhaonan/Desktop/API-Based-Agent/workspace': {'bind': '/workspace', 'mode': 'rw'}, '/tmp/cache': {'bind': '/home/opendevin/.cache', 'mode': 'rw'}}
+2025-06-16 19:00:52,068 - opendevin - INFO - Mounting workspace directory: /Users/jianhaonan/Desktop/API-Based-Agent/workspace
+2025-06-16 19:00:52,264 - opendevin - INFO - Container started
+2025-06-16 19:00:53,281 - opendevin - INFO - waiting for container to start: 1, container status: running
+2025-06-16 19:00:53,627 - opendevin - INFO - Connecting to SSH session...
+2025-06-16 19:00:53,627 - opendevin - INFO - You can debug the SSH connection by running: `ssh -v -p 62670 opendevin@localhost` using the password '41a9028f-7926-48af-94cf-13256bc7bc5d'
+2025-06-16 19:00:54,990 - opendevin - INFO - Connected to SSH session
+2025-06-16 19:00:55,798 - opendevin - INFO - Initializing plugins in the sandbox
+2025-06-16 19:00:56,089 - opendevin - INFO - Copied files from [/Users/jianhaonan/Desktop/API-Based-Agent/opendevin/runtime/plugins/agent_skills] to [/opendevin/plugins/agent_skills] inside sandbox.
+2025-06-16 19:00:56,089 - opendevin - INFO - Initializing plugin [agent_skills] by executing [/opendevin/plugins/agent_skills/setup.sh] in the sandbox.
+2025-06-16 19:01:01,579 - opendevin - INFO - Plugin agent_skills initialized successfully
+2025-06-16 19:01:01,648 - opendevin - INFO - Copied files from [/Users/jianhaonan/Desktop/API-Based-Agent/opendevin/runtime/plugins/jupyter] to [/opendevin/plugins/jupyter] inside sandbox.
+2025-06-16 19:01:01,649 - opendevin - INFO - Initializing plugin [jupyter] by executing [/opendevin/plugins/jupyter/setup.sh] in the sandbox.
+2025-06-16 19:01:13,921 - opendevin - INFO - Plugin jupyter initialized successfully
+2025-06-16 19:01:14,196 - opendevin - INFO - Sourced ~/.bashrc successfully
+2025-06-16 19:01:14,197 - opendevin - INFO - Starting browser env...
+2025-06-16 19:01:22,363 - opendevin - INFO - **MessageAction** (source=EventSource.USER)
+CONTENT: You are a glycomics research assistant with access to comprehensive glycan research APIs.
+
+RESEARCH QUESTION: Identify active glycan compounds based on assay results and obtain detailed chemical properties.
+1. Use the `assay_description` tool with `aid=1750` to retrieve information about a specific glycan assay that targets enzyme inhibition.
+2. From the assay results, extract a list of compound IDs (CIDs) for those compounds marked as 'Active' or meeting a specific IC50 threshold.
+3. Use the `compound_property_tables` tool with the extracted CIDs and `property_tags="MolecularFormula,MolecularWeight,CanonicalSMILES"` to obtain detailed chemical property data for each compound.
+
+You have access to 12 specialized glycan API modules:
+- WURCSFramework: Structure validation and mass calculation
+- GlycanFormatConverter: Format conversions (IUPAC, WURCS, etc.)
+- GlyGen: Protein-glycan interaction data
+- UniLectin: Lectin-glycan binding analysis
+- PubChem: Chemical properties and bioassays
+- SwaggerProteinAPI: Comprehensive protein analysis
+- GlyTouCanData: Glycan registry and identification
+- GlycanImage: Glycan structure visualization
+- GlycoSMOS-OtherAPIs: Multi-format conversion tools
+- Composition: Composition-based analysis
+- KEGG: Pathway and metabolic context
+- O-GlcNAc: Specific PTM analysis
+
+CRITICAL WORKFLOW:
+1. Start with list_tools(site='glycan') to see all available modules
+2. Use list_tools(site='glycan', module='MODULE_NAME') to see tools in specific modules
+3. Use get_documentation(tool_name, site='glycan', module='MODULE_NAME') for tool details
+4. Use call_function(tool_name, site='glycan', module='MODULE_NAME', **parameters) to execute APIs
+
+IMPORTANT: You MUST use Python code blocks to call these functions. Always format your code as:
+
+<execute_ipython>
+from utils import list_tools, get_documentation, call_function
+
+# Example calls:
+result = list_tools(site='glycan')
+print(result)
+
+# For specific modules:
+tools = list_tools(site='glycan', module='GlycanFormatConverter')
+print(tools)
+
+# For documentation:
+doc = get_documentation('convert_iupac_to_wurcs', site='glycan', module='GlycanFormatConverter')
+print(doc)
+
+# For function calls:
+response = call_function('convert_iupac_to_wurcs', site='glycan', module='GlycanFormatConverter', iupac_string='your_input')
+print(response)
+</execute_ipython>
+
+Remember: Always specify both site='glycan' and module='MODULE_NAME' when calling glycan functions.
+
+
+Please solve this glycan research question step by step.When you think you have completed the request, please run the following command: <execute_bash> exit </execute_bash>.
+
+2025-06-16 19:01:22,365 - opendevin - INFO - [Agent Controller default] Setting agent(CodeActAgent) state from AgentState.LOADING to AgentState.RUNNING
+2025-06-16 19:01:22,366 - opendevin - INFO - [Agent Controller default] Starting step loop...
+2025-06-16 19:01:22,366 - opendevin - INFO - CodeActAgent LEVEL 0 STEP 0
+2025-06-16 19:01:22,366 - opendevin - INFO - History string sample: [(MessageAction(content='You are a glycomics research assistant with access to comprehensive glycan research APIs.\n\nRESEARCH QUESTION: Identify active glycan compounds based on assay results and obt...
+2025-06-16 19:01:22,366 - opendevin - INFO - Checking for site URLs in history: MAP_URL=False, SHOPPING_ADMIN_URL=False
+2025-06-16 19:01:22,366 - opendevin - INFO - Is likely map task: False, api_tools_checked_this_session=False
+2025-06-16 19:01:22,366 - opendevin - INFO - Initializing glycan API tools
+2025-06-16 19:01:22,366 - opendevin - WARNING - Detected Python code in MessageAction - converting to IPythonRunCellAction
+2025-06-16 19:01:22,366 - opendevin - INFO - **IPythonRunCellAction**
+THOUGHT: Converting message with Python code to IPythonRunCellAction
+CODE:
+from utils import list_tools, get_documentation, call_function
+print("\n==== CHECKING GLYCAN API TOOLS ====\n")
+print("Available glycan modules:")
+result = list_tools(site="glycan")
+print(result)
+2025-06-16 19:01:22,984 - opendevin - INFO - **IPythonRunCellObservation**
+
+==== CHECKING GLYCAN API TOOLS ====
+
+Available glycan modules:
+Available glycan modules:
+- WURCSFramework (3 tools)
+- composition (1 tools)
+- glycam (1 tools)
+- glycanformatconverter (1 tools)
+- glycanimage (1 tools)
+- glycosmos-otherapis (3 tools)
+- glygen (2 tools)
+- glytoucandata (2 tools)
+- kegg (7 tools)
+- o-glcnac (1 tools)
+- pubchem (5 tools)
+- swaggerProteinAPI (35 tools)
+- unilectin (8 tools)
+
+Use list_tools(site="glycan", module="<module_name>") to see tools in a specific module.
+DEBUG: Starting list_tools for site 'glycan'
+DEBUG: Added glycan path to sys.path: /workspace
+DEBUG: Added glycan path to sys.path: /workspace/../evaluation/webarena
+DEBUG: Added glycan path to sys.path: /Users/jianhaonan/Desktop/API-Based-Agent/evaluation/webarena
+DEBUG: Added glycan path to sys.path: /workspace/evaluation/webarena
+DEBUG: Added glycan path to sys.path: /workspace
+DEBUG: Added glycan path to sys.path: evaluation/webarena
+DEBUG: Successfully imported glycan_utils
+
+2025-06-16 19:01:23,086 - opendevin - INFO - CodeActAgent LEVEL 0 STEP 1
+2025-06-16 19:01:23,086 - opendevin - INFO - History string sample: [(MessageAction(content='You are a glycomics research assistant with access to comprehensive glycan research APIs.\n\nRESEARCH QUESTION: Identify active glycan compounds based on assay results and obt...
+2025-06-16 19:01:23,086 - opendevin - INFO - Checking for site URLs in history: MAP_URL=False, SHOPPING_ADMIN_URL=False
+2025-06-16 19:01:23,086 - opendevin - INFO - Is likely map task: False, api_tools_checked_this_session=False
+2025-06-16 19:01:23,086 - opendevin - INFO - Glycan API task detected (history <= 2) - calling LLM directly
+2025-06-16 19:01:25,062 - opendevin - INFO - Cost: 0.00 USD | Accumulated Cost: 0.00 USD
+2025-06-16 19:01:25,062 - opendevin - INFO - **IPythonRunCellAction**
+THOUGHT: To address the research question, I'll start by listing the available tools in the glycan site to identify the relevant modules and tools for the task.
+CODE:
+from utils import list_tools
+
+# List all available modules in the glycan site
+list_tools(site='glycan')
+2025-06-16 19:01:25,649 - opendevin - INFO - **IPythonRunCellObservation**
+DEBUG: Starting list_tools for site 'glycan'
+DEBUG: Added glycan path to sys.path: /workspace
+DEBUG: Added glycan path to sys.path: /workspace/../evaluation/webarena
+DEBUG: Added glycan path to sys.path: /Users/jianhaonan/Desktop/API-Based-Agent/evaluation/webarena
+DEBUG: Added glycan path to sys.path: /workspace/evaluation/webarena
+DEBUG: Added glycan path to sys.path: /workspace
+DEBUG: Added glycan path to sys.path: evaluation/webarena
+DEBUG: Successfully imported glycan_utils
+'Available glycan modules:\n- WURCSFramework (3 tools)\n- composition (1 tools)\n- glycam (1 tools)\n- glycanformatconverter (1 tools)\n- glycanimage (1 tools)\n- glycosmos-otherapis (3 tools)\n- glygen (2 tools)\n- glytoucandata (2 tools)\n- kegg (7 tools)\n- o-glcnac (1 tools)\n- pubchem (5 tools)\n- swaggerProteinAPI (35 tools)\n- unilectin (8 tools)\n\nUse list_tools(site="glycan", module="<module_name>") to see tools in a specific module.'
+2025-06-16 19:01:25,751 - opendevin - INFO - CodeActAgent LEVEL 0 STEP 2
+2025-06-16 19:01:25,752 - opendevin - INFO - History string sample: [(MessageAction(content='You are a glycomics research assistant with access to comprehensive glycan research APIs.\n\nRESEARCH QUESTION: Identify active glycan compounds based on assay results and obt...
+2025-06-16 19:01:25,753 - opendevin - INFO - Checking for site URLs in history: MAP_URL=False, SHOPPING_ADMIN_URL=False
+2025-06-16 19:01:25,753 - opendevin - INFO - Is likely map task: False, api_tools_checked_this_session=False
+2025-06-16 19:01:25,753 - opendevin - INFO - Glycan API task detected - calling LLM directly
+2025-06-16 19:01:29,986 - opendevin - INFO - Cost: 0.00 USD | Accumulated Cost: 0.00 USD
+2025-06-16 19:01:29,987 - opendevin - INFO - **IPythonRunCellAction**
+THOUGHT: To address the research question, I'll follow the specified workflow step by step. Let's start by listing the available tools in the glycan site to identify the relevant modules and tools for this task.
+CODE:
+from utils import list_tools
+
+# List all available modules in the glycan site
+list_tools(site='glycan')
+2025-06-16 19:01:30,565 - opendevin - INFO - **IPythonRunCellObservation**
+DEBUG: Starting list_tools for site 'glycan'
+DEBUG: Added glycan path to sys.path: /workspace
+DEBUG: Added glycan path to sys.path: /workspace/../evaluation/webarena
+DEBUG: Added glycan path to sys.path: /Users/jianhaonan/Desktop/API-Based-Agent/evaluation/webarena
+DEBUG: Added glycan path to sys.path: /workspace/evaluation/webarena
+DEBUG: Added glycan path to sys.path: /workspace
+DEBUG: Added glycan path to sys.path: evaluation/webarena
+DEBUG: Successfully imported glycan_utils
+'Available glycan modules:\n- WURCSFramework (3 tools)\n- composition (1 tools)\n- glycam (1 tools)\n- glycanformatconverter (1 tools)\n- glycanimage (1 tools)\n- glycosmos-otherapis (3 tools)\n- glygen (2 tools)\n- glytoucandata (2 tools)\n- kegg (7 tools)\n- o-glcnac (1 tools)\n- pubchem (5 tools)\n- swaggerProteinAPI (35 tools)\n- unilectin (8 tools)\n\nUse list_tools(site="glycan", module="<module_name>") to see tools in a specific module.'
+2025-06-16 19:01:30,668 - opendevin - INFO - CodeActAgent LEVEL 0 STEP 3
+2025-06-16 19:01:32,899 - opendevin - INFO - Cost: 0.00 USD | Accumulated Cost: 0.00 USD
+2025-06-16 19:01:32,899 - opendevin - INFO - **IPythonRunCellAction**
+THOUGHT: To address the research question, I'll start by listing the available tools in the glycan site to identify the relevant modules and tools for the task. Let's begin by listing all available modules and tools.
+CODE:
+from utils import list_tools
+
+# List all available modules in the glycan site
+modules = list_tools(site='glycan')
+print(modules)
+2025-06-16 19:01:33,531 - opendevin - INFO - **IPythonRunCellObservation**
+Available glycan modules:
+- WURCSFramework (3 tools)
+- composition (1 tools)
+- glycam (1 tools)
+- glycanformatconverter (1 tools)
+- glycanimage (1 tools)
+- glycosmos-otherapis (3 tools)
+- glygen (2 tools)
+- glytoucandata (2 tools)
+- kegg (7 tools)
+- o-glcnac (1 tools)
+- pubchem (5 tools)
+- swaggerProteinAPI (35 tools)
+- unilectin (8 tools)
+
+Use list_tools(site="glycan", module="<module_name>") to see tools in a specific module.
+DEBUG: Starting list_tools for site 'glycan'
+DEBUG: Added glycan path to sys.path: /workspace
+DEBUG: Added glycan path to sys.path: /workspace/../evaluation/webarena
+DEBUG: Added glycan path to sys.path: /Users/jianhaonan/Desktop/API-Based-Agent/evaluation/webarena
+DEBUG: Added glycan path to sys.path: /workspace/evaluation/webarena
+DEBUG: Added glycan path to sys.path: /workspace
+DEBUG: Added glycan path to sys.path: evaluation/webarena
+DEBUG: Successfully imported glycan_utils
+
+2025-06-16 19:01:33,632 - opendevin - INFO - CodeActAgent LEVEL 0 STEP 4
+2025-06-16 19:01:35,624 - opendevin - INFO - Cost: 0.00 USD | Accumulated Cost: 0.00 USD
+2025-06-16 19:01:35,629 - opendevin - INFO - **IPythonRunCellAction**
+THOUGHT: The `pubchem` module seems to be the most relevant for retrieving assay descriptions and compound properties. Let's list the tools available in the `pubchem` module to find the ones we need for this task.
+CODE:
+# List tools in the pubchem module
+pubchem_tools = list_tools(site='glycan', module='pubchem')
+print(pubchem_tools)
+2025-06-16 19:01:36,283 - opendevin - INFO - **IPythonRunCellObservation**
+Available tools in glycan module "pubchem":
+- assay_description_GET: Retrieve detailed information about a specific bioassay from PubChem, including methodology, targets, and results for glycan-related biochemical studies.
+- compound_property_tables_GET: Get chemical properties (molecular formula, weight, SMILES, etc.) for specified PubChem compound IDs in CSV format for systematic analysis.
+- full_record_retrieval_GET: Retrieve complete records for PubChem compounds including all available data fields, annotations, and cross-references.
+- structure_search___substructure_GET: Search PubChem for compounds containing a specific substructure using SMILES notation, useful for finding glycan-related molecules and analogs.
+- synonyms_GET: Retrieve alternative names and synonyms for PubChem compounds to aid in compound identification and literature searches.
+DEBUG: Starting list_tools for site 'glycan'
+DEBUG: Added glycan path to sys.path: /workspace
+DEBUG: Added glycan path to sys.path: /workspace/../evaluation/webarena
+DEBUG: Added glycan path to sys.path: /Users/jianhaonan/Desktop/API-Based-Agent/evaluation/webarena
+DEBUG: Added glycan path to sys.path: /workspace/evaluation/webarena
+DEBUG: Added glycan path to sys.path: /workspace
+DEBUG: Added glycan path to sys.path: evaluation/webarena
+DEBUG: Successfully imported glycan_utils
+
+2025-06-16 19:01:36,384 - opendevin - INFO - CodeActAgent LEVEL 0 STEP 5
+2025-06-16 19:01:40,026 - opendevin - INFO - Cost: 0.00 USD | Accumulated Cost: 0.00 USD
+2025-06-16 19:01:40,028 - opendevin - INFO - **IPythonRunCellAction**
+THOUGHT: We have identified the relevant tools in the `pubchem` module: `assay_description_GET` for retrieving assay information and `compound_property_tables_GET` for obtaining chemical properties of compounds. Let's start by retrieving the assay description for `aid=1750` using the `assay_description_GET` tool.
+CODE:
+from utils import get_documentation, call_function
+
+# Get documentation for the assay_description_GET tool
+assay_doc = get_documentation('assay_description_GET', site='glycan', module='pubchem')
+print(assay_doc)
+
+# Call the assay_description_GET tool to retrieve assay information for aid=1750
+assay_info = call_function('assay_description_GET', site='glycan', module='pubchem', aid=1750)
+print(assay_info)
+2025-06-16 19:01:40,933 - opendevin - INFO - **IPythonRunCellObservation**
+"""
+Retrieve assay description from PubChem using PUG REST API.
+    
+    Parameters:
+    -----------
+    aid : str or int
+        Assay ID (AID) to retrieve description for. Required.
+    output_format : str, optional
+        Output format. Options: XML, JSON, JSONP, ASNT, ASNB. Default is XML.
+    version : str or float, optional
+        Version of the assay to retrieve. If not specified, the latest version is returned.
+        
+    Returns:
+        Returns assay description data from PubChem for a specified assay ID (AID).
+    --------
+    requests.Response
+        Response object containing the assay description.
+        
+    Examples:
+    ---------
+    >>> response = assay_description(450)
+    >>> response = assay_description(450, output_format="JSON")
+    >>> response = assay_description(450, version="1.1")
+"""
+DEBUG: Successfully imported glycan_utils for call_function
+Response stored as response_1
+{
+  "status_code": 200,
+  "text": "<?xml version=\"1.0\"?>\n<PC-AssayContainer\n    xmlns=\"http://www.ncbi.nlm.nih.gov\"\n    xmlns:xs=\"http://www.w3.org/2001/XMLSchema-instance\"\n    xs:schemaLocation=\"http://www.ncbi.nlm.nih.gov ftp://ftp.ncbi.nlm.nih.gov/pubchem/specifications/pubchem.xsd\"\n>\n  <PC-AssaySubmit>\n    <PC-AssaySubmit_assay>\n      <PC-AssaySubmit_assay_descr>\n        <PC-AssayDescription>\n          <PC-AssayDescription_aid>\n            <PC-ID>\n              <PC-ID_id>
+
+... [Response truncated - showing first 500 of 83755 total characters]
+[Use get_response('response_1') to view the full response or get_response('response_1', 'search_term') to search within it]
+
+2025-06-16 19:01:41,034 - opendevin - INFO - CodeActAgent LEVEL 0 STEP 6
+2025-06-16 19:01:43,354 - opendevin - INFO - Cost: 0.00 USD | Accumulated Cost: 0.00 USD
+2025-06-16 19:01:43,355 - opendevin - INFO - **IPythonRunCellAction**
+THOUGHT: The assay description response is quite lengthy and has been truncated. I'll retrieve the full response to extract the necessary information about active compounds and their CIDs.
+CODE:
+from utils import get_response
+
+# Retrieve the full assay description response
+full_assay_info = get_response('response_1')
+print("Full response length:", len(full_assay_info))
+
+# Search for 'Active' compounds and extract their CIDs
+active_compounds = get_response('response_1', 'Active')
+print("Active compounds found:")
+print(active_compounds)
+2025-06-16 19:01:43,946 - opendevin - INFO - **IPythonRunCellObservation**
+Full response length: 83785
+Active compounds found:
+Search results for 'Active' in response_1 (2 matches):
+
+Line 3:   "status_code": 200,
+  "text": "<?xml version=\"1.0\"?>\n<PC-AssayContainer\n    xmlns=\"http://www.ncbi.nlm.nih.gov\"\n    xmlns:xs=\"http://www.w3.org/2001/XMLSchema-instance\"\n    xs:schemaLocation=\"http://www.ncbi.nlm.nih.gov ftp://ftp.ncbi.nlm.nih.gov/pubchem/specifications/pubchem.xsd\"\n>\n  <PC-AssaySubmit>\n    <PC-AssaySubmit_assay>\n      <PC-AssaySubmit_assay_descr>\n        <PC-AssayDescription>\n          <PC-AssayDescription_aid>\n            <PC-ID>\n              <PC-ID_id>1750</PC-ID_id>\n              <PC-ID_version>1</PC-ID_version>\n            </PC-ID>\n          </PC-AssayDescription_aid>\n          <PC-AssayDescription_aid-source>\n            <PC-Source>\n              <PC-Source_db>\n                <PC-DBTracking>\n                  <PC-DBTracking_name>Burnham Center for Chemical Genomics</PC-DBTracking_name>\n                  <PC-DBTracking_source-id>\n                    <Object-id>\n                      <Object-id_str>BCCG-A197-XIAP-Bir3-Assay-dry powder</Object-id_str>\n                    </Object-id>\n                  </PC-DBTracking_source-id>\n                  <PC-DBTracking_date>\n                    <Date>\n                      <Date_std>\n                        <Date-std>\n                          <Date-std_year>2009</Date-std_year>\n                          <Date-std_month>8</Date-std_month>\n                          <Date-std_day>31</Date-std_day>\n                        </Date-std>\n                      </Date_std>\n                    </Date>\n                  </PC-DBTracking_date>\n                </PC-DBTracking>\n              </PC-Source_db>\n            </PC-Source>\n          </PC-AssayDescription_aid-source>\n          <PC-AssayDescription_name>SAR analysis of Antagonists of XIAP-Bir3 domain of IAP-family anti-apoptotic proteins</PC-AssayDescription_name>\n          <PC-AssayDescription_description>\n            <PC-AssayDescription_description_E>Data Source: Sanford-Burnham Center for Chemical Genomics (SBCCG)</PC-AssayDescription_description_E>\n            <PC-AssayDescription_description_E>Source Affiliation: Sanford-Burnham Medical Research Institute (SBMRI, San Diego, CA)</PC-AssayDescription_description_E>\n            <PC-AssayDescription_description_E>Network: NIH Molecular Libraries Screening Centers Network (MLSCN)</PC-AssayDescription_description_E>\n            <PC-AssayDescription_description_E>Grant Proposal Number: MH081277-01</PC-AssayDescription_description_E>\n            <PC-AssayDescription_description_E>Assay Provider: John C. Reed, Sanford-Burnham Medical Research Institute, San Diego, CA</PC-AssayDescription_description_E>\n            <PC-AssayDescription_description_E></PC-AssayDescription_description_E>\n            <PC-AssayDescription_description_E>This dose response assay is developed and performed as a counter screen to compounds in the Chemical Antagonists of IAP-family anti-apoptotic proteins confirmation (AID 1449) and to study the structure-activity relationship on analogs of the confirmed hits. Compounds are either acquired from commercial sources or synthesized internally.  This assay was performed in the assay providers&apos; laboratory.</PC-AssayDescription_description_E>\n            <PC-AssayDescription_description_E></PC-AssayDescription_description_E>\n            <PC-AssayDescription_description_E>Apoptosis plays an essential role in many aspects of normal development and physiology, becoming dysregulated in myriad diseases characterized by insufficient or excessive cell death. Caspases are intracellular proteases that are suppressed by Inhibitor of Apoptosis Proteins (IAPs), a family of evolutionarily conserved anti-apoptotic proteins. Proteins released from mitochondria (SMAC and HtrA2) can competitively displace IAPs from the Caspases, thus helping to drive apoptosis. It has been shown that only a few residues at the N-terminus of activated SMAC protein (4&apos;mer) are sufficient to affect the release of IAPs from Caspases. Thus, it is plausible to identify chemical compounds that mimic the effect of SMAC in antagonizing IAPs by causing them to release Caspases. Non-peptidyl chemical inhibitors would have advantages over SMAC peptides, in terms of cell permeability, stability, and in vivo pharmacology. Thus, the goal of this project is to generate small-molecule chemical probe compounds that mimic the effects of SMAC peptides, inhibiting the function of IAPs.</PC-AssayDescription_description_E>\n            <PC-AssayDescription_description_E></PC-AssayDescription_description_E>\n            <PC-AssayDescription_description_E>Basis of the assay is disruption of fluorescence polarization resulting from binding of a XIAP-BIR3 (bacoloviral IAP repeat, &quot;Bir3&quot;) domain protein derived from two of the three conserved caspase binding &quot;BIR&quot; domains of XIAP to a rhodamine tagged 7-mer N-terminal SMAC peptide.</PC-AssayDescription_description_E>\n          </PC-AssayDescription_description>\n          <PC-AssayDescription_protocol>\n            <PC-AssayDescription_protocol_E>BIR3 assay materials:</PC-AssayDescription_protocol_E>\n            <PC-AssayDescription_protocol_E>1) Bir3 protein was provided by Prof. John C. Reed (Sanford-Burnham Medical Research Institute, San Diego, CA) and SMAC-rhodamine peptide (AVPIAQK-rhodamine) was provided by Richard Houghten (Torrey Pines Institute for Molecular Studies, San Diego, CA).</PC-AssayDescription_protocol_E>\n            <PC-AssayDescription_protocol_E>2) Assay buffer:  33.35 Hepes @ pH 7.5, 1.33 mM TCEP, 0.00667 % Tween 20, 0.265 uM BIR3 and 0.0267 uM SMAC-rhodamine.  </PC-AssayDescription_protocol_E>\n            <PC-AssayDescription_protocol_E></PC-AssayDescription_protocol_E>\n            <PC-AssayDescription_protocol_E>BIR3 protocol:</PC-AssayDescription_protocol_E>\n            <PC-AssayDescription_protocol_E>1) 15 ul of assay buffer was added to a Molecular Devices black 96 well plate (number 42-000-0117) in columns 1 through 10.</PC-AssayDescription_protocol_E>\n            <PC-AssayDescription_protocol_E>2) Five ul of compounds were added to the plate in columns 1 through 10 with a 16 point curve generated by 2 fold dilutions  of each compound.  Final compound concentration in the assay ranged from 100 uM to 0.00612 uM via two fold dilutions starting with 400 uM maximum concentration.</PC-AssayDescription_protocol_E>\n            <PC-AssayDescription_protocol_E>3) Positive controls without protein were in column 12.  Negative controls with protein were in column 11.</PC-AssayDescription_protocol_E>\n            <PC-AssayDescription_protocol_E>4) The AVPF peptide was present with the same concentration range as the compounds on each plate as an internal control.</PC-AssayDescription_protocol_E>\n            <PC-AssayDescription_protocol_E>5) Final concentrations of the components were 25 mM Hepes @ pH 7.5/ 1 mm TCEP/0.005% Tween 20/20 nM  rhodamine-SMAC/0.2 uM BIR3.  Compound was diluted in water starting at 400 uM and diluted serially by a factor of 2.  Final concentrations of compounds were one fourth the concentration of the initial compound curve.</PC-AssayDescription_protocol_E>\n            <PC-AssayDescription_protocol_E>6) Plates were then centrifuged at 1000 rpm for 1 minute before reading on an LJL Analyst using an excitation filter of 530 nm with emission at 580 nm and a dichroic mirror at 565 nm.</PC-AssayDescription_protocol_E>\n            <PC-AssayDescription_protocol_E>7) Resultant data was fit to a nonlinear curve in Prism and IC50 values and Hill coefficients were determined.  BIR3 assays often had a Hill coefficient greater than 1. </PC-AssayDescription_protocol_E>\n          </PC-AssayDescription_protocol>\n          <PC-AssayDescription_comment>\n            <PC-AssayDescription_comment_E>Compounds with an IC50 &lt; 100 uM are considered &quot;active.&quot;</PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E></PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E>To simplify the distinction between the inactives of the primary screen and of the confirmatory screening stage, the Tiered Activity Scoring System was developed and implemented. Its utilization for the Bir1/2 assay is described below. </PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E></PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E>Activity Scoring</PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E>Activity scoring rules were devised to take into consideration compound efficacy, its potential interference with the assay and the screening stage that the data was obtained. Details of the Scoring System will be published elsewhere. Briefly, the outline of the scoring system utilized for the Bir1/2 assay is as follows: </PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E></PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E>1) First tier (0-40 range) is reserved for primary screening data-and is not applicable in this assay.</PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E></PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E>2) Second tier (41-80 range) is reserved for dose-response confirmation data and is not applicable in this assay.</PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E></PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E>3) Third tier (81-100 range) is reserved for resynthesized true positives and their analogues</PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E>a. Inactive compounds of the confirmatory stage are assigned a score value equal 81. </PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E>b. The score is linearly correlated with a compound&apos;s activatory potency and, in addition, provides a measure of the likelihood that the compound is not an artifact based on the available information.</PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E>c. The Hill coefficient is taken as a measure of compound behavior in the assay via an additional scaling factor QC: </PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E>QC = 2.6*[exp(-0.5*nH^2) - exp(-1.5*nH^2)]</PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E>This empirical factor prorates the likelihood of target-specific compound effect vs. its non-specific behavior in the assay. This factor is based on expectation that a compound with a single mode of action that achieved equilibrium in the XIAP assay demonstrates the Hill coefficient value of 1. Compounds deviating from that behavior are penalized proportionally to the degree of their deviation.</PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E>d. Summary equation that takes into account the items discussed above is </PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E>Score = 84 + 3*(pIC50 - 3)*QC, </PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E>where pIC50 is a negative log(10) of the IC50 value expressed in mole/L concentration units. This equation results in the Score values above 90 for compounds that demonstrate high potency and predictable behavior. Compounds that are inactive in the assay or whose concentration-dependent behavior are likely to be an artifact of that assay will generally have lower Score values. </PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E></PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E>A score of 84 is given to active compounds selected from plates:</PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E>a) That do not have a Hill coefficient associated with them and have a qualifier of &lt; or &gt;.</PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E>or</PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E>b) The value of + 3*(pIC50-3)*QC, is &lt; 0.500</PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E></PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E>Active compounds will have a score &gt;= 84.</PC-AssayDescription_comment_E>\n          </PC-AssayDescription_comment>\n          <PC-AssayDescription_xref>\n            <PC-AnnotatedXRef>\n              <PC-AnnotatedXRef_xref>\n                <PC-XRefData>\n                  <PC-XRefData_aid>1018</PC-XRefData_aid>\n                </PC-XRefData>\n              </PC-AnnotatedXRef_xref>\n            </PC-AnnotatedXRef>\n            <PC-AnnotatedXRef>\n              <PC-AnnotatedXRef_xref>\n                <PC-XRefData>\n                  <PC-XRefData_aid>1449</PC-XRefData_aid>\n                </PC-XRefData>\n              </PC-AnnotatedXRef_xref>\n            </PC-AnnotatedXRef>\n            <PC-AnnotatedXRef>\n              <PC-AnnotatedXRef_xref>\n                <PC-XRefData>\n                  <PC-XRefData_aid>1513</PC-XRefData_aid>\n                </PC-XRefData>\n              </PC-AnnotatedXRef_xref>\n            </PC-AnnotatedXRef>\n            <PC-AnnotatedXRef>\n              <PC-AnnotatedXRef_xref>\n                <PC-XRefData>\n                  <PC-XRefData_aid>1514</PC-XRefData_aid>\n                </PC-XRefData>\n              </PC-AnnotatedXRef_xref>\n            </PC-AnnotatedXRef>\n            <PC-AnnotatedXRef>\n              <PC-AnnotatedXRef_xref>\n                <PC-XRefData>\n                  <PC-XRefData_aid>1638</PC-XRefData_aid>\n                </PC-XRefData>\n              </PC-AnnotatedXRef_xref>\n            </PC-AnnotatedXRef>\n            <PC-AnnotatedXRef>\n              <PC-AnnotatedXRef_xref>\n                <PC-XRefData>\n                  <PC-XRefData_dburl>http://cpccg.burnham.org</PC-XRefData_dburl>\n                </PC-XRefData>\n              </PC-AnnotatedXRef_xref>\n            </PC-AnnotatedXRef>\n            <PC-AnnotatedXRef>\n              <PC-AnnotatedXRef_xref>\n                <PC-XRefData>\n                  <PC-XRefData_gene>331</PC-XRefData_gene>\n                </PC-XRefData>\n              </PC-AnnotatedXRef_xref>\n              <PC-AnnotatedXRef_comment>XIAP, X-linked inhibitor of apoptosis</PC-AnnotatedXRef_comment>\n            </PC-AnnotatedXRef>\n            <PC-AnnotatedXRef>\n              <PC-AnnotatedXRef_xref>\n                <PC-XRefData>\n                  <PC-XRefData_pmid>9393848</PC-XRefData_pmid>\n                </PC-XRefData>\n              </PC-AnnotatedXRef_xref>\n            </PC-AnnotatedXRef>\n            <PC-AnnotatedXRef>\n              <PC-AnnotatedXRef_xref>\n                <PC-XRefData>\n                  <PC-XRefData_pmid>9721092</PC-XRefData_pmid>\n                </PC-XRefData>\n              </PC-AnnotatedXRef_xref>\n            </PC-AnnotatedXRef>\n            <PC-AnnotatedXRef>\n              <PC-AnnotatedXRef_xref>\n                <PC-XRefData>\n                  <PC-XRefData_pmid>9545235</PC-XRefData_pmid>\n                </PC-XRefData>\n              </PC-AnnotatedXRef_xref>\n            </PC-AnnotatedXRef>\n            <PC-AnnotatedXRef>\n              <PC-AnnotatedXRef_xref>\n                <PC-XRefData>\n                  <PC-XRefData_pmid>11257232</PC-XRefData_pmid>\n                </PC-XRefData>\n              </PC-AnnotatedXRef_xref>\n            </PC-AnnotatedXRef>\n            <PC-AnnotatedXRef>\n              <PC-AnnotatedXRef_xref>\n                <PC-XRefData>\n                  <PC-XRefData_pmid>14749124</PC-XRefData_pmid>\n                </PC-XRefData>\n              </PC-AnnotatedXRef_xref>\n            </PC-AnnotatedXRef>\n          </PC-AssayDescription_xref>\n          <PC-AssayDescription_results>\n            <PC-ResultType>\n              <PC-ResultType_tid>1</PC-ResultType_tid>\n              <PC-ResultType_name>IC50_Qualifier</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>This qualifier is to be used with the next TID, IC50. If qualifier is &quot;=&quot;, IC50 result equals to the value in that column;if qualifier is &quot;&gt;&quot;, IC50 result is greater than that value. if qualifier is &quot;&lt;&quot;, IC50 result is smaller than that value.</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"string\">4</PC-ResultType_type>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>2</PC-ResultType_tid>\n              <PC-ResultType_name>IC50</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>IC50 value determined using sigmoidal dose response equation</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"um\">5</PC-ResultType_unit>\n              <PC-ResultType_ac value=\"true\"/>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>3</PC-ResultType_tid>\n              <PC-ResultType_name>Std.Err(IC50)</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>Standard Error of IC50 value</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"um\">5</PC-ResultType_unit>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>4</PC-ResultType_tid>\n              <PC-ResultType_name>nH</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>Hill coefficient determined using sigmoidal dose response equation</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"none\">254</PC-ResultType_unit>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>5</PC-ResultType_tid>\n              <PC-ResultType_name>Excluded_Points_first_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>Flags to indicate which of the first dose-response points were excluded from analysis. (1) means the titration point was (1) excluded and (0) means the point was not excluded, for the titration series going from low to high compound concentrations.</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"string\">4</PC-ResultType_type>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>6</PC-ResultType_tid>\n              <PC-ResultType_name>% inhibition at 0.390625 uM_first_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>% inhibition at a given concentration</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"percent\">15</PC-ResultType_unit>\n              <PC-ResultType_tc>\n                <PC-ConcentrationAttr>\n                  <PC-ConcentrationAttr_concentration>0.390625</PC-ConcentrationAttr_concentration>\n                  <PC-ConcentrationAttr_unit value=\"um\">5</PC-ConcentrationAttr_unit>\n                  <PC-ConcentrationAttr_dr-id>1</PC-ConcentrationAttr_dr-id>\n                </PC-ConcentrationAttr>\n              </PC-ResultType_tc>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>7</PC-ResultType_tid>\n              <PC-ResultType_name>% inhibition at 0.78125 uM_first_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>% inhibition at a given concentration</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"percent\">15</PC-ResultType_unit>\n              <PC-ResultType_tc>\n                <PC-ConcentrationAttr>\n                  <PC-ConcentrationAttr_concentration>0.78125</PC-ConcentrationAttr_concentration>\n                  <PC-ConcentrationAttr_unit value=\"um\">5</PC-ConcentrationAttr_unit>\n                  <PC-ConcentrationAttr_dr-id>1</PC-ConcentrationAttr_dr-id>\n                </PC-ConcentrationAttr>\n              </PC-ResultType_tc>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>8</PC-ResultType_tid>\n              <PC-ResultType_name>% inhibition at 1.5625 uM_first_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>% inhibition at a given concentration</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"percent\">15</PC-ResultType_unit>\n              <PC-ResultType_tc>\n                <PC-ConcentrationAttr>\n                  <PC-ConcentrationAttr_concentration>1.5625</PC-ConcentrationAttr_concentration>\n                  <PC-ConcentrationAttr_unit value=\"um\">5</PC-ConcentrationAttr_unit>\n                  <PC-ConcentrationAttr_dr-id>1</PC-ConcentrationAttr_dr-id>\n                </PC-ConcentrationAttr>\n              </PC-ResultType_tc>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>9</PC-ResultType_tid>\n              <PC-ResultType_name>% inhibition at 3.125 uM_first_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>% inhibition at a given concentration</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"percent\">15</PC-ResultType_unit>\n              <PC-ResultType_tc>\n                <PC-ConcentrationAttr>\n                  <PC-ConcentrationAttr_concentration>3.125</PC-ConcentrationAttr_concentration>\n                  <PC-ConcentrationAttr_unit value=\"um\">5</PC-ConcentrationAttr_unit>\n                  <PC-ConcentrationAttr_dr-id>1</PC-ConcentrationAttr_dr-id>\n                </PC-ConcentrationAttr>\n              </PC-ResultType_tc>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>10</PC-ResultType_tid>\n              <PC-ResultType_name>% inhibition at 6.25 uM_first_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>% inhibition at a given concentration</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"percent\">15</PC-ResultType_unit>\n              <PC-ResultType_tc>\n                <PC-ConcentrationAttr>\n                  <PC-ConcentrationAttr_concentration>6.25</PC-ConcentrationAttr_concentration>\n                  <PC-ConcentrationAttr_unit value=\"um\">5</PC-ConcentrationAttr_unit>\n                  <PC-ConcentrationAttr_dr-id>1</PC-ConcentrationAttr_dr-id>\n                </PC-ConcentrationAttr>\n              </PC-ResultType_tc>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>11</PC-ResultType_tid>\n              <PC-ResultType_name>% inhibition at 12.5 uM_first_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>% inhibition at a given concentration</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"percent\">15</PC-ResultType_unit>\n              <PC-ResultType_tc>\n                <PC-ConcentrationAttr>\n                  <PC-ConcentrationAttr_concentration>12.5</PC-ConcentrationAttr_concentration>\n                  <PC-ConcentrationAttr_unit value=\"um\">5</PC-ConcentrationAttr_unit>\n                  <PC-ConcentrationAttr_dr-id>1</PC-ConcentrationAttr_dr-id>\n                </PC-ConcentrationAttr>\n              </PC-ResultType_tc>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>12</PC-ResultType_tid>\n              <PC-ResultType_name>% inhibition at 25 uM_first_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>% inhibition at a given concentration</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"percent\">15</PC-ResultType_unit>\n              <PC-ResultType_tc>\n                <PC-ConcentrationAttr>\n                  <PC-ConcentrationAttr_concentration>25</PC-ConcentrationAttr_concentration>\n                  <PC-ConcentrationAttr_unit value=\"um\">5</PC-ConcentrationAttr_unit>\n                  <PC-ConcentrationAttr_dr-id>1</PC-ConcentrationAttr_dr-id>\n                </PC-ConcentrationAttr>\n              </PC-ResultType_tc>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>13</PC-ResultType_tid>\n              <PC-ResultType_name>% inhibition at 50 uM_first_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>% inhibition at a given concentration</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"percent\">15</PC-ResultType_unit>\n              <PC-ResultType_tc>\n                <PC-ConcentrationAttr>\n                  <PC-ConcentrationAttr_concentration>50</PC-ConcentrationAttr_concentration>\n                  <PC-ConcentrationAttr_unit value=\"um\">5</PC-ConcentrationAttr_unit>\n                  <PC-ConcentrationAttr_dr-id>1</PC-ConcentrationAttr_dr-id>\n                </PC-ConcentrationAttr>\n              </PC-ResultType_tc>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>14</PC-ResultType_tid>\n              <PC-ResultType_name>% inhibition at 100 uM_first_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>% inhibition at a given concentration</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"percent\">15</PC-ResultType_unit>\n              <PC-ResultType_tc>\n                <PC-ConcentrationAttr>\n                  <PC-ConcentrationAttr_concentration>100</PC-ConcentrationAttr_concentration>\n                  <PC-ConcentrationAttr_unit value=\"um\">5</PC-ConcentrationAttr_unit>\n                  <PC-ConcentrationAttr_dr-id>1</PC-ConcentrationAttr_dr-id>\n                </PC-ConcentrationAttr>\n              </PC-ResultType_tc>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>15</PC-ResultType_tid>\n              <PC-ResultType_name>% inhibition at 200 uM_first_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>% inhibition at a given concentration</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"percent\">15</PC-ResultType_unit>\n              <PC-ResultType_tc>\n                <PC-ConcentrationAttr>\n                  <PC-ConcentrationAttr_concentration>200</PC-ConcentrationAttr_concentration>\n                  <PC-ConcentrationAttr_unit value=\"um\">5</PC-ConcentrationAttr_unit>\n                  <PC-ConcentrationAttr_dr-id>1</PC-ConcentrationAttr_dr-id>\n                </PC-ConcentrationAttr>\n              </PC-ResultType_tc>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>16</PC-ResultType_tid>\n              <PC-ResultType_name>Excluded_Points_second_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>Flags to indicate which of the second dose-response points were excluded from analysis. (1) means the titration point was (1) excluded and (0) means the point was not excluded, for the titration series going from low to high compound concentrations.</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"string\">4</PC-ResultType_type>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>17</PC-ResultType_tid>\n              <PC-ResultType_name>% inhibition at 0.390625 uM_second_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>% inhibition at a given concentration</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"percent\">15</PC-ResultType_unit>\n              <PC-ResultType_tc>\n                <PC-ConcentrationAttr>\n                  <PC-ConcentrationAttr_concentration>0.390625</PC-ConcentrationAttr_concentration>\n                  <PC-ConcentrationAttr_unit value=\"um\">5</PC-ConcentrationAttr_unit>\n                  <PC-ConcentrationAttr_dr-id>2</PC-ConcentrationAttr_dr-id>\n                </PC-ConcentrationAttr>\n              </PC-ResultType_tc>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>18</PC-ResultType_tid>\n              <PC-ResultType_name>% inhibition at 0.78125 uM_second_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>% inhibition at a given concentration</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"percent\">15</PC-ResultType_unit>\n              <PC-ResultType_tc>\n                <PC-ConcentrationAttr>\n                  <PC-ConcentrationAttr_concentration>0.78125</PC-ConcentrationAttr_concentration>\n                  <PC-ConcentrationAttr_unit value=\"um\">5</PC-ConcentrationAttr_unit>\n                  <PC-ConcentrationAttr_dr-id>2</PC-ConcentrationAttr_dr-id>\n                </PC-ConcentrationAttr>\n              </PC-ResultType_tc>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>19</PC-ResultType_tid>\n              <PC-ResultType_name>% inhibition at 1.5625 uM_second_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>% inhibition at a given concentration</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"percent\">15</PC-ResultType_unit>\n              <PC-ResultType_tc>\n                <PC-ConcentrationAttr>\n                  <PC-ConcentrationAttr_concentration>1.5625</PC-ConcentrationAttr_concentration>\n                  <PC-ConcentrationAttr_unit value=\"um\">5</PC-ConcentrationAttr_unit>\n                  <PC-ConcentrationAttr_dr-id>2</PC-ConcentrationAttr_dr-id>\n                </PC-ConcentrationAttr>\n              </PC-ResultType_tc>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>20</PC-ResultType_tid>\n              <PC-ResultType_name>% inhibition at 3.125 uM_second_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>% inhibition at a given concentration</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"percent\">15</PC-ResultType_unit>\n              <PC-ResultType_tc>\n                <PC-ConcentrationAttr>\n                  <PC-ConcentrationAttr_concentration>3.125</PC-ConcentrationAttr_concentration>\n                  <PC-ConcentrationAttr_unit value=\"um\">5</PC-ConcentrationAttr_unit>\n                  <PC-ConcentrationAttr_dr-id>2</PC-ConcentrationAttr_dr-id>\n                </PC-ConcentrationAttr>\n              </PC-ResultType_tc>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>21</PC-ResultType_tid>\n              <PC-ResultType_name>% inhibition at 6.25 uM_second_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>% inhibition at a given concentration</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"percent\">15</PC-ResultType_unit>\n              <PC-ResultType_tc>\n                <PC-ConcentrationAttr>\n                  <PC-ConcentrationAttr_concentration>6.25</PC-ConcentrationAttr_concentration>\n                  <PC-ConcentrationAttr_unit value=\"um\">5</PC-ConcentrationAttr_unit>\n                  <PC-ConcentrationAttr_dr-id>2</PC-ConcentrationAttr_dr-id>\n                </PC-ConcentrationAttr>\n              </PC-ResultType_tc>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>22</PC-ResultType_tid>\n              <PC-ResultType_name>% inhibition at 12.5 uM_second_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>% inhibition at a given concentration</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"percent\">15</PC-ResultType_unit>\n              <PC-ResultType_tc>\n                <PC-ConcentrationAttr>\n                  <PC-ConcentrationAttr_concentration>12.5</PC-ConcentrationAttr_concentration>\n                  <PC-ConcentrationAttr_unit value=\"um\">5</PC-ConcentrationAttr_unit>\n                  <PC-ConcentrationAttr_dr-id>2</PC-ConcentrationAttr_dr-id>\n                </PC-ConcentrationAttr>\n              </PC-ResultType_tc>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>23</PC-ResultType_tid>\n              <PC-ResultType_name>% inhibition at 25 uM_second_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>% inhibition at a given concentration</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"percent\">15</PC-ResultType_unit>\n              <PC-ResultType_tc>\n                <PC-ConcentrationAttr>\n                  <PC-ConcentrationAttr_concentration>25</PC-ConcentrationAttr_concentration>\n                  <PC-ConcentrationAttr_unit value=\"um\">5</PC-ConcentrationAttr_unit>\n                  <PC-ConcentrationAttr_dr-id>2</PC-ConcentrationAttr_dr-id>\n                </PC-ConcentrationAttr>\n              </PC-ResultType_tc>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>24</PC-ResultType_tid>\n              <PC-ResultType_name>% inhibition at 50 uM_second_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>% inhibition at a given concentration</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"percent\">15</PC-ResultType_unit>\n              <PC-ResultType_tc>\n                <PC-ConcentrationAttr>\n                  <PC-ConcentrationAttr_concentration>50</PC-ConcentrationAttr_concentration>\n                  <PC-ConcentrationAttr_unit value=\"um\">5</PC-ConcentrationAttr_unit>\n                  <PC-ConcentrationAttr_dr-id>2</PC-ConcentrationAttr_dr-id>\n                </PC-ConcentrationAttr>\n              </PC-ResultType_tc>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>25</PC-ResultType_tid>\n              <PC-ResultType_name>% inhibition at 100 uM_second_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>% inhibition at a given concentration</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"percent\">15</PC-ResultType_unit>\n              <PC-ResultType_tc>\n                <PC-ConcentrationAttr>\n                  <PC-ConcentrationAttr_concentration>100</PC-ConcentrationAttr_concentration>\n                  <PC-ConcentrationAttr_unit value=\"um\">5</PC-ConcentrationAttr_unit>\n                  <PC-ConcentrationAttr_dr-id>2</PC-ConcentrationAttr_dr-id>\n                </PC-ConcentrationAttr>\n              </PC-ResultType_tc>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>26</PC-ResultType_tid>\n              <PC-ResultType_name>% inhibition at 200 uM_second_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>% inhibition at a given concentration</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"percent\">15</PC-ResultType_unit>\n              <PC-ResultType_tc>\n                <PC-ConcentrationAttr>\n                  <PC-ConcentrationAttr_concentration>200</PC-ConcentrationAttr_concentration>\n                  <PC-ConcentrationAttr_unit value=\"um\">5</PC-ConcentrationAttr_unit>\n                  <PC-ConcentrationAttr_dr-id>2</PC-ConcentrationAttr_dr-id>\n                </PC-ConcentrationAttr>\n              </PC-ResultType_tc>\n            </PC-ResultType>\n          </PC-AssayDescription_results>\n          <PC-AssayDescription_revision>3</PC-AssayDescription_revision>\n          <PC-AssayDescription_target>\n            <PC-AssayTargetInfo>\n              <PC-AssayTargetInfo_name>X-linked inhibitor of apoptosis [Homo sapiens]</PC-AssayTargetInfo_name>\n              <PC-AssayTargetInfo_mol-id>\n                <PC-AssayTargetInfo_mol-id_protein-accession>CAB95312.1</PC-AssayTargetInfo_mol-id_protein-accession>\n              </PC-AssayTargetInfo_mol-id>\n              <PC-AssayTargetInfo_organism>\n                <BioSource>\n                  <BioSource_org>\n                    <Org-ref>\n                      <Org-ref_taxname>Homo sapiens</Org-ref_taxname>\n                      <Org-ref_common>human</Org-ref_common>\n                      <Org-ref_db>\n                        <Dbtag>\n                          <Dbtag_db>taxon</Dbtag_db>\n                          <Dbtag_tag>\n                            <Object-id>\n                              <Object-id_id>9606</Object-id_id>\n                            </Object-id>\n                          </Dbtag_tag>\n                        </Dbtag>\n                      </Org-ref_db>\n                    </Org-ref>\n                  </BioSource_org>\n                </BioSource>\n              </PC-AssayTargetInfo_organism>\n            </PC-AssayTargetInfo>\n          </PC-AssayDescription_target>\n          <PC-AssayDescription_activity-outcome-method value=\"confirmatory\">2</PC-AssayDescription_activity-outcome-method>\n          <PC-AssayDescription_dr>\n            <PC-AssayDRAttr>\n              <PC-AssayDRAttr_id>1</PC-AssayDRAttr_id>\n              <PC-AssayDRAttr_descr>CR Plot Labels 1</PC-AssayDRAttr_descr>\n              <PC-AssayDRAttr_dn>Concentration</PC-AssayDRAttr_dn>\n              <PC-AssayDRAttr_rn>Response</PC-AssayDRAttr_rn>\n            </PC-AssayDRAttr>\n            <PC-AssayDRAttr>\n              <PC-AssayDRAttr_id>2</PC-AssayDRAttr_id>\n              <PC-AssayDRAttr_descr>CR Plot Labels 2</PC-AssayDRAttr_descr>\n              <PC-AssayDRAttr_dn>Concentration</PC-AssayDRAttr_dn>\n              <PC-AssayDRAttr_rn>Response</PC-AssayDRAttr_rn>\n            </PC-AssayDRAttr>\n          </PC-AssayDescription_dr>\n          <PC-AssayDescription_grant-number>\n            <PC-AssayDescription_grant-number_E>MH081277-01</PC-AssayDescription_grant-number_E>\n          </PC-AssayDescription_grant-number>\n          <PC-AssayDescription_project-category value=\"mlscn\">1</PC-AssayDescription_project-category>\n        </PC-AssayDescription>\n      </PC-AssaySubmit_assay_descr>\n    </PC-AssaySubmit_assay>\n  </PC-AssaySubmit>\n</PC-AssayContainer>\n",
+  "json": null,
+
+---
+
+Line 5:   "json": null,
+  "content": "<?xml version=\"1.0\"?>\n<PC-AssayContainer\n    xmlns=\"http://www.ncbi.nlm.nih.gov\"\n    xmlns:xs=\"http://www.w3.org/2001/XMLSchema-instance\"\n    xs:schemaLocation=\"http://www.ncbi.nlm.nih.gov ftp://ftp.ncbi.nlm.nih.gov/pubchem/specifications/pubchem.xsd\"\n>\n  <PC-AssaySubmit>\n    <PC-AssaySubmit_assay>\n      <PC-AssaySubmit_assay_descr>\n        <PC-AssayDescription>\n          <PC-AssayDescription_aid>\n            <PC-ID>\n              <PC-ID_id>1750</PC-ID_id>\n              <PC-ID_version>1</PC-ID_version>\n            </PC-ID>\n          </PC-AssayDescription_aid>\n          <PC-AssayDescription_aid-source>\n            <PC-Source>\n              <PC-Source_db>\n                <PC-DBTracking>\n                  <PC-DBTracking_name>Burnham Center for Chemical Genomics</PC-DBTracking_name>\n                  <PC-DBTracking_source-id>\n                    <Object-id>\n                      <Object-id_str>BCCG-A197-XIAP-Bir3-Assay-dry powder</Object-id_str>\n                    </Object-id>\n                  </PC-DBTracking_source-id>\n                  <PC-DBTracking_date>\n                    <Date>\n                      <Date_std>\n                        <Date-std>\n                          <Date-std_year>2009</Date-std_year>\n                          <Date-std_month>8</Date-std_month>\n                          <Date-std_day>31</Date-std_day>\n                        </Date-std>\n                      </Date_std>\n                    </Date>\n                  </PC-DBTracking_date>\n                </PC-DBTracking>\n              </PC-Source_db>\n            </PC-Source>\n          </PC-AssayDescription_aid-source>\n          <PC-AssayDescription_name>SAR analysis of Antagonists of XIAP-Bir3 domain of IAP-family anti-apoptotic proteins</PC-AssayDescription_name>\n          <PC-AssayDescription_description>\n            <PC-AssayDescription_description_E>Data Source: Sanford-Burnham Center for Chemical Genomics (SBCCG)</PC-AssayDescription_description_E>\n            <PC-AssayDescription_description_E>Source Affiliation: Sanford-Burnham Medical Research Institute (SBMRI, San Diego, CA)</PC-AssayDescription_description_E>\n            <PC-AssayDescription_description_E>Network: NIH Molecular Libraries Screening Centers Network (MLSCN)</PC-AssayDescription_description_E>\n            <PC-AssayDescription_description_E>Grant Proposal Number: MH081277-01</PC-AssayDescription_description_E>\n            <PC-AssayDescription_description_E>Assay Provider: John C. Reed, Sanford-Burnham Medical Research Institute, San Diego, CA</PC-AssayDescription_description_E>\n            <PC-AssayDescription_description_E></PC-AssayDescription_description_E>\n            <PC-AssayDescription_description_E>This dose response assay is developed and performed as a counter screen to compounds in the Chemical Antagonists of IAP-family anti-apoptotic proteins confirmation (AID 1449) and to study the structure-activity relationship on analogs of the confirmed hits. Compounds are either acquired from commercial sources or synthesized internally.  This assay was performed in the assay providers&apos; laboratory.</PC-AssayDescription_description_E>\n            <PC-AssayDescription_description_E></PC-AssayDescription_description_E>\n            <PC-AssayDescription_description_E>Apoptosis plays an essential role in many aspects of normal development and physiology, becoming dysregulated in myriad diseases characterized by insufficient or excessive cell death. Caspases are intracellular proteases that are suppressed by Inhibitor of Apoptosis Proteins (IAPs), a family of evolutionarily conserved anti-apoptotic proteins. Proteins released from mitochondria (SMAC and HtrA2) can competitively displace IAPs from the Caspases, thus helping to drive apoptosis. It has been shown that only a few residues at the N-terminus of activated SMAC protein (4&apos;mer) are sufficient to affect the release of IAPs from Caspases. Thus, it is plausible to identify chemical compounds that mimic the effect of SMAC in antagonizing IAPs by causing them to release Caspases. Non-peptidyl chemical inhibitors would have advantages over SMAC peptides, in terms of cell permeability, stability, and in vivo pharmacology. Thus, the goal of this project is to generate small-molecule chemical probe compounds that mimic the effects of SMAC peptides, inhibiting the function of IAPs.</PC-AssayDescription_description_E>\n            <PC-AssayDescription_description_E></PC-AssayDescription_description_E>\n            <PC-AssayDescription_description_E>Basis of the assay is disruption of fluorescence polarization resulting from binding of a XIAP-BIR3 (bacoloviral IAP repeat, &quot;Bir3&quot;) domain protein derived from two of the three conserved caspase binding &quot;BIR&quot; domains of XIAP to a rhodamine tagged 7-mer N-terminal SMAC peptide.</PC-AssayDescription_description_E>\n          </PC-AssayDescription_description>\n          <PC-AssayDescription_protocol>\n            <PC-AssayDescription_protocol_E>BIR3 assay materials:</PC-AssayDescription_protocol_E>\n            <PC-AssayDescription_protocol_E>1) Bir3 protein was provided by Prof. John C. Reed (Sanford-Burnham Medical Research Institute, San Diego, CA) and SMAC-rhodamine peptide (AVPIAQK-rhodamine) was provided by Richard Houghten (Torrey Pines Institute for Molecular Studies, San Diego, CA).</PC-AssayDescription_protocol_E>\n            <PC-AssayDescription_protocol_E>2) Assay buffer:  33.35 Hepes @ pH 7.5, 1.33 mM TCEP, 0.00667 % Tween 20, 0.265 uM BIR3 and 0.0267 uM SMAC-rhodamine.  </PC-AssayDescription_protocol_E>\n            <PC-AssayDescription_protocol_E></PC-AssayDescription_protocol_E>\n            <PC-AssayDescription_protocol_E>BIR3 protocol:</PC-AssayDescription_protocol_E>\n            <PC-AssayDescription_protocol_E>1) 15 ul of assay buffer was added to a Molecular Devices black 96 well plate (number 42-000-0117) in columns 1 through 10.</PC-AssayDescription_protocol_E>\n            <PC-AssayDescription_protocol_E>2) Five ul of compounds were added to the plate in columns 1 through 10 with a 16 point curve generated by 2 fold dilutions  of each compound.  Final compound concentration in the assay ranged from 100 uM to 0.00612 uM via two fold dilutions starting with 400 uM maximum concentration.</PC-AssayDescription_protocol_E>\n            <PC-AssayDescription_protocol_E>3) Positive controls without protein were in column 12.  Negative controls with protein were in column 11.</PC-AssayDescription_protocol_E>\n            <PC-AssayDescription_protocol_E>4) The AVPF peptide was present with the same concentration range as the compounds on each plate as an internal control.</PC-AssayDescription_protocol_E>\n            <PC-AssayDescription_protocol_E>5) Final concentrations of the components were 25 mM Hepes @ pH 7.5/ 1 mm TCEP/0.005% Tween 20/20 nM  rhodamine-SMAC/0.2 uM BIR3.  Compound was diluted in water starting at 400 uM and diluted serially by a factor of 2.  Final concentrations of compounds were one fourth the concentration of the initial compound curve.</PC-AssayDescription_protocol_E>\n            <PC-AssayDescription_protocol_E>6) Plates were then centrifuged at 1000 rpm for 1 minute before reading on an LJL Analyst using an excitation filter of 530 nm with emission at 580 nm and a dichroic mirror at 565 nm.</PC-AssayDescription_protocol_E>\n            <PC-AssayDescription_protocol_E>7) Resultant data was fit to a nonlinear curve in Prism and IC50 values and Hill coefficients were determined.  BIR3 assays often had a Hill coefficient greater than 1. </PC-AssayDescription_protocol_E>\n          </PC-AssayDescription_protocol>\n          <PC-AssayDescription_comment>\n            <PC-AssayDescription_comment_E>Compounds with an IC50 &lt; 100 uM are considered &quot;active.&quot;</PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E></PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E>To simplify the distinction between the inactives of the primary screen and of the confirmatory screening stage, the Tiered Activity Scoring System was developed and implemented. Its utilization for the Bir1/2 assay is described below. </PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E></PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E>Activity Scoring</PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E>Activity scoring rules were devised to take into consideration compound efficacy, its potential interference with the assay and the screening stage that the data was obtained. Details of the Scoring System will be published elsewhere. Briefly, the outline of the scoring system utilized for the Bir1/2 assay is as follows: </PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E></PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E>1) First tier (0-40 range) is reserved for primary screening data-and is not applicable in this assay.</PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E></PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E>2) Second tier (41-80 range) is reserved for dose-response confirmation data and is not applicable in this assay.</PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E></PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E>3) Third tier (81-100 range) is reserved for resynthesized true positives and their analogues</PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E>a. Inactive compounds of the confirmatory stage are assigned a score value equal 81. </PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E>b. The score is linearly correlated with a compound&apos;s activatory potency and, in addition, provides a measure of the likelihood that the compound is not an artifact based on the available information.</PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E>c. The Hill coefficient is taken as a measure of compound behavior in the assay via an additional scaling factor QC: </PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E>QC = 2.6*[exp(-0.5*nH^2) - exp(-1.5*nH^2)]</PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E>This empirical factor prorates the likelihood of target-specific compound effect vs. its non-specific behavior in the assay. This factor is based on expectation that a compound with a single mode of action that achieved equilibrium in the XIAP assay demonstrates the Hill coefficient value of 1. Compounds deviating from that behavior are penalized proportionally to the degree of their deviation.</PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E>d. Summary equation that takes into account the items discussed above is </PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E>Score = 84 + 3*(pIC50 - 3)*QC, </PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E>where pIC50 is a negative log(10) of the IC50 value expressed in mole/L concentration units. This equation results in the Score values above 90 for compounds that demonstrate high potency and predictable behavior. Compounds that are inactive in the assay or whose concentration-dependent behavior are likely to be an artifact of that assay will generally have lower Score values. </PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E></PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E>A score of 84 is given to active compounds selected from plates:</PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E>a) That do not have a Hill coefficient associated with them and have a qualifier of &lt; or &gt;.</PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E>or</PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E>b) The value of + 3*(pIC50-3)*QC, is &lt; 0.500</PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E></PC-AssayDescription_comment_E>\n            <PC-AssayDescription_comment_E>Active compounds will have a score &gt;= 84.</PC-AssayDescription_comment_E>\n          </PC-AssayDescription_comment>\n          <PC-AssayDescription_xref>\n            <PC-AnnotatedXRef>\n              <PC-AnnotatedXRef_xref>\n                <PC-XRefData>\n                  <PC-XRefData_aid>1018</PC-XRefData_aid>\n                </PC-XRefData>\n              </PC-AnnotatedXRef_xref>\n            </PC-AnnotatedXRef>\n            <PC-AnnotatedXRef>\n              <PC-AnnotatedXRef_xref>\n                <PC-XRefData>\n                  <PC-XRefData_aid>1449</PC-XRefData_aid>\n                </PC-XRefData>\n              </PC-AnnotatedXRef_xref>\n            </PC-AnnotatedXRef>\n            <PC-AnnotatedXRef>\n              <PC-AnnotatedXRef_xref>\n                <PC-XRefData>\n                  <PC-XRefData_aid>1513</PC-XRefData_aid>\n                </PC-XRefData>\n              </PC-AnnotatedXRef_xref>\n            </PC-AnnotatedXRef>\n            <PC-AnnotatedXRef>\n              <PC-AnnotatedXRef_xref>\n                <PC-XRefData>\n                  <PC-XRefData_aid>1514</PC-XRefData_aid>\n                </PC-XRefData>\n              </PC-AnnotatedXRef_xref>\n            </PC-AnnotatedXRef>\n            <PC-AnnotatedXRef>\n              <PC-AnnotatedXRef_xref>\n                <PC-XRefData>\n                  <PC-XRefData_aid>1638</PC-XRefData_aid>\n                </PC-XRefData>\n              </PC-AnnotatedXRef_xref>\n            </PC-AnnotatedXRef>\n            <PC-AnnotatedXRef>\n              <PC-AnnotatedXRef_xref>\n                <PC-XRefData>\n                  <PC-XRefData_dburl>http://cpccg.burnham.org</PC-XRefData_dburl>\n                </PC-XRefData>\n              </PC-AnnotatedXRef_xref>\n            </PC-AnnotatedXRef>\n            <PC-AnnotatedXRef>\n              <PC-AnnotatedXRef_xref>\n                <PC-XRefData>\n                  <PC-XRefData_gene>331</PC-XRefData_gene>\n                </PC-XRefData>\n              </PC-AnnotatedXRef_xref>\n              <PC-AnnotatedXRef_comment>XIAP, X-linked inhibitor of apoptosis</PC-AnnotatedXRef_comment>\n            </PC-AnnotatedXRef>\n            <PC-AnnotatedXRef>\n              <PC-AnnotatedXRef_xref>\n                <PC-XRefData>\n                  <PC-XRefData_pmid>9393848</PC-XRefData_pmid>\n                </PC-XRefData>\n              </PC-AnnotatedXRef_xref>\n            </PC-AnnotatedXRef>\n            <PC-AnnotatedXRef>\n              <PC-AnnotatedXRef_xref>\n                <PC-XRefData>\n                  <PC-XRefData_pmid>9721092</PC-XRefData_pmid>\n                </PC-XRefData>\n              </PC-AnnotatedXRef_xref>\n            </PC-AnnotatedXRef>\n            <PC-AnnotatedXRef>\n              <PC-AnnotatedXRef_xref>\n                <PC-XRefData>\n                  <PC-XRefData_pmid>9545235</PC-XRefData_pmid>\n                </PC-XRefData>\n              </PC-AnnotatedXRef_xref>\n            </PC-AnnotatedXRef>\n            <PC-AnnotatedXRef>\n              <PC-AnnotatedXRef_xref>\n                <PC-XRefData>\n                  <PC-XRefData_pmid>11257232</PC-XRefData_pmid>\n                </PC-XRefData>\n              </PC-AnnotatedXRef_xref>\n            </PC-AnnotatedXRef>\n            <PC-AnnotatedXRef>\n              <PC-AnnotatedXRef_xref>\n                <PC-XRefData>\n                  <PC-XRefData_pmid>14749124</PC-XRefData_pmid>\n                </PC-XRefData>\n              </PC-AnnotatedXRef_xref>\n            </PC-AnnotatedXRef>\n          </PC-AssayDescription_xref>\n          <PC-AssayDescription_results>\n            <PC-ResultType>\n              <PC-ResultType_tid>1</PC-ResultType_tid>\n              <PC-ResultType_name>IC50_Qualifier</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>This qualifier is to be used with the next TID, IC50. If qualifier is &quot;=&quot;, IC50 result equals to the value in that column;if qualifier is &quot;&gt;&quot;, IC50 result is greater than that value. if qualifier is &quot;&lt;&quot;, IC50 result is smaller than that value.</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"string\">4</PC-ResultType_type>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>2</PC-ResultType_tid>\n              <PC-ResultType_name>IC50</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>IC50 value determined using sigmoidal dose response equation</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"um\">5</PC-ResultType_unit>\n              <PC-ResultType_ac value=\"true\"/>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>3</PC-ResultType_tid>\n              <PC-ResultType_name>Std.Err(IC50)</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>Standard Error of IC50 value</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"um\">5</PC-ResultType_unit>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>4</PC-ResultType_tid>\n              <PC-ResultType_name>nH</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>Hill coefficient determined using sigmoidal dose response equation</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"none\">254</PC-ResultType_unit>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>5</PC-ResultType_tid>\n              <PC-ResultType_name>Excluded_Points_first_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>Flags to indicate which of the first dose-response points were excluded from analysis. (1) means the titration point was (1) excluded and (0) means the point was not excluded, for the titration series going from low to high compound concentrations.</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"string\">4</PC-ResultType_type>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>6</PC-ResultType_tid>\n              <PC-ResultType_name>% inhibition at 0.390625 uM_first_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>% inhibition at a given concentration</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"percent\">15</PC-ResultType_unit>\n              <PC-ResultType_tc>\n                <PC-ConcentrationAttr>\n                  <PC-ConcentrationAttr_concentration>0.390625</PC-ConcentrationAttr_concentration>\n                  <PC-ConcentrationAttr_unit value=\"um\">5</PC-ConcentrationAttr_unit>\n                  <PC-ConcentrationAttr_dr-id>1</PC-ConcentrationAttr_dr-id>\n                </PC-ConcentrationAttr>\n              </PC-ResultType_tc>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>7</PC-ResultType_tid>\n              <PC-ResultType_name>% inhibition at 0.78125 uM_first_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>% inhibition at a given concentration</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"percent\">15</PC-ResultType_unit>\n              <PC-ResultType_tc>\n                <PC-ConcentrationAttr>\n                  <PC-ConcentrationAttr_concentration>0.78125</PC-ConcentrationAttr_concentration>\n                  <PC-ConcentrationAttr_unit value=\"um\">5</PC-ConcentrationAttr_unit>\n                  <PC-ConcentrationAttr_dr-id>1</PC-ConcentrationAttr_dr-id>\n                </PC-ConcentrationAttr>\n              </PC-ResultType_tc>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>8</PC-ResultType_tid>\n              <PC-ResultType_name>% inhibition at 1.5625 uM_first_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>% inhibition at a given concentration</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"percent\">15</PC-ResultType_unit>\n              <PC-ResultType_tc>\n                <PC-ConcentrationAttr>\n                  <PC-ConcentrationAttr_concentration>1.5625</PC-ConcentrationAttr_concentration>\n                  <PC-ConcentrationAttr_unit value=\"um\">5</PC-ConcentrationAttr_unit>\n                  <PC-ConcentrationAttr_dr-id>1</PC-ConcentrationAttr_dr-id>\n                </PC-ConcentrationAttr>\n              </PC-ResultType_tc>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>9</PC-ResultType_tid>\n              <PC-ResultType_name>% inhibition at 3.125 uM_first_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>% inhibition at a given concentration</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"percent\">15</PC-ResultType_unit>\n              <PC-ResultType_tc>\n                <PC-ConcentrationAttr>\n                  <PC-ConcentrationAttr_concentration>3.125</PC-ConcentrationAttr_concentration>\n                  <PC-ConcentrationAttr_unit value=\"um\">5</PC-ConcentrationAttr_unit>\n                  <PC-ConcentrationAttr_dr-id>1</PC-ConcentrationAttr_dr-id>\n                </PC-ConcentrationAttr>\n              </PC-ResultType_tc>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>10</PC-ResultType_tid>\n              <PC-ResultType_name>% inhibition at 6.25 uM_first_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>% inhibition at a given concentration</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"percent\">15</PC-ResultType_unit>\n              <PC-ResultType_tc>\n                <PC-ConcentrationAttr>\n                  <PC-ConcentrationAttr_concentration>6.25</PC-ConcentrationAttr_concentration>\n                  <PC-ConcentrationAttr_unit value=\"um\">5</PC-ConcentrationAttr_unit>\n                  <PC-ConcentrationAttr_dr-id>1</PC-ConcentrationAttr_dr-id>\n                </PC-ConcentrationAttr>\n              </PC-ResultType_tc>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>11</PC-ResultType_tid>\n              <PC-ResultType_name>% inhibition at 12.5 uM_first_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>% inhibition at a given concentration</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"percent\">15</PC-ResultType_unit>\n              <PC-ResultType_tc>\n                <PC-ConcentrationAttr>\n                  <PC-ConcentrationAttr_concentration>12.5</PC-ConcentrationAttr_concentration>\n                  <PC-ConcentrationAttr_unit value=\"um\">5</PC-ConcentrationAttr_unit>\n                  <PC-ConcentrationAttr_dr-id>1</PC-ConcentrationAttr_dr-id>\n                </PC-ConcentrationAttr>\n              </PC-ResultType_tc>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>12</PC-ResultType_tid>\n              <PC-ResultType_name>% inhibition at 25 uM_first_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>% inhibition at a given concentration</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"percent\">15</PC-ResultType_unit>\n              <PC-ResultType_tc>\n                <PC-ConcentrationAttr>\n                  <PC-ConcentrationAttr_concentration>25</PC-ConcentrationAttr_concentration>\n                  <PC-ConcentrationAttr_unit value=\"um\">5</PC-ConcentrationAttr_unit>\n                  <PC-ConcentrationAttr_dr-id>1</PC-ConcentrationAttr_dr-id>\n                </PC-ConcentrationAttr>\n              </PC-ResultType_tc>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>13</PC-ResultType_tid>\n              <PC-ResultType_name>% inhibition at 50 uM_first_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>% inhibition at a given concentration</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"percent\">15</PC-ResultType_unit>\n              <PC-ResultType_tc>\n                <PC-ConcentrationAttr>\n                  <PC-ConcentrationAttr_concentration>50</PC-ConcentrationAttr_concentration>\n                  <PC-ConcentrationAttr_unit value=\"um\">5</PC-ConcentrationAttr_unit>\n                  <PC-ConcentrationAttr_dr-id>1</PC-ConcentrationAttr_dr-id>\n                </PC-ConcentrationAttr>\n              </PC-ResultType_tc>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>14</PC-ResultType_tid>\n              <PC-ResultType_name>% inhibition at 100 uM_first_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>% inhibition at a given concentration</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"percent\">15</PC-ResultType_unit>\n              <PC-ResultType_tc>\n                <PC-ConcentrationAttr>\n                  <PC-ConcentrationAttr_concentration>100</PC-ConcentrationAttr_concentration>\n                  <PC-ConcentrationAttr_unit value=\"um\">5</PC-ConcentrationAttr_unit>\n                  <PC-ConcentrationAttr_dr-id>1</PC-ConcentrationAttr_dr-id>\n                </PC-ConcentrationAttr>\n              </PC-ResultType_tc>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>15</PC-ResultType_tid>\n              <PC-ResultType_name>% inhibition at 200 uM_first_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>% inhibition at a given concentration</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"percent\">15</PC-ResultType_unit>\n              <PC-ResultType_tc>\n                <PC-ConcentrationAttr>\n                  <PC-ConcentrationAttr_concentration>200</PC-ConcentrationAttr_concentration>\n                  <PC-ConcentrationAttr_unit value=\"um\">5</PC-ConcentrationAttr_unit>\n                  <PC-ConcentrationAttr_dr-id>1</PC-ConcentrationAttr_dr-id>\n                </PC-ConcentrationAttr>\n              </PC-ResultType_tc>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>16</PC-ResultType_tid>\n              <PC-ResultType_name>Excluded_Points_second_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>Flags to indicate which of the second dose-response points were excluded from analysis. (1) means the titration point was (1) excluded and (0) means the point was not excluded, for the titration series going from low to high compound concentrations.</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"string\">4</PC-ResultType_type>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>17</PC-ResultType_tid>\n              <PC-ResultType_name>% inhibition at 0.390625 uM_second_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>% inhibition at a given concentration</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"percent\">15</PC-ResultType_unit>\n              <PC-ResultType_tc>\n                <PC-ConcentrationAttr>\n                  <PC-ConcentrationAttr_concentration>0.390625</PC-ConcentrationAttr_concentration>\n                  <PC-ConcentrationAttr_unit value=\"um\">5</PC-ConcentrationAttr_unit>\n                  <PC-ConcentrationAttr_dr-id>2</PC-ConcentrationAttr_dr-id>\n                </PC-ConcentrationAttr>\n              </PC-ResultType_tc>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>18</PC-ResultType_tid>\n              <PC-ResultType_name>% inhibition at 0.78125 uM_second_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>% inhibition at a given concentration</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"percent\">15</PC-ResultType_unit>\n              <PC-ResultType_tc>\n                <PC-ConcentrationAttr>\n                  <PC-ConcentrationAttr_concentration>0.78125</PC-ConcentrationAttr_concentration>\n                  <PC-ConcentrationAttr_unit value=\"um\">5</PC-ConcentrationAttr_unit>\n                  <PC-ConcentrationAttr_dr-id>2</PC-ConcentrationAttr_dr-id>\n                </PC-ConcentrationAttr>\n              </PC-ResultType_tc>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>19</PC-ResultType_tid>\n              <PC-ResultType_name>% inhibition at 1.5625 uM_second_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>% inhibition at a given concentration</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"percent\">15</PC-ResultType_unit>\n              <PC-ResultType_tc>\n                <PC-ConcentrationAttr>\n                  <PC-ConcentrationAttr_concentration>1.5625</PC-ConcentrationAttr_concentration>\n                  <PC-ConcentrationAttr_unit value=\"um\">5</PC-ConcentrationAttr_unit>\n                  <PC-ConcentrationAttr_dr-id>2</PC-ConcentrationAttr_dr-id>\n                </PC-ConcentrationAttr>\n              </PC-ResultType_tc>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>20</PC-ResultType_tid>\n              <PC-ResultType_name>% inhibition at 3.125 uM_second_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>% inhibition at a given concentration</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"percent\">15</PC-ResultType_unit>\n              <PC-ResultType_tc>\n                <PC-ConcentrationAttr>\n                  <PC-ConcentrationAttr_concentration>3.125</PC-ConcentrationAttr_concentration>\n                  <PC-ConcentrationAttr_unit value=\"um\">5</PC-ConcentrationAttr_unit>\n                  <PC-ConcentrationAttr_dr-id>2</PC-ConcentrationAttr_dr-id>\n                </PC-ConcentrationAttr>\n              </PC-ResultType_tc>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>21</PC-ResultType_tid>\n              <PC-ResultType_name>% inhibition at 6.25 uM_second_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>% inhibition at a given concentration</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"percent\">15</PC-ResultType_unit>\n              <PC-ResultType_tc>\n                <PC-ConcentrationAttr>\n                  <PC-ConcentrationAttr_concentration>6.25</PC-ConcentrationAttr_concentration>\n                  <PC-ConcentrationAttr_unit value=\"um\">5</PC-ConcentrationAttr_unit>\n                  <PC-ConcentrationAttr_dr-id>2</PC-ConcentrationAttr_dr-id>\n                </PC-ConcentrationAttr>\n              </PC-ResultType_tc>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>22</PC-ResultType_tid>\n              <PC-ResultType_name>% inhibition at 12.5 uM_second_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>% inhibition at a given concentration</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"percent\">15</PC-ResultType_unit>\n              <PC-ResultType_tc>\n                <PC-ConcentrationAttr>\n                  <PC-ConcentrationAttr_concentration>12.5</PC-ConcentrationAttr_concentration>\n                  <PC-ConcentrationAttr_unit value=\"um\">5</PC-ConcentrationAttr_unit>\n                  <PC-ConcentrationAttr_dr-id>2</PC-ConcentrationAttr_dr-id>\n                </PC-ConcentrationAttr>\n              </PC-ResultType_tc>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>23</PC-ResultType_tid>\n              <PC-ResultType_name>% inhibition at 25 uM_second_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>% inhibition at a given concentration</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"percent\">15</PC-ResultType_unit>\n              <PC-ResultType_tc>\n                <PC-ConcentrationAttr>\n                  <PC-ConcentrationAttr_concentration>25</PC-ConcentrationAttr_concentration>\n                  <PC-ConcentrationAttr_unit value=\"um\">5</PC-ConcentrationAttr_unit>\n                  <PC-ConcentrationAttr_dr-id>2</PC-ConcentrationAttr_dr-id>\n                </PC-ConcentrationAttr>\n              </PC-ResultType_tc>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>24</PC-ResultType_tid>\n              <PC-ResultType_name>% inhibition at 50 uM_second_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>% inhibition at a given concentration</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"percent\">15</PC-ResultType_unit>\n              <PC-ResultType_tc>\n                <PC-ConcentrationAttr>\n                  <PC-ConcentrationAttr_concentration>50</PC-ConcentrationAttr_concentration>\n                  <PC-ConcentrationAttr_unit value=\"um\">5</PC-ConcentrationAttr_unit>\n                  <PC-ConcentrationAttr_dr-id>2</PC-ConcentrationAttr_dr-id>\n                </PC-ConcentrationAttr>\n              </PC-ResultType_tc>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>25</PC-ResultType_tid>\n              <PC-ResultType_name>% inhibition at 100 uM_second_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>% inhibition at a given concentration</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"percent\">15</PC-ResultType_unit>\n              <PC-ResultType_tc>\n                <PC-ConcentrationAttr>\n                  <PC-ConcentrationAttr_concentration>100</PC-ConcentrationAttr_concentration>\n                  <PC-ConcentrationAttr_unit value=\"um\">5</PC-ConcentrationAttr_unit>\n                  <PC-ConcentrationAttr_dr-id>2</PC-ConcentrationAttr_dr-id>\n                </PC-ConcentrationAttr>\n              </PC-ResultType_tc>\n            </PC-ResultType>\n            <PC-ResultType>\n              <PC-ResultType_tid>26</PC-ResultType_tid>\n              <PC-ResultType_name>% inhibition at 200 uM_second_point</PC-ResultType_name>\n              <PC-ResultType_description>\n                <PC-ResultType_description_E>% inhibition at a given concentration</PC-ResultType_description_E>\n              </PC-ResultType_description>\n              <PC-ResultType_type value=\"float\">1</PC-ResultType_type>\n              <PC-ResultType_unit value=\"percent\">15</PC-ResultType_unit>\n              <PC-ResultType_tc>\n                <PC-ConcentrationAttr>\n                  <PC-ConcentrationAttr_concentration>200</PC-ConcentrationAttr_concentration>\n                  <PC-ConcentrationAttr_unit value=\"um\">5</PC-ConcentrationAttr_unit>\n                  <PC-ConcentrationAttr_dr-id>2</PC-ConcentrationAttr_dr-id>\n                </PC-ConcentrationAttr>\n              </PC-ResultType_tc>\n            </PC-ResultType>\n          </PC-AssayDescription_results>\n          <PC-AssayDescription_revision>3</PC-AssayDescription_revision>\n          <PC-AssayDescription_target>\n            <PC-AssayTargetInfo>\n              <PC-AssayTargetInfo_name>X-linked inhibitor of apoptosis [Homo sapiens]</PC-AssayTargetInfo_name>\n              <PC-AssayTargetInfo_mol-id>\n                <PC-AssayTargetInfo_mol-id_protein-accession>CAB95312.1</PC-AssayTargetInfo_mol-id_protein-accession>\n              </PC-AssayTargetInfo_mol-id>\n              <PC-AssayTargetInfo_organism>\n                <BioSource>\n                  <BioSource_org>\n                    <Org-ref>\n                      <Org-ref_taxname>Homo sapiens</Org-ref_taxname>\n                      <Org-ref_common>human</Org-ref_common>\n                      <Org-ref_db>\n                        <Dbtag>\n                          <Dbtag_db>taxon</Dbtag_db>\n                          <Dbtag_tag>\n                            <Object-id>\n                              <Object-id_id>9606</Object-id_id>\n                            </Object-id>\n                          </Dbtag_tag>\n                        </Dbtag>\n                      </Org-ref_db>\n                    </Org-ref>\n                  </BioSource_org>\n                </BioSource>\n              </PC-AssayTargetInfo_organism>\n            </PC-AssayTargetInfo>\n          </PC-AssayDescription_target>\n          <PC-AssayDescription_activity-outcome-method value=\"confirmatory\">2</PC-AssayDescription_activity-outcome-method>\n          <PC-AssayDescription_dr>\n            <PC-AssayDRAttr>\n              <PC-AssayDRAttr_id>1</PC-AssayDRAttr_id>\n              <PC-AssayDRAttr_descr>CR Plot Labels 1</PC-AssayDRAttr_descr>\n              <PC-AssayDRAttr_dn>Concentration</PC-AssayDRAttr_dn>\n              <PC-AssayDRAttr_rn>Response</PC-AssayDRAttr_rn>\n            </PC-AssayDRAttr>\n            <PC-AssayDRAttr>\n              <PC-AssayDRAttr_id>2</PC-AssayDRAttr_id>\n              <PC-AssayDRAttr_descr>CR Plot Labels 2</PC-AssayDRAttr_descr>\n              <PC-AssayDRAttr_dn>Concentration</PC-AssayDRAttr_dn>\n              <PC-AssayDRAttr_rn>Response</PC-AssayDRAttr_rn>\n            </PC-AssayDRAttr>\n          </PC-AssayDescription_dr>\n          <PC-AssayDescription_grant-number>\n            <PC-AssayDescription_grant-number_E>MH081277-01</PC-AssayDescription_grant-number_E>\n          </PC-AssayDescription_grant-number>\n          <PC-AssayDescription_project-category value=\"mlscn\">1</PC-AssayDescription_project-category>\n        </PC-AssayDescription>\n      </PC-AssaySubmit_assay_descr>\n    </PC-AssaySubmit_assay>\n  </PC-AssaySubmit>\n</PC-AssayContainer>\n"
+}
+
+2025-06-16 19:01:44,050 - opendevin - INFO - CodeActAgent LEVEL 0 STEP 7
+2025-06-16 19:01:50,258 - opendevin - INFO - Cost: 0.00 USD | Accumulated Cost: 0.00 USD
+2025-06-16 19:01:50,260 - opendevin - INFO - **IPythonRunCellAction**
+THOUGHT: The response contains information about active compounds, but it seems the search did not directly yield the CIDs. I'll need to parse the full response to extract the CIDs of active compounds. Let's do that now.
+CODE:
+import xml.etree.ElementTree as ET
+
+# Parse the full XML response to extract CIDs of active compounds
+root = ET.fromstring(full_assay_info)
+namespace = {'ns': 'http://www.ncbi.nlm.nih.gov'}
+
+# Find all active compounds and extract their CIDs
+active_cids = []
+for compound in root.findall('.//ns:PC-AssayDescription/ns:PC-AssayDescription_results/ns:PC-ResultType', namespace):
+    if compound.find('ns:PC-ResultType_name', namespace).text == 'Active':
+        cid = compound.find('ns:PC-ResultType_tid', namespace).text
+        active_cids.append(cid)
+
+print("Active compound CIDs:", active_cids)
+2025-06-16 19:01:50,963 - opendevin - INFO - **IPythonRunCellObservation**
+Traceback (most recent call last):
+
+  File ~/.local/lib/python3.10/site-packages/IPython/core/interactiveshell.py:3579 in run_code
+    exec(code_obj, self.user_global_ns, self.user_ns)
+
+  Cell In[1], line 4
+    root = ET.fromstring(full_assay_info)
+
+  File /usr/lib/python3.10/xml/etree/ElementTree.py:1342 in XML
+    parser.feed(text)
+
+  File <string>
+ParseError: syntax error: line 1, column 0
+
+2025-06-16 19:01:51,066 - opendevin - INFO - CodeActAgent LEVEL 0 STEP 8
+2025-06-16 19:01:53,152 - opendevin - INFO - Cost: 0.00 USD | Accumulated Cost: 0.00 USD
+2025-06-16 19:01:53,152 - opendevin - INFO - **IPythonRunCellAction**
+THOUGHT: It seems there was an error parsing the XML response. This might be due to the response format or an issue with the XML content. Let's first ensure the response is correctly formatted as XML and then attempt to parse it again. I'll check the initial part of the response to confirm its format.
+CODE:
+# Print the first 1000 characters of the full response to inspect its format
+print(full_assay_info[:1000])
+2025-06-16 19:01:53,698 - opendevin - INFO - **IPythonRunCellObservation**
+Full response for response_1:
+{
+  "status_code": 200,
+  "text": "<?xml version=\"1.0\"?>\n<PC-AssayContainer\n    xmlns=\"http://www.ncbi.nlm.nih.gov\"\n    xmlns:xs=\"http://www.w3.org/2001/XMLSchema-instance\"\n    xs:schemaLocation=\"http://www.ncbi.nlm.nih.gov ftp://ftp.ncbi.nlm.nih.gov/pubchem/specifications/pubchem.xsd\"\n>\n  <PC-AssaySubmit>\n    <PC-AssaySubmit_assay>\n      <PC-AssaySubmit_assay_descr>\n        <PC-AssayDescription>\n          <PC-AssayDescription_aid>\n            <PC-ID>\n              <PC-ID_id>1750</PC-ID_id>\n              <PC-ID_version>1</PC-ID_version>\n            </PC-ID>\n          </PC-AssayDescription_aid>\n          <PC-AssayDescription_aid-source>\n            <PC-Source>\n              <PC-Source_db>\n                <PC-DBTracking>\n                  <PC-DBTracking_name>Burnham Center for Chemical Genomics</PC-DBTracking_name>\n                  <PC-DBTracking_source-id>\n                    <Object-id>\n                      <Object-id_str>B
+
+2025-06-16 19:01:53,803 - opendevin - INFO - CodeActAgent LEVEL 0 STEP 9
+2025-06-16 19:02:03,108 - opendevin - INFO - Cost: 0.00 USD | Accumulated Cost: 0.00 USD
+2025-06-16 19:02:03,108 - opendevin - INFO - **IPythonRunCellAction**
+THOUGHT: The response is wrapped in a JSON object with the XML content under the "text" key. I need to extract the XML content from the JSON response before parsing it. Let's extract the XML and then parse it to find the active compound CIDs.
+CODE:
+import json
+
+# Load the JSON response and extract the XML content
+response_json = json.loads(full_assay_info)
+xml_content = response_json['text']
+
+# Parse the XML content to extract CIDs of active compounds
+root = ET.fromstring(xml_content)
+namespace = {'ns': 'http://www.ncbi.nlm.nih.gov'}
+
+# Find all active compounds and extract their CIDs
+active_cids = []
+for compound in root.findall('.//ns:PC-AssayDescription/ns:PC-AssayDescription_results/ns:PC-ResultType', namespace):
+    if compound.find('ns:PC-ResultType_name', namespace).text == 'Active':
+        cid = compound.find('ns:PC-ResultType_tid', namespace).text
+        active_cids.append(cid)
+
+print("Active compound CIDs:", active_cids)
+2025-06-16 19:02:03,899 - opendevin - INFO - **IPythonRunCellObservation**
+---------------------------------------------------------------------------
+JSONDecodeError                           Traceback (most recent call last)
+Cell In[1], line 4
+      1 import json
+      3 # Load the JSON response and extract the XML content
+----> 4 response_json = json.loads(full_assay_info)
+      5 xml_content = response_json['text']
+      7 # Parse the XML content to extract CIDs of active compounds
+
+File /usr/lib/python3.10/json/__init__.py:346, in loads(s, cls, object_hook, parse_float, parse_int, parse_constant, object_pairs_hook, **kw)
+    341     s = s.decode(detect_encoding(s), 'surrogatepass')
+    343 if (cls is None and object_hook is None and
+    344         parse_int is None and parse_float is None and
+    345         parse_constant is None and object_pairs_hook is None and not kw):
+--> 346     return _default_decoder.decode(s)
+    347 if cls is None:
+    348     cls = JSONDecoder
+
+File /usr/lib/python3.10/json/decoder.py:337, in JSONDecoder.decode(self, s, _w)
+    332 def decode(self, s, _w=WHITESPACE.match):
+    333     """Return the Python representation of ``s`` (a ``str`` instance
+    334     containing a JSON document).
+    335 
+    336     """
+--> 337     obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+    338     end = _w(s, end).end()
+    339     if end != len(s):
+
+File /usr/lib/python3.10/json/decoder.py:355, in JSONDecoder.raw_decode(self, s, idx)
+    353     obj, end = self.scan_once(s, idx)
+    354 except StopIteration as err:
+--> 355     raise JSONDecodeError("Expecting value", s, err.value) from None
+    356 return obj, end
+
+JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+2025-06-16 19:02:04,001 - opendevin - INFO - CodeActAgent LEVEL 0 STEP 10
+2025-06-16 19:02:06,311 - opendevin - INFO - Cost: 0.00 USD | Accumulated Cost: 0.00 USD
+2025-06-16 19:02:06,311 - opendevin - INFO - **IPythonRunCellAction**
+THOUGHT: It seems there was an error in parsing the JSON response. Let's ensure that the response is correctly formatted and try to extract the XML content again. I'll print the initial part of the response to verify its structure.
+CODE:
+# Print the first 500 characters of the full response to inspect its format
+print(full_assay_info[:500])
+2025-06-16 19:02:06,919 - opendevin - INFO - **IPythonRunCellObservation**
+Full response for response_1:
+{
+  "status_code": 200,
+  "text": "<?xml version=\"1.0\"?>\n<PC-AssayContainer\n    xmlns=\"http://www.ncbi.nlm.nih.gov\"\n    xmlns:xs=\"http://www.w3.org/2001/XMLSchema-instance\"\n    xs:schemaLocation=\"http://www.ncbi.nlm.nih.gov ftp://ftp.ncbi.nlm.nih.gov/pubchem/specifications/pubchem.xsd\"\n>\n  <PC-AssaySubmit>\n    <PC-AssaySubmit_assay>\n      <PC-AssaySubmit_assay_descr>\n        <PC-AssayDescription>\n          <PC-AssayDescription_aid>\n            <PC
+
+2025-06-16 19:02:07,020 - opendevin - INFO - CodeActAgent LEVEL 0 STEP 11
+2025-06-16 19:02:10,600 - opendevin - INFO - Cost: 0.00 USD | Accumulated Cost: 0.00 USD
+2025-06-16 19:02:10,601 - opendevin - INFO - **IPythonRunCellAction**
+THOUGHT: The response is indeed a JSON object, and the XML content is under the "text" key. Let's correctly extract the XML content from the JSON response and parse it to find the active compound CIDs.
+CODE:
+# Correctly extract the XML content from the JSON response
+response_json = json.loads(full_assay_info)
+xml_content = response_json['text']
+
+# Parse the XML content to extract CIDs of active compounds
+root = ET.fromstring(xml_content)
+namespace = {'ns': 'http://www.ncbi.nlm.nih.gov'}
+
+# Find all active compounds and extract their CIDs
+active_cids = []
+for compound in root.findall('.//ns:PC-AssayDescription/ns:PC-AssayDescription_results/ns:PC-ResultType', namespace):
+    if compound.find('ns:PC-ResultType_name', namespace).text == 'Active':
+        cid = compound.find('ns:PC-ResultType_tid', namespace).text
+        active_cids.append(cid)
+
+print("Active compound CIDs:", active_cids)
+2025-06-16 19:02:11,181 - opendevin - INFO - **IPythonRunCellObservation**
+---------------------------------------------------------------------------
+JSONDecodeError                           Traceback (most recent call last)
+Cell In[1], line 2
+      1 # Correctly extract the XML content from the JSON response
+----> 2 response_json = json.loads(full_assay_info)
+      3 xml_content = response_json['text']
+      5 # Parse the XML content to extract CIDs of active compounds
+
+File /usr/lib/python3.10/json/__init__.py:346, in loads(s, cls, object_hook, parse_float, parse_int, parse_constant, object_pairs_hook, **kw)
+    341     s = s.decode(detect_encoding(s), 'surrogatepass')
+    343 if (cls is None and object_hook is None and
+    344         parse_int is None and parse_float is None and
+    345         parse_constant is None and object_pairs_hook is None and not kw):
+--> 346     return _default_decoder.decode(s)
+    347 if cls is None:
+    348     cls = JSONDecoder
+
+File /usr/lib/python3.10/json/decoder.py:337, in JSONDecoder.decode(self, s, _w)
+    332 def decode(self, s, _w=WHITESPACE.match):
+    333     """Return the Python representation of ``s`` (a ``str`` instance
+    334     containing a JSON document).
+    335 
+    336     """
+--> 337     obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+    338     end = _w(s, end).end()
+    339     if end != len(s):
+
+File /usr/lib/python3.10/json/decoder.py:355, in JSONDecoder.raw_decode(self, s, idx)
+    353     obj, end = self.scan_once(s, idx)
+    354 except StopIteration as err:
+--> 355     raise JSONDecodeError("Expecting value", s, err.value) from None
+    356 return obj, end
+
+JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+2025-06-16 19:02:11,284 - opendevin - INFO - CodeActAgent LEVEL 0 STEP 12
+2025-06-16 19:02:16,132 - opendevin - INFO - Cost: 0.00 USD | Accumulated Cost: 0.00 USD
+2025-06-16 19:02:16,133 - opendevin - INFO - **IPythonRunCellAction**
+THOUGHT: It seems there is an issue with the JSON parsing. Let's try a different approach to extract the XML content directly from the response. I'll manually extract the XML part from the response string and then parse it.
+CODE:
+# Manually extract the XML content from the response string
+start_index = full_assay_info.find("<?xml")
+xml_content = full_assay_info[start_index:]
+
+# Parse the XML content to extract CIDs of active compounds
+root = ET.fromstring(xml_content)
+namespace = {'ns': 'http://www.ncbi.nlm.nih.gov'}
+
+# Find all active compounds and extract their CIDs
+active_cids = []
+for compound in root.findall('.//ns:PC-AssayDescription/ns:PC-AssayDescription_results/ns:PC-ResultType', namespace):
+    if compound.find('ns:PC-ResultType_name', namespace).text == 'Active':
+        cid = compound.find('ns:PC-ResultType_tid', namespace).text
+        active_cids.append(cid)
+
+print("Active compound CIDs:", active_cids)
+2025-06-16 19:02:16,771 - opendevin - INFO - **IPythonRunCellObservation**
+Traceback (most recent call last):
+
+  File ~/.local/lib/python3.10/site-packages/IPython/core/interactiveshell.py:3579 in run_code
+    exec(code_obj, self.user_global_ns, self.user_ns)
+
+  Cell In[1], line 6
+    root = ET.fromstring(xml_content)
+
+  File /usr/lib/python3.10/xml/etree/ElementTree.py:1342 in XML
+    parser.feed(text)
+
+  File <string>
+ParseError: XML declaration not well-formed: line 1, column 14
+
+2025-06-16 19:02:16,871 - opendevin - INFO - CodeActAgent LEVEL 0 STEP 13
+2025-06-16 19:02:20,565 - opendevin - INFO - Cost: 0.00 USD | Accumulated Cost: 0.00 USD
+2025-06-16 19:02:20,566 - opendevin - INFO - **IPythonRunCellAction**
+THOUGHT: The error indicates that there might be an issue with the XML declaration. Let's clean up the XML content by removing any problematic characters or declarations and then attempt to parse it again.
+CODE:
+# Clean up the XML content by removing the XML declaration
+cleaned_xml_content = xml_content.split("?>", 1)[-1]
+
+# Parse the cleaned XML content to extract CIDs of active compounds
+root = ET.fromstring(cleaned_xml_content)
+namespace = {'ns': 'http://www.ncbi.nlm.nih.gov'}
+
+# Find all active compounds and extract their CIDs
+active_cids = []
+for compound in root.findall('.//ns:PC-AssayDescription/ns:PC-AssayDescription_results/ns:PC-ResultType', namespace):
+    if compound.find('ns:PC-ResultType_name', namespace).text == 'Active':
+        cid = compound.find('ns:PC-ResultType_tid', namespace).text
+        active_cids.append(cid)
+
+print("Active compound CIDs:", active_cids)
+2025-06-16 19:02:21,171 - opendevin - INFO - **IPythonRunCellObservation**
+Traceback (most recent call last):
+
+  File ~/.local/lib/python3.10/site-packages/IPython/core/interactiveshell.py:3579 in run_code
+    exec(code_obj, self.user_global_ns, self.user_ns)
+
+  Cell In[1], line 5
+    root = ET.fromstring(cleaned_xml_content)
+
+  File /usr/lib/python3.10/xml/etree/ElementTree.py:1342 in XML
+    parser.feed(text)
+
+  File <string>
+ParseError: not well-formed (invalid token): line 1, column 0
+
+2025-06-16 19:02:21,274 - opendevin - INFO - CodeActAgent LEVEL 0 STEP 14
+2025-06-16 19:02:25,576 - opendevin - INFO - Cost: 0.00 USD | Accumulated Cost: 0.00 USD
+2025-06-16 19:02:25,577 - opendevin - INFO - **IPythonRunCellAction**
+THOUGHT: It seems there is still an issue with the XML content. Let's try a different approach by focusing on extracting the relevant parts of the XML content that contain the active compound CIDs. I'll attempt to locate and extract these CIDs directly from the XML string.
+CODE:
+# Attempt to extract CIDs directly from the XML string using a simple search
+import re
+
+# Use a regular expression to find CIDs marked as 'Active'
+active_cid_matches = re.findall(r'<PC-ResultType_tid>(\d+)</PC-ResultType_tid>.*?<PC-ResultType_name>Active</PC-ResultType_name>', xml_content, re.DOTALL)
+
+print("Active compound CIDs:", active_cid_matches)
+2025-06-16 19:02:26,145 - opendevin - INFO - **IPythonRunCellObservation**
+Active compound CIDs: []
+
+2025-06-16 19:02:26,247 - opendevin - INFO - CodeActAgent LEVEL 0 STEP 15
+2025-06-16 19:02:26,247 - opendevin - INFO - [Agent Controller default] Setting agent(CodeActAgent) state from AgentState.RUNNING to AgentState.ERROR
+2025-06-16 19:02:27,146 - opendevin - INFO - [Agent Controller default] Setting agent(CodeActAgent) state from AgentState.ERROR to AgentState.STOPPED
+2025-06-16 19:02:28,809 - opendevin - INFO - AgentController task was cancelled
+2025-06-16 19:02:28,811 - opendevin - INFO - Final response: Agent completed with state: State
+2025-06-16 19:02:28,811 - opendevin - INFO - Starting GPT evaluation for glycan task 46
+2025-06-16 19:02:28,812 - opendevin - INFO - Calling gpt-4o for evaluation...
+2025-06-16 19:02:28,812 - opendevin - INFO - DEBUG: Using model: gpt-4o
+2025-06-16 19:02:28,812 - opendevin - INFO - DEBUG: Prompt length (chars): 126096
+2025-06-16 19:02:28,812 - opendevin - INFO - DEBUG: Estimated tokens: 31524
+2025-06-16 19:02:28,826 - opendevin - INFO - DEBUG: Making API call to OpenAI with model: gpt-4o
+2025-06-16 19:02:39,249 - opendevin - INFO - DEBUG: API call successful, response received
+2025-06-16 19:02:39,251 - opendevin - INFO - GPT Evaluation Results:
+2025-06-16 19:02:39,251 - opendevin - INFO -   Decision: FAILURE
+2025-06-16 19:02:39,251 - opendevin - INFO -   Success: False
+2025-06-16 19:02:39,251 - opendevin - INFO -   Reasoning: The agent failed to complete the research task successfully. The primary objective was to identify active glycan compounds based on assay results and obtain detailed chemical properties. The agent cor...
+2025-06-16 19:02:39,251 - opendevin - INFO -   Critical Issues: The agent's inability to parse the XML response and extract active compound CIDs was the critical issue that led to failure. This prevented the completion of the task as the agent could not retrieve the necessary data to proceed with the chemical property analysis.
+2025-06-16 19:02:39,253 - opendevin - INFO - Detailed evaluation saved to evaluation_outputs/glycan_20250616_182203/logs/instance_46_evaluation.json
+2025-06-16 19:02:39,253 - opendevin - INFO - Task 46 completed. Success: False
