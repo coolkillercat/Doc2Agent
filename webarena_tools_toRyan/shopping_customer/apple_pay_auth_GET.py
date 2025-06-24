@@ -1,4 +1,5 @@
-import requests, json
+import requests
+import json
 from urllib.parse import quote
 
 def get_shopping_customer_auth_token():
@@ -21,31 +22,27 @@ def get_shopping_customer_auth_token():
             'password': 'Password.123'
         })
     )
-    return response.json()
+    return "Bearer " + response.json()
+
 
 def apple_pay_auth():
     """
     Returns details required to be able to submit a payment with Apple Pay.
     
     Returns:
-        requests.Response: Response object containing Apple Pay authorization details
+        requests.Response: The API response containing Apple Pay authentication details
         
     Example:
         response = apple_pay_auth()
-        auth_details = response.json()
+        auth_data = response.json()
     """
-    api_url = "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:7770/rest/default/V1/applepay/auth"
-    headers = {
-        "Content-Type": "application/json"
-    }
+    base_url = "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:7770"
+    api_url = f"{base_url}/rest/default/V1/applepay/auth"
     
-    # Try to get the token, but handle the case where it might fail
-    try:
-        token = get_shopping_customer_auth_token()
-        headers["Authorization"] = f"Bearer {token}"
-    except:
-        # Continue without token if authentication fails
-        pass
+    headers = {
+        'Content-Type': 'application/json', 
+        'Authorization': get_shopping_customer_auth_token()
+    }
     
     response = requests.get(url=api_url, headers=headers, timeout=50, verify=False)
     return response
@@ -57,7 +54,6 @@ if __name__ == '__main__':
         r_json = r.json()
     except:
         pass
-    import json
     result_dict = dict()
     result_dict['status_code'] = r.status_code
     result_dict['text'] = r.text

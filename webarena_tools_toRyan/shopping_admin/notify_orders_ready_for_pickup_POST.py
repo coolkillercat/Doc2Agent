@@ -1,54 +1,59 @@
-import requests, json
-from urllib.parse import quote
+import requests
+import json
 
-def get_shopping_admin_admin_auth_token():
+def get_shopping_admin_auth_token():
+    ENDPOINT = 'http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:7770'
     response = requests.post(
-        url=f'http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:7780/rest/default/V1/integration/admin/token',
-        headers={
+        url = f'{ENDPOINT}/rest/default/V1/integration/admin/token',
+        headers = {
             'content-type': 'application/json'
         },
-        data=json.dumps({
+        data = json.dumps({
             'username': 'admin',
             'password': 'admin1234'
         })
     )
-    return response.json()
+    return "Bearer " + response.json()
 
-def notify_orders_ready_for_pickup(order_ids=None):
+
+def notify_orders_ready_for_pickup(orderIds):
     """
-    Notify that orders are ready for pickup.
+    Notify customer that the orders are ready for pickup.
     
     Args:
-        order_ids (list): List of order IDs to notify as ready for pickup
-        
+        orderIds (list): List of order IDs to notify as ready for pickup.
+            Example: [101, 102, 103]
+    
     Returns:
-        requests.Response: The API response
+        requests.Response: The API response object.
+    
+    Raises:
+        AssertionError: If orderIds parameter is None or not provided.
     """
-    api_url = f"http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:7780/rest/default/V1/order/notify-orders-are-ready-for-pickup"
+    assert orderIds is not None, 'Missing required parameter: orderIds'
     
-    if order_ids is None:
-        order_ids = [123, 456]  # Example order IDs
-        
-    payload = {
-        "orderIds": order_ids
-    }
+    # Convert set of tuples to list of integers if needed
+    if isinstance(orderIds, set):
+        order_ids_list = [order_id[1] for order_id in orderIds if isinstance(order_id, tuple)]
+    else:
+        order_ids_list = orderIds
     
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + get_shopping_admin_admin_auth_token(),
-    }
+    base_url = "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:7770"
+    api_url = f"{base_url}/rest/default/V1/order/notify-orders-are-ready-for-pickup"
     
-    response = requests.post(url=api_url, headers=headers, json=payload, timeout=50, verify=False)
+    payload = {'orderIds': order_ids_list}
+    headers = {'Content-Type': 'application/json', 'Authorization': get_shopping_admin_auth_token()}
+    
+    response = requests.post(url=api_url, json=payload, headers=headers, timeout=50, verify=False)
     return response
 
 if __name__ == '__main__':
-    r = notify_orders_ready_for_pickup()
+    r = notify_orders_ready_for_pickup(orderIds=[101, 102, 103])
     r_json = None
     try:
         r_json = r.json()
     except:
         pass
-    import json
     result_dict = dict()
     result_dict['status_code'] = r.status_code
     result_dict['text'] = r.text

@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>notes API Documentation</title>
+</head>
+<body>
+<hr />
+<p>stage: Plan
+group: Project Management
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments</p>
+<hr />
+<h1>Notes API</h1>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> GitLab.com, Self-managed, GitLab Dedicated</p>
+<p>Notes are comments on:</p>
+<ul>
+<li><a href="../user/project/repository/index.md#commit-changes-to-a-repository">Commits</a></li>
+<li><a href="../user/group/epics/index.md">Epics</a></li>
+<li><a href="../user/project/issues/index.md">Issues</a></li>
+<li><a href="../user/project/merge_requests/index.md">Merge requests</a></li>
+<li><a href="../user/snippets.md">Snippets</a></li>
+</ul>
+<p>This includes system notes, which are notes about changes to the object (for example, when an
+assignee changes, GitLab posts a system note).</p>
+<h2>Resource events</h2>
+<p>Some system notes are not part of this API, but are recorded as separate events:</p>
+<ul>
+<li><a href="resource_label_events.md">Resource label events</a></li>
+<li><a href="resource_state_events.md">Resource state events</a></li>
+<li><a href="resource_milestone_events.md">Resource milestone events</a></li>
+<li><a href="resource_weight_events.md">Resource weight events</a></li>
+<li><a href="resource_iteration_events.md">Resource iteration events</a></li>
+</ul>
+<h2>Notes pagination</h2>
+<p>By default, <code>GET</code> requests return 20 results at a time because the API results
+are paginated.</p>
+<p>Read more on <a href="rest/index.md#pagination">pagination</a>.</p>
+<h2>Rate limits</h2>
+<p>To help avoid abuse, you can limit your users to a specific number of <code>Create</code> request per minute.
+See <a href="../administration/settings/rate_limit_on_notes_creation.md">Notes rate limits</a>.</p>
+<h2>Issues</h2>
+<h3>List project issue notes</h3>
+<p>Gets a list of all notes for a single issue.</p>
+<p><code>plaintext
+GET /projects/:id/issues/:issue_iid/notes
+GET /projects/:id/issues/:issue_iid/notes?sort=asc&amp;order_by=updated_at</code></p>
+<p>| Attribute           | Type             | Required   | Description                                                                                                                                         |
+| ------------------- | ---------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| <code>id</code>                | integer or string   | yes        | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> |
+| <code>issue_iid</code>         | integer          | yes        | The IID of an issue |
+| <code>sort</code>              | string           | no         | Return issue notes sorted in <code>asc</code> or <code>desc</code> order. Default is <code>desc</code> |
+| <code>order_by</code>          | string           | no         | Return issue notes ordered by <code>created_at</code> or <code>updated_at</code> fields. Default is <code>created_at</code> |</p>
+<p><code>json
+[
+  {
+    "id": 302,
+    "body": "closed",
+    "attachment": null,
+    "author": {
+      "id": 1,
+      "username": "pipin",
+      "email": "admin@example.com",
+      "name": "Pip",
+      "state": "active",
+      "created_at": "2013-09-30T13:46:01Z"
+    },
+    "created_at": "2013-10-02T09:22:45Z",
+    "updated_at": "2013-10-02T10:22:45Z",
+    "system": true,
+    "noteable_id": 377,
+    "noteable_type": "Issue",
+    "project_id": 5,
+    "noteable_iid": 377,
+    "resolvable": false,
+    "confidential": false,
+    "internal": false,
+    "imported": false,
+    "imported_from": "none"
+  },
+  {
+    "id": 305,
+    "body": "Text of the comment\r\n",
+    "attachment": null,
+    "author": {
+      "id": 1,
+      "username": "pipin",
+      "email": "admin@example.com",
+      "name": "Pip",
+      "state": "active",
+      "created_at": "2013-09-30T13:46:01Z"
+    },
+    "created_at": "2013-10-02T09:56:03Z",
+    "updated_at": "2013-10-02T09:56:03Z",
+    "system": true,
+    "noteable_id": 121,
+    "noteable_type": "Issue",
+    "project_id": 5,
+    "noteable_iid": 121,
+    "resolvable": false,
+    "confidential": true,
+    "internal": true,
+    "imported": false,
+    "imported_from": "none"
+  }
+]</code></p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/5/issues/11/notes"</code></p>
+<h3>Get single issue note</h3>
+<p>Returns a single note for a specific project issue</p>
+<p><code>plaintext
+GET /projects/:id/issues/:issue_iid/notes/:note_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute   | Type           | Required | Description                                                                     |
+|-------------|----------------|----------|---------------------------------------------------------------------------------|
+| <code>id</code>        | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> |
+| <code>issue_iid</code> | integer        | yes      | The IID of a project issue                                                      |
+| <code>note_id</code>   | integer        | yes      | The ID of an issue note                                                         |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/5/issues/11/notes/1"</code></p>
+<h3>Create new issue note</h3>
+<p>Creates a new note to a single project issue.</p>
+<p><code>plaintext
+POST /projects/:id/issues/:issue_iid/notes</code></p>
+<p>Parameters:</p>
+<p>| Attribute      | Type           | Required | Description                                                                                                                  |
+|----------------|----------------|----------|------------------------------------------------------------------------------------------------------------------------------|
+| <code>id</code>           | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>.                                           |
+| <code>issue_iid</code>    | integer        | yes      | The IID of an issue.                                                                                                         |
+| <code>body</code>         | string         | yes      | The content of a note. Limited to 1,000,000 characters.                                                                      |
+| <code>confidential</code> | boolean        | no       | <strong>Deprecated:</strong> Scheduled to be removed in GitLab 16.0 and renamed to <code>internal</code>. The confidential flag of a note. Default is false.                                                                           |
+| <code>internal</code>     | boolean        | no       | The internal flag of a note. Overrides <code>confidential</code> when both parameters are submitted. Default is false.                                                                               |
+| <code>created_at</code>   | string         | no       | Date time string, ISO 8601 formatted. It must be after 1970-01-01. Example: <code>2016-03-11T03:45:40Z</code> (requires administrator or project/group owner rights) |</p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/5/issues/11/notes?body=note"</code></p>
+<h3>Modify existing issue note</h3>
+<p>Modify existing note of an issue.</p>
+<p><code>plaintext
+PUT /projects/:id/issues/:issue_iid/notes/:note_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute      | Type           | Required    | Description                                                                                        |
+|----------------|----------------|-------------|----------------------------------------------------------------------------------------------------|
+| <code>id</code>           | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>.                    |
+| <code>issue_iid</code>    | integer           | yes      | The IID of an issue.                                                                               |
+| <code>note_id</code>      | integer           | yes      | The ID of a note.                                                                                  |
+| <code>body</code>         | string            | no       | The content of a note. Limited to 1,000,000 characters.                                            |
+| <code>confidential</code> | boolean           | no       | <strong>Deprecated:</strong> Scheduled to be removed in GitLab 16.0. The confidential flag of a note. Default is false. |</p>
+<p><code>shell
+curl --request PUT --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/5/issues/11/notes/636?body=note"</code></p>
+<h3>Delete an issue note</h3>
+<p>Deletes an existing note of an issue.</p>
+<p><code>plaintext
+DELETE /projects/:id/issues/:issue_iid/notes/:note_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| <code>id</code> | integer or string | yes | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> |
+| <code>issue_iid</code> | integer | yes | The IID of an issue |
+| <code>note_id</code> | integer | yes | The ID of a note |</p>
+<p><code>shell
+curl --request DELETE --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/5/issues/11/notes/636"</code></p>
+<h2>Snippets</h2>
+<p>The Snippets Notes API is intended for project-level snippets, and not for personal snippets.</p>
+<h3>List all snippet notes</h3>
+<p>Gets a list of all notes for a single snippet. Snippet notes are comments users can post to a snippet.</p>
+<p><code>plaintext
+GET /projects/:id/snippets/:snippet_id/notes
+GET /projects/:id/snippets/:snippet_id/notes?sort=asc&amp;order_by=updated_at</code></p>
+<p>| Attribute           | Type             | Required   | Description                                                                                                                                         |
+| ------------------- | ---------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| <code>id</code>                | integer or string   | yes        | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> |
+| <code>snippet_id</code>        | integer          | yes        | The ID of a project snippet |
+| <code>sort</code>              | string           | no         | Return snippet notes sorted in <code>asc</code> or <code>desc</code> order. Default is <code>desc</code> |
+| <code>order_by</code>          | string           | no         | Return snippet notes ordered by <code>created_at</code> or <code>updated_at</code> fields. Default is <code>created_at</code> |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/5/snippets/11/notes"</code></p>
+<h3>Get single snippet note</h3>
+<p>Returns a single note for a given snippet.</p>
+<p><code>plaintext
+GET /projects/:id/snippets/:snippet_id/notes/:note_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute    | Type           | Required | Description                                                                     |
+|--------------|----------------|----------|---------------------------------------------------------------------------------|
+| <code>id</code>         | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> |
+| <code>snippet_id</code> | integer        | yes      | The ID of a project snippet                                                     |
+| <code>note_id</code>    | integer        | yes      | The ID of a snippet note                                                        |</p>
+<p><code>json
+{
+  "id": 302,
+  "body": "closed",
+  "attachment": null,
+  "author": {
+    "id": 1,
+    "username": "pipin",
+    "email": "admin@example.com",
+    "name": "Pip",
+    "state": "active",
+    "created_at": "2013-09-30T13:46:01Z"
+  },
+  "created_at": "2013-10-02T09:22:45Z",
+  "updated_at": "2013-10-02T10:22:45Z",
+  "system": true,
+  "noteable_id": 377,
+  "noteable_type": "Issue",
+  "project_id": 5,
+  "noteable_iid": 377,
+  "resolvable": false,
+  "confidential": false,
+  "internal": false,
+  "imported": false,
+  "imported_from": "none"
+}</code></p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/5/snippets/11/notes/11"</code></p>
+<h3>Create new snippet note</h3>
+<p>Creates a new note for a single snippet. Snippet notes are user comments on snippets.
+If you create a note where the body only contains an emoji reaction, GitLab returns this object.</p>
+<p><code>plaintext
+POST /projects/:id/snippets/:snippet_id/notes</code></p>
+<p>Parameters:</p>
+<p>| Attribute    | Type           | Required | Description                                                                                                                  |
+|--------------|----------------|----------|------------------------------------------------------------------------------------------------------------------------------|
+| <code>id</code>         | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>                                              |
+| <code>snippet_id</code> | integer        | yes      | The ID of a snippet                                                                                                          |
+| <code>body</code>       | string         | yes      | The content of a note. Limited to 1,000,000 characters.                                                                      |
+| <code>created_at</code> | string         | no       | Date time string, ISO 8601 formatted. Example: <code>2016-03-11T03:45:40Z</code> (requires administrator or project/group owner rights) |</p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/5/snippet/11/notes?body=note"</code></p>
+<h3>Modify existing snippet note</h3>
+<p>Modify existing note of a snippet.</p>
+<p><code>plaintext
+PUT /projects/:id/snippets/:snippet_id/notes/:note_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute    | Type           | Required | Description                                                                                                                  |
+|--------------|----------------|----------|------------------------------------------------------------------------------------------------------------------------------|
+| <code>id</code>         | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>                                              |
+| <code>snippet_id</code> | integer        | yes      | The ID of a snippet                                                                                                          |
+| <code>note_id</code>    | integer        | yes      | The ID of a snippet note                                                        |
+| <code>body</code>       | string         | yes      | The content of a note. Limited to 1,000,000 characters.                                                                      |</p>
+<p><code>shell
+curl --request PUT --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/5/snippets/11/notes/1659?body=note"</code></p>
+<h3>Delete a snippet note</h3>
+<p>Deletes an existing note of a snippet.</p>
+<p><code>plaintext
+DELETE /projects/:id/snippets/:snippet_id/notes/:note_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| <code>id</code> | integer or string | yes | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> |
+| <code>snippet_id</code> | integer | yes | The ID of a snippet |
+| <code>note_id</code> | integer | yes | The ID of a note |</p>
+<p><code>shell
+curl --request DELETE --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/5/snippets/52/notes/1659"</code></p>
+<h2>Merge requests</h2>
+<h3>List all merge request notes</h3>
+<p>Gets a list of all notes for a single merge request.</p>
+<p><code>plaintext
+GET /projects/:id/merge_requests/:merge_request_iid/notes
+GET /projects/:id/merge_requests/:merge_request_iid/notes?sort=asc&amp;order_by=updated_at</code></p>
+<p>| Attribute           | Type             | Required   | Description                                                                                                                                         |
+| ------------------- | ---------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| <code>id</code>                | integer or string   | yes        | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> |
+| <code>merge_request_iid</code> | integer          | yes        | The IID of a project merge request |
+| <code>sort</code>              | string           | no         | Return merge request notes sorted in <code>asc</code> or <code>desc</code> order. Default is <code>desc</code> |
+| <code>order_by</code>          | string           | no         | Return merge request notes ordered by <code>created_at</code> or <code>updated_at</code> fields. Default is <code>created_at</code> |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/5/merge_requests/11/notes"</code></p>
+<h3>Get single merge request note</h3>
+<p>Returns a single note for a given merge request.</p>
+<p><code>plaintext
+GET /projects/:id/merge_requests/:merge_request_iid/notes/:note_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute           | Type           | Required | Description                                                                     |
+|---------------------|----------------|----------|---------------------------------------------------------------------------------|
+| <code>id</code>                | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> |
+| <code>merge_request_iid</code> | integer        | yes      | The IID of a project merge request                                              |
+| <code>note_id</code>           | integer        | yes      | The ID of a merge request note                                                        |</p>
+<p><code>json
+{
+  "id": 301,
+  "body": "Comment for MR",
+  "attachment": null,
+  "author": {
+    "id": 1,
+    "username": "pipin",
+    "email": "admin@example.com",
+    "name": "Pip",
+    "state": "active",
+    "created_at": "2013-09-30T13:46:01Z"
+  },
+  "created_at": "2013-10-02T08:57:14Z",
+  "updated_at": "2013-10-02T08:57:14Z",
+  "system": false,
+  "noteable_id": 2,
+  "noteable_type": "MergeRequest",
+  "project_id": 5,
+  "noteable_iid": 2,
+  "resolvable": false,
+  "confidential": false,
+  "internal": false
+}</code></p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/5/merge_requests/11/notes/1"</code></p>
+<h3>Create new merge request note</h3>
+<p>Creates a new note for a single merge request. Notes are not attached to specific
+lines in a merge request. For other approaches with more granular control, see
+<a href="commits.md#post-comment-to-commit">Post comment to commit</a> in the Commits API,
+and <a href="discussions.md#create-a-new-thread-in-the-merge-request-diff">Create a new thread in the merge request diff</a>
+in the Discussions API.</p>
+<p>If you create a note where the body only contains an emoji reaction, GitLab returns this object.</p>
+<p><code>plaintext
+POST /projects/:id/merge_requests/:merge_request_iid/notes</code></p>
+<p>Parameters:</p>
+<p>| Attribute           | Type           | Required | Description                                                                                                                  |
+|---------------------|----------------|----------|------------------------------------------------------------------------------------------------------------------------------|
+| <code>id</code>                    | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>                                              |
+| <code>merge_request_iid</code>     | integer        | yes      | The IID of a project merge request                                                                                           |
+| <code>body</code>                  | string         | yes      | The content of a note. Limited to 1,000,000 characters.                                                                      |
+| <code>created_at</code>            | string         | no       | Date time string, ISO 8601 formatted. Example: <code>2016-03-11T03:45:40Z</code> (requires administrator or project/group owner rights) |
+| <code>merge_request_diff_head_sha</code>| string         | no       | Required for the <code>/merge</code> <a href="../user/project/quick_actions.md">quick action</a>. The SHA of the head commit, which ensures the merge request wasn't updated after the API request was sent. |</p>
+<h3>Modify existing merge request note</h3>
+<p>Modify existing note of a merge request.</p>
+<p><code>plaintext
+PUT /projects/:id/merge_requests/:merge_request_iid/notes/:note_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute           | Type              | Required | Description                                                                                        |
+|---------------------|-------------------|----------|----------------------------------------------------------------------------------------------------|
+| <code>id</code>                | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>                     |
+| <code>merge_request_iid</code> | integer           | yes      | The IID of a project merge request                                                                 |
+| <code>note_id</code>           | integer           | no       | The ID of a note                                                                                   |
+| <code>body</code>              | string            | yes      | The content of a note. Limited to 1,000,000 characters.                                            |
+| <code>confidential</code>      | boolean           | no       | <strong>Deprecated:</strong> Scheduled to be removed in GitLab 16.0. The confidential flag of a note. Default is false. |</p>
+<p><code>shell
+curl --request PUT --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/5/merge_requests/11/notes/1?body=note"</code></p>
+<h3>Delete a merge request note</h3>
+<p>Deletes an existing note of a merge request.</p>
+<p><code>plaintext
+DELETE /projects/:id/merge_requests/:merge_request_iid/notes/:note_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| <code>id</code> | integer or string | yes | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> |
+| <code>merge_request_iid</code> | integer | yes | The IID of a merge request |
+| <code>note_id</code> | integer | yes | The ID of a note |</p>
+<p><code>shell
+curl --request DELETE --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/5/merge_requests/7/notes/1602"</code></p>
+<h2>Epics</h2>
+<p>DETAILS:
+<strong>Tier:</strong> Premium, Ultimate
+<strong>Offering:</strong> GitLab.com, Self-managed, GitLab Dedicated</p>
+<h3>List all epic notes</h3>
+<p>Gets a list of all notes for a single epic. Epic notes are comments users can post to an epic.</p>
+<p>NOTE:
+The epics notes API uses the epic ID instead of epic IID. If you use the epic's IID, GitLab returns either a 404
+error or notes for the wrong epic. It's different from the <a href="#issues">issue notes API</a> and
+<a href="#merge-requests">merge requests notes API</a>.</p>
+<p><code>plaintext
+GET /groups/:id/epics/:epic_id/notes
+GET /groups/:id/epics/:epic_id/notes?sort=asc&amp;order_by=updated_at</code></p>
+<p>| Attribute           | Type             | Required   | Description |
+| ------------------- | ---------------- | ---------- | ----------- |
+| <code>id</code>                | integer or string   | yes        | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the group</a> |
+| <code>epic_id</code>           | integer          | yes        | The ID of a group epic |
+| <code>sort</code>              | string           | no         | Return epic notes sorted in <code>asc</code> or <code>desc</code> order. Default is <code>desc</code> |
+| <code>order_by</code>          | string           | no         | Return epic notes ordered by <code>created_at</code> or <code>updated_at</code> fields. Default is <code>created_at</code> |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/groups/5/epics/11/notes"</code></p>
+<h3>Get single epic note</h3>
+<p>Returns a single note for a given epic.</p>
+<p><code>plaintext
+GET /groups/:id/epics/:epic_id/notes/:note_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type           | Required | Description |
+| --------- | -------------- | -------- | ----------- |
+| <code>id</code>      | integer or string | yes | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the group</a> |
+| <code>epic_id</code> | integer | yes  | The ID of an epic |
+| <code>note_id</code> | integer | yes  | The ID of a note |</p>
+<p><code>json
+{
+  "id": 302,
+  "body": "Epic note",
+  "attachment": null,
+  "author": {
+    "id": 1,
+    "username": "pipin",
+    "email": "admin@example.com",
+    "name": "Pip",
+    "state": "active",
+    "created_at": "2013-09-30T13:46:01Z"
+  },
+  "created_at": "2013-10-02T09:22:45Z",
+  "updated_at": "2013-10-02T10:22:45Z",
+  "system": true,
+  "noteable_id": 11,
+  "noteable_type": "Epic",
+  "project_id": 5,
+  "noteable_iid": 11,
+  "resolvable": false,
+  "confidential": false,
+  "internal": false,
+  "imported": false,
+  "imported_from": "none"
+}</code></p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/groups/5/epics/11/notes/1"</code></p>
+<h3>Create new epic note</h3>
+<p>Creates a new note for a single epic. Epic notes are comments users can post to an epic.
+If you create a note where the body only contains an emoji reaction, GitLab returns this object.</p>
+<p><code>plaintext
+POST /groups/:id/epics/:epic_id/notes</code></p>
+<p>Parameters:</p>
+<p>| Attribute      | Type           | Required | Description |
+| ---------      | -------------- | -------- | ----------- |
+| <code>body</code>         | string  | yes  | The content of a note. Limited to 1,000,000 characters. |
+| <code>epic_id</code>      | integer | yes  | The ID of an epic |
+| <code>id</code>           | integer or string | yes | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the group</a> |
+| <code>confidential</code> | boolean        | no       | <strong>Deprecated:</strong> Scheduled to be removed in GitLab 16.0 and is renamed to <code>internal</code>. The confidential flag of a note. Default is <code>false</code>. |
+| <code>internal</code>     | boolean        | no       | The internal flag of a note. Overrides <code>confidential</code> when both parameters are submitted. Default is <code>false</code>. |</p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/groups/5/epics/11/notes?body=note"</code></p>
+<h3>Modify existing epic note</h3>
+<p>Modify existing note of an epic.</p>
+<p><code>plaintext
+PUT /groups/:id/epics/:epic_id/notes/:note_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute      | Type              | Required | Description                                                                                        |
+| ---------------| ----------------- | -------- | ---------------------------------------------------------------------------------------------------|
+| <code>id</code>           | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the group</a>                       |
+| <code>epic_id</code>      | integer           | yes      | The ID of an epic                                                                                  |
+| <code>note_id</code>      | integer           | yes      | The ID of a note                                                                                   |
+| <code>body</code>         | string            | yes      | The content of a note. Limited to 1,000,000 characters.                                            |
+| <code>confidential</code> | boolean           | no       | <strong>Deprecated:</strong> Scheduled to be removed in GitLab 16.0. The confidential flag of a note. Default is false. |</p>
+<p><code>shell
+curl --request PUT --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/groups/5/epics/11/notes/1?body=note"</code></p>
+<h3>Delete an epic note</h3>
+<p>Deletes an existing note of an epic.</p>
+<p><code>plaintext
+DELETE /groups/:id/epics/:epic_id/notes/:note_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type           | Required | Description |
+| --------- | -------------- | -------- | ----------- |
+| <code>id</code>      | integer or string | yes | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the group</a> |
+| <code>epic_id</code> | integer | yes  | The ID of an epic |
+| <code>note_id</code> | integer | yes  | The ID of a note |</p>
+<p><code>shell
+curl --request DELETE --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/groups/5/epics/52/notes/1659"</code></p>
+</body>
+</html>

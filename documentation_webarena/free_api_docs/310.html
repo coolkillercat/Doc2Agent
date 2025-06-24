@@ -1,0 +1,727 @@
+<!doctype html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head prefix="og: http://ogp.me/ns#">
+	<!-- Global site tag (gtag.js) - Google Analytics -->
+	<script async src=https://www.googletagmanager.com/gtag/js?id=G-36F93VBHPB></script>
+	<script>
+  		window.dataLayer = window.dataLayer || [];
+  		function gtag(){dataLayer.push(arguments);}
+  		gtag('js', new Date());
+  		gtag('config', 'G-36F93VBHPB');
+	</script>
+	<meta charset="utf-8" />
+	<meta http-equiv="x-ua-compatible" content="ie=edge" />
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<meta name="description" content="NBP Web API allows HTTP clients to make enquiries on datasets published by the NBP.PL" />
+	<meta property="og:type" content="website" />
+	<meta property="og:title" content="NBP Web API :: Narodowy Bank Polski" />
+	<meta property="og:site_name" content="NBP Web API" />
+	<meta property="og:description" content="NBP Web API allows HTTP clients to make enquiries on datasets published by the NBP.PL" />
+	<meta property="og:locale" content="en_GB" />
+	<meta property="og:url" content="http://www.nbp.pl/api" />
+	<meta property="og:image" content="http://www.nbp.pl/api/img/api-og.jpg" />
+	<meta property="og:image:type" content="image/jpeg" />
+	<meta property="og:image:width" content="1200" />
+	<meta property="og:image:height" content="630" />
+	<meta property="article:author" content="Narodowy Bank Polski" />
+	<meta property="article:publisher" content="https://www.facebook.com/NarodowyBankPolski" />
+	<meta name="google-site-verification" content="f8MkTOWgKradjUJjKQt13rHGnQlw2a0EPAChgyPoqRg" />
+	<meta name="keywords" content="exchange rates, rate, currency, currencies, gold, price, prices, nbp safe" />
+	<meta name="author" content="Narodowy Bank Polski">
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:site" content="@nbppl" />
+	<meta name="twitter:creator" content="@nbppl" />
+	<meta name="twitter:title" content="NBP Web API">
+	<meta name="twitter:image" content="http://www.nbp.pl/api/img/api-og.jpg">
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="apple-mobile-web-app-status-bar-style" content="white" />
+	<meta name="HandheldFriendly" content="true" />
+	<meta name="robots" content="index, follow" />
+	<link rel="publisher" href="https://www.google.com/+NBPpl" />
+	<link rel="canonical" href="http://api.nbp.pl/en.html" />
+	<link rel="alternate" href="/" hreflang="pl" />
+	<link rel="author" href="http://www.nbp.pl" />
+	<link href="css/bootstrap.min.css" rel="stylesheet" />
+	<link href="css/api.css" rel="stylesheet" />
+	<title>NBP Web API</title>
+</head>
+<body id="page-top">
+
+	<header class="container">
+		<div class="row">
+			<h1>NBP</h1>
+			<a href="//www.nbp.pl" title="NBP"></a>
+		</div>
+	</header>
+
+	<section id="toc" class="container">
+		<a id="lang" class="pl" href="/">wersja polska</a>
+		<h1>NBP Web API</h1>
+		<h2 class="h3">Currency exchange rates and gold prices in the XML and JSON formats</h2>
+
+		<div class="row">
+			<div class="col-sm-6">
+				<p>
+					The <strong>api.nbp.pl</strong> service operates a public Web <abbr title="Application Programming Interface">API</abbr> enabling <abbr title="Hypertext Transfer Protocol">HTTP</abbr> clients to make enquiries on the following datasets published by the NBP.PL service:
+				</p>
+				<ol>
+					<li><a href="#kursyWalut">current and historic exchange rates of foreign currencies</a>:
+						<ul>
+							<li>table A of middle exchange rates of foreign currencies,</li>
+							<li>table B of middle exchange rates of foreign currencies,</li>
+							<li>table C of buy and sell prices of foreign currencies;</li>
+						</ul>
+					</li>
+					<li>
+						<a href="#cenyZlota">current and historic prices of gold calculated at NBP</a>.
+					</li>
+				</ol>
+				<p>
+					Communication with the service based on parametrized <mark>HTTP GET</mark> requests send to the <strong>http://api.nbp.pl/api/</strong> address.
+				</p>
+			</div>
+			<div class="col-sm-6">
+				<ul id="toc">
+					<li><a href="#info">General information</a></li>
+					<li><a href="#kursyWalut">Description of API functions concerning currency exchange rates</a>
+						<ul>
+							<li><a href="#kursyParams">Exchange rate query parameters</a></li>
+							<li><a href="#kursyFull">Queries for complete tables</a></li>
+							<li><a href="#kursySingle">Queries for particular currency</a></li>
+							<li><a href="#kursyOdp">Description of response parameters for exchange rate queries</a></li>
+						</ul>
+					</li>
+					<li><a href="#cenyZlota">Description of API functions concerning queries for gold prices</a>
+						<ul>
+							<li><a href="#zlotoParams">Gold price query parameters</a></li>
+							<li><a href="#zlotoFull">Queries for gold prices</a></li>
+							<li><a href="#zlotoOdp">Description of response parameters for gold price queries</a></li>
+						</ul>
+					</li>
+					<li><a href="#przyklady">Query examples</a></li>
+					<li><a href="#errors">Error messages</a></li>
+				</ul>
+			</div>
+		</div>
+	</section>
+
+	<section class="container">
+
+		<h2 id="instrukcja">User manual</h2>
+		<h3 id="info">General Information</h3>
+		<p>
+			Service reply is returned in the <mark><abbr title="JavaScript Object Notation">JSON</abbr></mark> or <mark><abbr title="Extensible Markup Language">XML</abbr></mark> format, depending on client requirements. The reply format may be indicated in two ways – with an query parameter <code>?format</code> or with a <code>HTTP Accept</code> header:
+		</p>
+		<ul>
+			<li><mark>JSON</mark> format: <code>Accept: application/json</code> header or <code>?format=json</code> parameter</li>
+			<li><mark>XML</mark> format: <code>Accept: application/xml</code> header or <code>?format=xml</code> parameter</li>
+		</ul>
+		<p>
+			If the format has not been determined, JSON is returned.
+		</p>
+		<p>
+			Historic data are available respectively:
+		</p>
+		<ul>
+			<li>for currency exchange rates – since 2 January 2002,</li>
+			<li>for gold prices – since 2 January 2013.</li>
+		</ul>
+		<p>
+			and a single enquiry cannot cover a period longer than 93 days.
+		</p>
+		<p>
+			The time frame for enquiry results may be determined in one of the following ways:
+		</p>
+		<ul>
+			<li>current data – the last released piece of data at the moment of making the enquiry,</li>
+			<li>data published today – the value published on the given day,</li>
+			<li>a series of data from the last N quotations,</li>
+			<li>data for a particular date of publication,</li>
+			<li>a series of data from a predetermined time bracket.</li>
+		</ul>
+
+		<h3 id="kursyWalut">Description of API functions concerning currency exchange rates</h3>
+		<p>
+			The data for currency exchange rates are made available in two ways:
+		</p>
+		<ul>
+			<li>as a complete table of exchange rates (or a series of such tables) of a determined type,</li>
+			<li>as an exchange rate (or a series of exchange rates) of a particular currency for a determined table type and currency symbol.</li>
+		</ul>
+
+		<h4 id="kursyParams">Exchange rate query parameters</h4>
+		<ul>
+			<li><code>{table}</code> – table type (<code>A</code>, <code>B</code>, or <code>C</code>)</li>
+			<li><code>{code}</code> – a three- letter <a href="//www.currency-iso.org/en/home/tables/table-a1.html" title="Current currency &amp; funds code list" target="_blank">currency code</a> (<a href="//en.wikipedia.org/wiki/ISO_4217" target="_blank">ISO 4217</a> standard)</li>
+			<li><code>{topCount}</code> – a number determining the maximum size of the returned data series</li>
+			<li><code>{date}</code>, <code>{startDate}</code>, <code>{endDate}</code> – a date in the YYYY-MM-DD format (<a href="//en.wikipedia.org/wiki/ISO_8601" target="_blank">ISO 8601</a> standard)</li>
+		</ul>
+
+		<h4 id="kursyFull">Queries for complete tables</h4>
+		<p>Templates of enquiries about complete tables of currency exchange rates</p>
+		<ul>
+			<li>
+				Current table of exchange rates of type <code>{table}</code>
+				<pre>http://api.nbp.pl/api/exchangerates/tables/<mark>{table}</mark>/</pre>
+			</li>
+			<li>
+				Series of latest <code>{topCount}</code> tables of exchange rates of type <code>{table}</code>
+				<pre>http://api.nbp.pl/api/exchangerates/tables/<mark>{table}</mark>/last/<mark>{topCount}</mark>/</pre>
+			</li>
+			<li>
+				Exchange rate table of type <code>{table}</code> published today (or lack of data)
+				<pre>http://api.nbp.pl/api/exchangerates/tables/<mark>{table}</mark>/today/</pre>
+			</li>
+			<li>
+				Exchange rate table of type <code>{table}</code> published on <code>{date} </code>(or lack of data)
+				<pre>http://api.nbp.pl/api/exchangerates/tables/<mark>{table}</mark>/<mark>{date}</mark>/</pre>
+			</li>
+			<li>
+				Series of exchange rate tables of type <code>{table}</code> published from <code>{startDate}</code> to <code>{endDate}</code> (or lack of data)
+				<pre>http://api.nbp.pl/api/exchangerates/tables/<mark>{table}</mark>/<mark>{startDate}</mark>/<mark>{endDate}</mark>/</pre>
+			</li>
+		</ul>
+		<h4 id="kursySingle">Queries for particular currency</h4>
+		<p>Templates of enquiries about a particular currency exchange rate</p>
+		<ul>
+			<li>
+				Current exchange rate <code>{code}</code> from the exchange rate table of type <code>{table}</code>
+				<pre>http://api.nbp.pl/api/exchangerates/rates/<mark>{table}</mark>/<mark>{code}</mark>/</pre>
+			</li>
+			<li>
+				Series of latest <code>{topCount}</code> exchange rates of currency <code>{code}</code> from the exchange rate table of type <code>{table}</code>
+				<pre>http://api.nbp.pl/api/exchangerates/rates/<mark>{table}</mark>/<mark>{code}</mark>/last/<mark>{topCount}</mark>/</pre>
+			</li>
+			<li>
+				Exchange rate of currency <code>{code}</code> from the exchange rate table of type <code>{table}</code> published today (or lack of data)
+				<pre>http://api.nbp.pl/api/exchangerates/rates/<mark>{table}</mark>/<mark>{code}</mark>/today/</pre>
+			</li>
+			<li>
+				Exchange rate of currency <code>{code}</code> from the exchange rate table of type <code>{table}</code> published on <code>{date}</code> (or lack of data)
+				<pre>http://api.nbp.pl/api/exchangerates/rates/<mark>{table}</mark>/<mark>code}</mark>/<mark>{date}</mark>/</pre>
+			</li>
+			<li>
+				Exchange rate of currency <code>{code}</code> from the exchange rate table of type <code>{table}</code> published from <code>{startDate}</code> to <code>{endDate}</code> (or lack of data)
+				<pre>http://api.nbp.pl/api/exchangerates/rates/<mark>{table}</mark>/<mark>{code}</mark>/<mark>{startDate}</mark>/<mark>{endDate}</mark>/</pre>
+			</li>
+		</ul>
+		<h4 id="kursyOdp">Description of response parameters for exchange rate queries</h4>
+		<ul>
+			<li><mark>Table</mark> – table type</li>
+			<li><mark>No</mark> – table number</li>
+			<li><mark>TradingDate</mark> – trading date (for table C only)</li>
+			<li><mark>EffectiveDate</mark> – publication date</li>
+			<li><mark>Rates</mark> – a list of exchange rates of particular currencies in the table</li>
+			<li><mark>Country</mark> – country name</li>
+			<li><mark>Symbol</mark> – currency symbol (numerical, concerns historic exchange rates)</li>
+			<li><mark>Currency</mark> – currency name</li>
+			<li><mark>Code</mark> – currency code</li>
+			<li><mark>Bid</mark> – calculated currency buy exchange rate (concerns table C) (for table C only)</li>
+			<li><mark>Ask</mark> – calculated currency sell exchange rate (concerns table C) ()</li>
+			<li><mark>Mid </mark> – calculated currency average exchange rate (for tables A and B)</li>
+		</ul>
+
+		<h3 id="cenyZlota">Description of API functions concerning queries for gold prices</h3>
+
+		<h4 id="zlotoParams">Gold price query parameters</h4>
+		<ul>
+			<li><code>{topCount}</code> – a number determining the maximum size of returned data series</li>
+			<li><code>{date}</code>, <code>{startDate}</code>, <code>{endDate}</code> – a date in the YYYY-MM-DD format (<a href="//en.wikipedia.org/wiki/ISO_8601" target="_blank">ISO 8601</a> standard)</li>
+		</ul>
+
+		<h4 id="zlotoFull">Queries for gold prices</h4>
+		<ul>
+			<li>
+				Current gold price
+				<pre>http://api.nbp.pl/api/cenyzlota</pre>
+			</li>
+			<li>
+				Series of  latest <code>{topCount}</code> gold price quotations
+				<pre>http://api.nbp.pl/api/cenyzlota/last/<mark>{topCount}</mark></pre>
+			</li>
+			<li>
+				Price of gold published today (or lack of data)
+				<pre>http://api.nbp.pl/api/cenyzlota/today</pre>
+			</li>
+			<li>
+				Price of gold published on <code>{date}</code> (or lack of data)
+				<pre>http://api.nbp.pl/api/cenyzlota/<mark>{date}</mark></pre>
+			</li>
+			<li>
+				Series of gold prices published from <code>{startDate}</code> to <code>{endDate}</code> (or lack of data)
+				<pre>http://api.nbp.pl/api/cenyzlota/<mark>{startDate}</mark>/<mark>{endDate}</mark></pre>
+			</li>
+		</ul>
+
+		<h4 id="zlotoOdp">Description of response parameters for gold price queries</h4>
+		<ul>
+			<li><mark>Date</mark> – publication date</li>
+			<li><mark>Code</mark> – the price of 1g of gold (of 1000 millesimal fineness) calculated at NBP</li>
+		</ul>
+
+
+		<h3 id="przyklady">Query examples</h3>
+		<h4>Currency exchange rates</h4>
+		<ul>
+			<li>Current average CHF exchange rate
+				<pre><a href="http://api.nbp.pl/api/exchangerates/rates/a/chf/" target="_blank">http://api.nbp.pl/api/exchangerates/rates/a/chf/</a></pre>
+			</li>
+			<li>Quotation of USD buy and sell exchange rate published today<br />
+				<small>If the current table has not been published yet, the 404 error code is returned</small>
+				<pre><a href="http://api.nbp.pl/api/exchangerates/rates/c/usd/today/" target="_blank">http://api.nbp.pl/api/exchangerates/rates/c/usd/today/</a></pre>
+			</li>
+			<li>Quotation of USD buy and sell exchange rate of 2016-04-04 in the JSON format
+				<pre><a href="http://api.nbp.pl/api/exchangerates/rates/c/usd/2016-04-04/?format=json" target="_blank">http://api.nbp.pl/api/exchangerates/rates/c/usd/2016-04-04/?format=json</a></pre>
+			</li>
+			<li>Current table of type A of average exchange rates of foreign currencies
+				<pre><a href="http://api.nbp.pl/api/exchangerates/tables/a/" target="_blank">http://api.nbp.pl/api/exchangerates/tables/a/</a></pre>
+			</li>
+			<li>Table of type A published today<br />
+				<small>If today’s table has not been published yet, the 404 error code is returned</small>
+				<pre><a href="http://api.nbp.pl/api/exchangerates/tables/a/today/" target="_blank">http://api.nbp.pl/api/exchangerates/tables/a/today/</a></pre>
+			</li>
+			<li>Series of the last 10 quotations of GBP average exchange rate in the JSON
+				<pre><a href="http://api.nbp.pl/api/exchangerates/rates/a/gbp/last/10/?format=json" target="_blank">http://api.nbp.pl/api/exchangerates/rates/a/gbp/last/10/?format=json</a></pre>
+			</li>
+			<li>Series of the last 10 quotations of USD buy and sell exchange rates in the XML format
+				<pre><a href="http://api.nbp.pl/api/exchangerates/rates/c/usd/last/10/?format=xml" target="_blank">http://api.nbp.pl/api/exchangerates/rates/c/usd/last/10/?format=xml</a></pre>
+			</li>
+			<li>Series of GBP average exchange rates from 2012-01-01 to 2012-01-31
+				<pre><a href="http://api.nbp.pl/api/exchangerates/rates/a/gbp/2012-01-01/2012-01-31/" target="_blank">http://api.nbp.pl/api/exchangerates/rates/a/gbp/2012-01-01/2012-01-31/</a></pre>
+			</li>
+			<li>GBP average exchange rate on 2012-01-02
+				<pre><a href="http://api.nbp.pl/api/exchangerates/rates/a/gbp/2012-01-02/" target="_blank">http://api.nbp.pl/api/exchangerates/rates/a/gbp/2012-01-02/</a></pre>
+			</li>
+			<li>Series of last 5 tables of type A of average exchange rates of foreign currencies
+				<pre><a href="http://api.nbp.pl/api/exchangerates/tables/a/last/5/" target="_blank">http://api.nbp.pl/api/exchangerates/tables/a/last/5/</a></pre>
+			</li>
+			<li>Series of tables of type A from 2012-01-01 to 2012-01-31
+				<pre><a href="http://api.nbp.pl/api/exchangerates/tables/a/2012-01-01/2012-01-31/" target="_blank">http://api.nbp.pl/api/exchangerates/tables/a/2012-01-01/2012-01-31/</a></pre>
+			</li>
+			<li>Table B as of 2016-03-30
+				<pre><a href="http://api.nbp.pl/api/exchangerates/tables/b/2016-03-30/" target="_blank">http://api.nbp.pl/api/exchangerates/tables/b/2016-03-30/</a></pre>
+			</li>
+		</ul>
+
+		<h4>Gold prices</h4>
+		<ul>
+			<li>Current gold price
+				<pre><a href="http://api.nbp.pl/api/cenyzlota/" target="_blank">http://api.nbp.pl/api/cenyzlota/</a></pre>
+			</li>
+			<li>Series of last 30 quotations of gold prices in the JSON format
+				<pre><a href="http://api.nbp.pl/api/cenyzlota/last/30/?format=json" target="_blank">http://api.nbp.pl/api/cenyzlota/last/30/?format=json</a></pre>
+			</li>
+			<li>Gold price published today (or lack of data)
+				<pre><a href="http://api.nbp.pl/api/cenyzlota/today/" target="_blank">http://api.nbp.pl/api/cenyzlota/today/</a></pre>
+			</li>
+			<li>Gold price published on 2013-01-02
+				<pre><a href="http://api.nbp.pl/api/cenyzlota/2013-01-02/" target="_blank">http://api.nbp.pl/api/cenyzlota/2013-01-02/</a></pre>
+			</li>
+			<li>Series of gold prices published from 2013-01-01 to 2013-01-31
+				<pre><a href="http://api.nbp.pl/api/cenyzlota/2013-01-01/2013-01-31/" target="_blank">http://api.nbp.pl/api/cenyzlota/2013-01-01/2013-01-31/</a></pre>
+			</li>
+		</ul>
+
+		<h3 id="errors">Error messages</h3>
+		<p>
+			In the case of lack of data for a correctly determined time interval, <samp class="text-danger">404 Not Found</samp> message is returned
+		</p>
+		<p>
+			In the case of incorrectly formulated enquiries, the service returns <samp class="text-danger">400 Bad Request</samp> message
+		</p>
+		<p>
+			In the case of an enquiry/query exceeding the returned data size limit, the service returns the message <samp class="text-danger">400 Bad Request - Limit exceeded</samp>
+		</p>
+
+
+	</section>
+
+	<footer class="container">
+		<div class="row text-center">
+			<p>Copyright © 2022 <a href="//nbp.pl">Narodowy Bank Polski</a>. <br class="brlt430" />All rights reserved.</p>
+		</div>
+	</footer>
+
+	<div id="cookies-message-container">
+		<div id="cookies-message">
+			This site uses cookies to ensure its more efficient operation.<br />
+			To find out more about the cookie technology, please click here:
+			<a href="/link/privacy-policy" class="icon">NBP Privacy Policy »</a> <br />
+			In order to browse through the content, it is necessary to accept cookies from this site
+				<a class="cbutton" href="javascript:CloseCookiesWindow();">Accept</a>
+		</div>
+	</div>
+
+	<script src="js/jquery-2.2.2.min.js"></script>
+	<script src="js/bootstrap.min.js"></script>
+	<script src="js/api.js"></script>
+	<noscript>For proper render of this page it is necessary to enable JavaScript!</noscript>
+
+</body>
+</html>
+
+
+<!doctype html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head prefix="og: http://ogp.me/ns#">
+	<!-- Global site tag (gtag.js) - Google Analytics -->
+	<script async src=https://www.googletagmanager.com/gtag/js?id=G-36F93VBHPB></script>
+	<script>
+  		window.dataLayer = window.dataLayer || [];
+  		function gtag(){dataLayer.push(arguments);}
+  		gtag('js', new Date());
+  		gtag('config', 'G-36F93VBHPB');
+	</script>
+	<meta charset="utf-8" />
+	<meta http-equiv="x-ua-compatible" content="ie=edge" />
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<meta name="description" content="NBP Web API allows HTTP clients to make enquiries on datasets published by the NBP.PL" />
+	<meta property="og:type" content="website" />
+	<meta property="og:title" content="NBP Web API :: Narodowy Bank Polski" />
+	<meta property="og:site_name" content="NBP Web API" />
+	<meta property="og:description" content="NBP Web API allows HTTP clients to make enquiries on datasets published by the NBP.PL" />
+	<meta property="og:locale" content="en_GB" />
+	<meta property="og:url" content="http://www.nbp.pl/api" />
+	<meta property="og:image" content="http://www.nbp.pl/api/img/api-og.jpg" />
+	<meta property="og:image:type" content="image/jpeg" />
+	<meta property="og:image:width" content="1200" />
+	<meta property="og:image:height" content="630" />
+	<meta property="article:author" content="Narodowy Bank Polski" />
+	<meta property="article:publisher" content="https://www.facebook.com/NarodowyBankPolski" />
+	<meta name="google-site-verification" content="f8MkTOWgKradjUJjKQt13rHGnQlw2a0EPAChgyPoqRg" />
+	<meta name="keywords" content="exchange rates, rate, currency, currencies, gold, price, prices, nbp safe" />
+	<meta name="author" content="Narodowy Bank Polski">
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:site" content="@nbppl" />
+	<meta name="twitter:creator" content="@nbppl" />
+	<meta name="twitter:title" content="NBP Web API">
+	<meta name="twitter:image" content="http://www.nbp.pl/api/img/api-og.jpg">
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="apple-mobile-web-app-status-bar-style" content="white" />
+	<meta name="HandheldFriendly" content="true" />
+	<meta name="robots" content="index, follow" />
+	<link rel="publisher" href="https://www.google.com/+NBPpl" />
+	<link rel="canonical" href="http://api.nbp.pl/en.html" />
+	<link rel="alternate" href="/" hreflang="pl" />
+	<link rel="author" href="http://www.nbp.pl" />
+	<link href="css/bootstrap.min.css" rel="stylesheet" />
+	<link href="css/api.css" rel="stylesheet" />
+	<title>NBP Web API</title>
+</head>
+<body id="page-top">
+
+	<header class="container">
+		<div class="row">
+			<h1>NBP</h1>
+			<a href="//www.nbp.pl" title="NBP"></a>
+		</div>
+	</header>
+
+	<section id="toc" class="container">
+		<a id="lang" class="pl" href="/">wersja polska</a>
+		<h1>NBP Web API</h1>
+		<h2 class="h3">Currency exchange rates and gold prices in the XML and JSON formats</h2>
+
+		<div class="row">
+			<div class="col-sm-6">
+				<p>
+					The <strong>api.nbp.pl</strong> service operates a public Web <abbr title="Application Programming Interface">API</abbr> enabling <abbr title="Hypertext Transfer Protocol">HTTP</abbr> clients to make enquiries on the following datasets published by the NBP.PL service:
+				</p>
+				<ol>
+					<li><a href="#kursyWalut">current and historic exchange rates of foreign currencies</a>:
+						<ul>
+							<li>table A of middle exchange rates of foreign currencies,</li>
+							<li>table B of middle exchange rates of foreign currencies,</li>
+							<li>table C of buy and sell prices of foreign currencies;</li>
+						</ul>
+					</li>
+					<li>
+						<a href="#cenyZlota">current and historic prices of gold calculated at NBP</a>.
+					</li>
+				</ol>
+				<p>
+					Communication with the service based on parametrized <mark>HTTP GET</mark> requests send to the <strong>http://api.nbp.pl/api/</strong> address.
+				</p>
+			</div>
+			<div class="col-sm-6">
+				<ul id="toc">
+					<li><a href="#info">General information</a></li>
+					<li><a href="#kursyWalut">Description of API functions concerning currency exchange rates</a>
+						<ul>
+							<li><a href="#kursyParams">Exchange rate query parameters</a></li>
+							<li><a href="#kursyFull">Queries for complete tables</a></li>
+							<li><a href="#kursySingle">Queries for particular currency</a></li>
+							<li><a href="#kursyOdp">Description of response parameters for exchange rate queries</a></li>
+						</ul>
+					</li>
+					<li><a href="#cenyZlota">Description of API functions concerning queries for gold prices</a>
+						<ul>
+							<li><a href="#zlotoParams">Gold price query parameters</a></li>
+							<li><a href="#zlotoFull">Queries for gold prices</a></li>
+							<li><a href="#zlotoOdp">Description of response parameters for gold price queries</a></li>
+						</ul>
+					</li>
+					<li><a href="#przyklady">Query examples</a></li>
+					<li><a href="#errors">Error messages</a></li>
+				</ul>
+			</div>
+		</div>
+	</section>
+
+	<section class="container">
+
+		<h2 id="instrukcja">User manual</h2>
+		<h3 id="info">General Information</h3>
+		<p>
+			Service reply is returned in the <mark><abbr title="JavaScript Object Notation">JSON</abbr></mark> or <mark><abbr title="Extensible Markup Language">XML</abbr></mark> format, depending on client requirements. The reply format may be indicated in two ways – with an query parameter <code>?format</code> or with a <code>HTTP Accept</code> header:
+		</p>
+		<ul>
+			<li><mark>JSON</mark> format: <code>Accept: application/json</code> header or <code>?format=json</code> parameter</li>
+			<li><mark>XML</mark> format: <code>Accept: application/xml</code> header or <code>?format=xml</code> parameter</li>
+		</ul>
+		<p>
+			If the format has not been determined, JSON is returned.
+		</p>
+		<p>
+			Historic data are available respectively:
+		</p>
+		<ul>
+			<li>for currency exchange rates – since 2 January 2002,</li>
+			<li>for gold prices – since 2 January 2013.</li>
+		</ul>
+		<p>
+			and a single enquiry cannot cover a period longer than 93 days.
+		</p>
+		<p>
+			The time frame for enquiry results may be determined in one of the following ways:
+		</p>
+		<ul>
+			<li>current data – the last released piece of data at the moment of making the enquiry,</li>
+			<li>data published today – the value published on the given day,</li>
+			<li>a series of data from the last N quotations,</li>
+			<li>data for a particular date of publication,</li>
+			<li>a series of data from a predetermined time bracket.</li>
+		</ul>
+
+		<h3 id="kursyWalut">Description of API functions concerning currency exchange rates</h3>
+		<p>
+			The data for currency exchange rates are made available in two ways:
+		</p>
+		<ul>
+			<li>as a complete table of exchange rates (or a series of such tables) of a determined type,</li>
+			<li>as an exchange rate (or a series of exchange rates) of a particular currency for a determined table type and currency symbol.</li>
+		</ul>
+
+		<h4 id="kursyParams">Exchange rate query parameters</h4>
+		<ul>
+			<li><code>{table}</code> – table type (<code>A</code>, <code>B</code>, or <code>C</code>)</li>
+			<li><code>{code}</code> – a three- letter <a href="//www.currency-iso.org/en/home/tables/table-a1.html" title="Current currency &amp; funds code list" target="_blank">currency code</a> (<a href="//en.wikipedia.org/wiki/ISO_4217" target="_blank">ISO 4217</a> standard)</li>
+			<li><code>{topCount}</code> – a number determining the maximum size of the returned data series</li>
+			<li><code>{date}</code>, <code>{startDate}</code>, <code>{endDate}</code> – a date in the YYYY-MM-DD format (<a href="//en.wikipedia.org/wiki/ISO_8601" target="_blank">ISO 8601</a> standard)</li>
+		</ul>
+
+		<h4 id="kursyFull">Queries for complete tables</h4>
+		<p>Templates of enquiries about complete tables of currency exchange rates</p>
+		<ul>
+			<li>
+				Current table of exchange rates of type <code>{table}</code>
+				<pre>http://api.nbp.pl/api/exchangerates/tables/<mark>{table}</mark>/</pre>
+			</li>
+			<li>
+				Series of latest <code>{topCount}</code> tables of exchange rates of type <code>{table}</code>
+				<pre>http://api.nbp.pl/api/exchangerates/tables/<mark>{table}</mark>/last/<mark>{topCount}</mark>/</pre>
+			</li>
+			<li>
+				Exchange rate table of type <code>{table}</code> published today (or lack of data)
+				<pre>http://api.nbp.pl/api/exchangerates/tables/<mark>{table}</mark>/today/</pre>
+			</li>
+			<li>
+				Exchange rate table of type <code>{table}</code> published on <code>{date} </code>(or lack of data)
+				<pre>http://api.nbp.pl/api/exchangerates/tables/<mark>{table}</mark>/<mark>{date}</mark>/</pre>
+			</li>
+			<li>
+				Series of exchange rate tables of type <code>{table}</code> published from <code>{startDate}</code> to <code>{endDate}</code> (or lack of data)
+				<pre>http://api.nbp.pl/api/exchangerates/tables/<mark>{table}</mark>/<mark>{startDate}</mark>/<mark>{endDate}</mark>/</pre>
+			</li>
+		</ul>
+		<h4 id="kursySingle">Queries for particular currency</h4>
+		<p>Templates of enquiries about a particular currency exchange rate</p>
+		<ul>
+			<li>
+				Current exchange rate <code>{code}</code> from the exchange rate table of type <code>{table}</code>
+				<pre>http://api.nbp.pl/api/exchangerates/rates/<mark>{table}</mark>/<mark>{code}</mark>/</pre>
+			</li>
+			<li>
+				Series of latest <code>{topCount}</code> exchange rates of currency <code>{code}</code> from the exchange rate table of type <code>{table}</code>
+				<pre>http://api.nbp.pl/api/exchangerates/rates/<mark>{table}</mark>/<mark>{code}</mark>/last/<mark>{topCount}</mark>/</pre>
+			</li>
+			<li>
+				Exchange rate of currency <code>{code}</code> from the exchange rate table of type <code>{table}</code> published today (or lack of data)
+				<pre>http://api.nbp.pl/api/exchangerates/rates/<mark>{table}</mark>/<mark>{code}</mark>/today/</pre>
+			</li>
+			<li>
+				Exchange rate of currency <code>{code}</code> from the exchange rate table of type <code>{table}</code> published on <code>{date}</code> (or lack of data)
+				<pre>http://api.nbp.pl/api/exchangerates/rates/<mark>{table}</mark>/<mark>code}</mark>/<mark>{date}</mark>/</pre>
+			</li>
+			<li>
+				Exchange rate of currency <code>{code}</code> from the exchange rate table of type <code>{table}</code> published from <code>{startDate}</code> to <code>{endDate}</code> (or lack of data)
+				<pre>http://api.nbp.pl/api/exchangerates/rates/<mark>{table}</mark>/<mark>{code}</mark>/<mark>{startDate}</mark>/<mark>{endDate}</mark>/</pre>
+			</li>
+		</ul>
+		<h4 id="kursyOdp">Description of response parameters for exchange rate queries</h4>
+		<ul>
+			<li><mark>Table</mark> – table type</li>
+			<li><mark>No</mark> – table number</li>
+			<li><mark>TradingDate</mark> – trading date (for table C only)</li>
+			<li><mark>EffectiveDate</mark> – publication date</li>
+			<li><mark>Rates</mark> – a list of exchange rates of particular currencies in the table</li>
+			<li><mark>Country</mark> – country name</li>
+			<li><mark>Symbol</mark> – currency symbol (numerical, concerns historic exchange rates)</li>
+			<li><mark>Currency</mark> – currency name</li>
+			<li><mark>Code</mark> – currency code</li>
+			<li><mark>Bid</mark> – calculated currency buy exchange rate (concerns table C) (for table C only)</li>
+			<li><mark>Ask</mark> – calculated currency sell exchange rate (concerns table C) ()</li>
+			<li><mark>Mid </mark> – calculated currency average exchange rate (for tables A and B)</li>
+		</ul>
+
+		<h3 id="cenyZlota">Description of API functions concerning queries for gold prices</h3>
+
+		<h4 id="zlotoParams">Gold price query parameters</h4>
+		<ul>
+			<li><code>{topCount}</code> – a number determining the maximum size of returned data series</li>
+			<li><code>{date}</code>, <code>{startDate}</code>, <code>{endDate}</code> – a date in the YYYY-MM-DD format (<a href="//en.wikipedia.org/wiki/ISO_8601" target="_blank">ISO 8601</a> standard)</li>
+		</ul>
+
+		<h4 id="zlotoFull">Queries for gold prices</h4>
+		<ul>
+			<li>
+				Current gold price
+				<pre>http://api.nbp.pl/api/cenyzlota</pre>
+			</li>
+			<li>
+				Series of  latest <code>{topCount}</code> gold price quotations
+				<pre>http://api.nbp.pl/api/cenyzlota/last/<mark>{topCount}</mark></pre>
+			</li>
+			<li>
+				Price of gold published today (or lack of data)
+				<pre>http://api.nbp.pl/api/cenyzlota/today</pre>
+			</li>
+			<li>
+				Price of gold published on <code>{date}</code> (or lack of data)
+				<pre>http://api.nbp.pl/api/cenyzlota/<mark>{date}</mark></pre>
+			</li>
+			<li>
+				Series of gold prices published from <code>{startDate}</code> to <code>{endDate}</code> (or lack of data)
+				<pre>http://api.nbp.pl/api/cenyzlota/<mark>{startDate}</mark>/<mark>{endDate}</mark></pre>
+			</li>
+		</ul>
+
+		<h4 id="zlotoOdp">Description of response parameters for gold price queries</h4>
+		<ul>
+			<li><mark>Date</mark> – publication date</li>
+			<li><mark>Code</mark> – the price of 1g of gold (of 1000 millesimal fineness) calculated at NBP</li>
+		</ul>
+
+
+		<h3 id="przyklady">Query examples</h3>
+		<h4>Currency exchange rates</h4>
+		<ul>
+			<li>Current average CHF exchange rate
+				<pre><a href="http://api.nbp.pl/api/exchangerates/rates/a/chf/" target="_blank">http://api.nbp.pl/api/exchangerates/rates/a/chf/</a></pre>
+			</li>
+			<li>Quotation of USD buy and sell exchange rate published today<br />
+				<small>If the current table has not been published yet, the 404 error code is returned</small>
+				<pre><a href="http://api.nbp.pl/api/exchangerates/rates/c/usd/today/" target="_blank">http://api.nbp.pl/api/exchangerates/rates/c/usd/today/</a></pre>
+			</li>
+			<li>Quotation of USD buy and sell exchange rate of 2016-04-04 in the JSON format
+				<pre><a href="http://api.nbp.pl/api/exchangerates/rates/c/usd/2016-04-04/?format=json" target="_blank">http://api.nbp.pl/api/exchangerates/rates/c/usd/2016-04-04/?format=json</a></pre>
+			</li>
+			<li>Current table of type A of average exchange rates of foreign currencies
+				<pre><a href="http://api.nbp.pl/api/exchangerates/tables/a/" target="_blank">http://api.nbp.pl/api/exchangerates/tables/a/</a></pre>
+			</li>
+			<li>Table of type A published today<br />
+				<small>If today’s table has not been published yet, the 404 error code is returned</small>
+				<pre><a href="http://api.nbp.pl/api/exchangerates/tables/a/today/" target="_blank">http://api.nbp.pl/api/exchangerates/tables/a/today/</a></pre>
+			</li>
+			<li>Series of the last 10 quotations of GBP average exchange rate in the JSON
+				<pre><a href="http://api.nbp.pl/api/exchangerates/rates/a/gbp/last/10/?format=json" target="_blank">http://api.nbp.pl/api/exchangerates/rates/a/gbp/last/10/?format=json</a></pre>
+			</li>
+			<li>Series of the last 10 quotations of USD buy and sell exchange rates in the XML format
+				<pre><a href="http://api.nbp.pl/api/exchangerates/rates/c/usd/last/10/?format=xml" target="_blank">http://api.nbp.pl/api/exchangerates/rates/c/usd/last/10/?format=xml</a></pre>
+			</li>
+			<li>Series of GBP average exchange rates from 2012-01-01 to 2012-01-31
+				<pre><a href="http://api.nbp.pl/api/exchangerates/rates/a/gbp/2012-01-01/2012-01-31/" target="_blank">http://api.nbp.pl/api/exchangerates/rates/a/gbp/2012-01-01/2012-01-31/</a></pre>
+			</li>
+			<li>GBP average exchange rate on 2012-01-02
+				<pre><a href="http://api.nbp.pl/api/exchangerates/rates/a/gbp/2012-01-02/" target="_blank">http://api.nbp.pl/api/exchangerates/rates/a/gbp/2012-01-02/</a></pre>
+			</li>
+			<li>Series of last 5 tables of type A of average exchange rates of foreign currencies
+				<pre><a href="http://api.nbp.pl/api/exchangerates/tables/a/last/5/" target="_blank">http://api.nbp.pl/api/exchangerates/tables/a/last/5/</a></pre>
+			</li>
+			<li>Series of tables of type A from 2012-01-01 to 2012-01-31
+				<pre><a href="http://api.nbp.pl/api/exchangerates/tables/a/2012-01-01/2012-01-31/" target="_blank">http://api.nbp.pl/api/exchangerates/tables/a/2012-01-01/2012-01-31/</a></pre>
+			</li>
+			<li>Table B as of 2016-03-30
+				<pre><a href="http://api.nbp.pl/api/exchangerates/tables/b/2016-03-30/" target="_blank">http://api.nbp.pl/api/exchangerates/tables/b/2016-03-30/</a></pre>
+			</li>
+		</ul>
+
+		<h4>Gold prices</h4>
+		<ul>
+			<li>Current gold price
+				<pre><a href="http://api.nbp.pl/api/cenyzlota/" target="_blank">http://api.nbp.pl/api/cenyzlota/</a></pre>
+			</li>
+			<li>Series of last 30 quotations of gold prices in the JSON format
+				<pre><a href="http://api.nbp.pl/api/cenyzlota/last/30/?format=json" target="_blank">http://api.nbp.pl/api/cenyzlota/last/30/?format=json</a></pre>
+			</li>
+			<li>Gold price published today (or lack of data)
+				<pre><a href="http://api.nbp.pl/api/cenyzlota/today/" target="_blank">http://api.nbp.pl/api/cenyzlota/today/</a></pre>
+			</li>
+			<li>Gold price published on 2013-01-02
+				<pre><a href="http://api.nbp.pl/api/cenyzlota/2013-01-02/" target="_blank">http://api.nbp.pl/api/cenyzlota/2013-01-02/</a></pre>
+			</li>
+			<li>Series of gold prices published from 2013-01-01 to 2013-01-31
+				<pre><a href="http://api.nbp.pl/api/cenyzlota/2013-01-01/2013-01-31/" target="_blank">http://api.nbp.pl/api/cenyzlota/2013-01-01/2013-01-31/</a></pre>
+			</li>
+		</ul>
+
+		<h3 id="errors">Error messages</h3>
+		<p>
+			In the case of lack of data for a correctly determined time interval, <samp class="text-danger">404 Not Found</samp> message is returned
+		</p>
+		<p>
+			In the case of incorrectly formulated enquiries, the service returns <samp class="text-danger">400 Bad Request</samp> message
+		</p>
+		<p>
+			In the case of an enquiry/query exceeding the returned data size limit, the service returns the message <samp class="text-danger">400 Bad Request - Limit exceeded</samp>
+		</p>
+
+
+	</section>
+
+	<footer class="container">
+		<div class="row text-center">
+			<p>Copyright © 2022 <a href="//nbp.pl">Narodowy Bank Polski</a>. <br class="brlt430" />All rights reserved.</p>
+		</div>
+	</footer>
+
+	<div id="cookies-message-container">
+		<div id="cookies-message">
+			This site uses cookies to ensure its more efficient operation.<br />
+			To find out more about the cookie technology, please click here:
+			<a href="/link/privacy-policy" class="icon">NBP Privacy Policy »</a> <br />
+			In order to browse through the content, it is necessary to accept cookies from this site
+				<a class="cbutton" href="javascript:CloseCookiesWindow();">Accept</a>
+		</div>
+	</div>
+
+	<script src="js/jquery-2.2.2.min.js"></script>
+	<script src="js/bootstrap.min.js"></script>
+	<script src="js/api.js"></script>
+	<noscript>For proper render of this page it is necessary to enable JavaScript!</noscript>
+
+</body>
+</html>
+

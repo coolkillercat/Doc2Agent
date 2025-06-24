@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>topics API Documentation</title>
+</head>
+<body>
+<hr />
+<p>stage: Data Stores
+group: Tenant Scale
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments</p>
+<hr />
+<h1>Topics API</h1>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> GitLab.com, Self-managed, GitLab Dedicated</p>
+<p>Interact with project topics using the REST API.</p>
+<h2>List topics</h2>
+<p>Returns a list of project topics in the GitLab instance ordered by number of associated projects.</p>
+<p><code>plaintext
+GET /topics</code></p>
+<p>Supported attributes:</p>
+<p>| Attribute          | Type    | Required               | Description |
+| ------------------ | ------- | ---------------------- | ----------- |
+| <code>page</code>             | integer | No | Page to retrieve. Defaults to <code>1</code>.                      |
+| <code>per_page</code>         | integer | No | Number of records to return per page. Defaults to <code>20</code>. |
+| <code>search</code>           | string  | No | Search topics against their <code>name</code>.                     |
+| <code>without_projects</code> | boolean | No | Limit results to topics without assigned projects.      |</p>
+<p>Example request:</p>
+<p><code>shell
+curl "https://gitlab.example.com/api/v4/topics?search=git"</code></p>
+<p>Example response:</p>
+<p><code>json
+[
+  {
+    "id": 1,
+    "name": "gitlab",
+    "title": "GitLab",
+    "description": "GitLab is an open source end-to-end software development platform with built-in version control, issue tracking, code review, CI/CD, and more.",
+    "total_projects_count": 1000,
+    "avatar_url": "http://www.gravatar.com/avatar/a0d477b3ea21970ce6ffcbb817b0b435?s=80&amp;d=identicon"
+  },
+  {
+    "id": 3,
+    "name": "git",
+    "title": "Git",
+    "description": "Git is a free and open source distributed version control system designed to handle everything from small to very large projects with speed and efficiency.",
+    "total_projects_count": 900,
+    "avatar_url": "http://www.gravatar.com/avatar/e64c7d89f26bd1972efa854d13d7dd61?s=80&amp;d=identicon"
+  },
+  {
+    "id": 2,
+    "name": "git-lfs",
+    "title": "Git LFS",
+    "description": null,
+    "total_projects_count": 300,
+    "avatar_url": null
+  }
+]</code></p>
+<h2>Get a topic</h2>
+<p>Get a project topic by ID.</p>
+<p><code>plaintext
+GET /topics/:id</code></p>
+<p>Supported attributes:</p>
+<p>| Attribute | Type    | Required               | Description         |
+| --------- | ------- | ---------------------- | ------------------- |
+| <code>id</code>      | integer | Yes | ID of project topic |</p>
+<p>Example request:</p>
+<p><code>shell
+curl "https://gitlab.example.com/api/v4/topics/1"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "id": 1,
+  "name": "gitlab",
+  "title": "GitLab",
+  "description": "GitLab is an open source end-to-end software development platform with built-in version control, issue tracking, code review, CI/CD, and more.",
+  "total_projects_count": 1000,
+  "avatar_url": "http://www.gravatar.com/avatar/a0d477b3ea21970ce6ffcbb817b0b435?s=80&amp;d=identicon"
+}</code></p>
+<h2>List projects assigned to a topic</h2>
+<p>Use the <a href="projects.md#list-all-projects">Projects API</a> to list all projects assigned to a specific topic.</p>
+<p><code>plaintext
+GET /projects?topic=&lt;topic_name&gt;</code></p>
+<h2>Create a project topic</h2>
+<p>Create a new project topic. Only available to administrators.</p>
+<p><code>plaintext
+POST /topics</code></p>
+<p>Supported attributes:</p>
+<p>| Attribute     | Type    | Required               | Description |
+| ------------- | ------- | ---------------------- | ----------- |
+| <code>name</code>        | string  | Yes | Slug (name) |
+| <code>title</code>       | string  | Yes | Title       |
+| <code>avatar</code>      | file    | No | Avatar      |
+| <code>description</code> | string  | No | Description |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --request POST \
+     --data "name=topic1&amp;title=Topic 1" \
+     --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+     "https://gitlab.example.com/api/v4/topics"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "id": 1,
+  "name": "topic1",
+  "title": "Topic 1",
+  "description": null,
+  "total_projects_count": 0,
+  "avatar_url": null
+}</code></p>
+<h2>Update a project topic</h2>
+<p>Update a project topic. Only available to administrators.</p>
+<p><code>plaintext
+PUT /topics/:id</code></p>
+<p>Supported attributes:</p>
+<p>| Attribute     | Type    | Required               | Description         |
+| ------------- | ------- | ---------------------- | ------------------- |
+| <code>id</code>          | integer | Yes | ID of project topic |
+| <code>avatar</code>      | file    | No | Avatar              |
+| <code>description</code> | string  | No | Description         |
+| <code>name</code>        | string  | No | Slug (name)         |
+| <code>title</code>       | string  | No | Title               |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --request PUT \
+     --data "name=topic1" \
+     --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+     "https://gitlab.example.com/api/v4/topics/1"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "id": 1,
+  "name": "topic1",
+  "title": "Topic 1",
+  "description": null,
+  "total_projects_count": 0,
+  "avatar_url": null
+}</code></p>
+<h3>Upload a topic avatar</h3>
+<p>To upload an avatar file from your file system, use the <code>--form</code> argument. This argument causes
+cURL to post data using the header <code>Content-Type: multipart/form-data</code>. The
+<code>file=</code> parameter must point to a file on your file system and be preceded by
+<code>@</code>. For example:</p>
+<p><code>shell
+curl --request PUT \
+     --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+     "https://gitlab.example.com/api/v4/topics/1" \
+     --form "avatar=@/tmp/example.png"</code></p>
+<h3>Remove a topic avatar</h3>
+<p>To remove a topic avatar, use a blank value for the <code>avatar</code> attribute.</p>
+<p>Example request:</p>
+<p><code>shell
+curl --request PUT \
+     --data "avatar=" \
+     --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+     "https://gitlab.example.com/api/v4/topics/1"</code></p>
+<h2>Delete a project topic</h2>
+<p>You must be an administrator to delete a project topic.
+When you delete a project topic, you also delete the topic assignment for projects.</p>
+<p><code>plaintext
+DELETE /topics/:id</code></p>
+<p>Supported attributes:</p>
+<p>| Attribute     | Type    | Required               | Description         |
+| ------------- | ------- | ---------------------- | ------------------- |
+| <code>id</code>          | integer | Yes | ID of project topic |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --request DELETE \
+     --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+     "https://gitlab.example.com/api/v4/topics/1"</code></p>
+<h2>Merge topics</h2>
+<blockquote>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/95501">Introduced</a> in GitLab 15.4.</li>
+</ul>
+</blockquote>
+<p>You must be an administrator to merge a source topic into a target topic.
+When you merge topics, you delete the source topic and move all assigned projects to the target topic.</p>
+<p><code>plaintext
+POST /topics/merge</code></p>
+<p>Supported attributes:</p>
+<p>| Attribute         | Type    | Required               | Description                |
+| ----------------- | ------- | ---------------------- | -------------------------- |
+| <code>source_topic_id</code> | integer | Yes | ID of source project topic |
+| <code>target_topic_id</code> | integer | Yes | ID of target project topic |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --request POST \
+     --data "source_topic_id=2&amp;target_topic_id=1" \
+     --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+     "https://gitlab.example.com/api/v4/topics/merge"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "id": 1,
+  "name": "topic1",
+  "title": "Topic 1",
+  "description": null,
+  "total_projects_count": 0,
+  "avatar_url": null
+}</code></p>
+</body>
+</html>

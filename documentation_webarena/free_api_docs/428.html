@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="/images/favicon.png">
+    <link rel="stylesheet" href="/assets/application.bundle.css">
+    <script defer src="https://kit.fontawesome.com/9d6df6577f.js" crossorigin="anonymous"></script>
+    <script defer src="/assets/application.bundle.js"></script>
+    <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Documentation</title>
+<meta name="generator" content="Jekyll v4.3.2" />
+<meta property="og:title" content="Documentation" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Documentation and code examples for the Frankfurter currency data API" />
+<meta property="og:description" content="Documentation and code examples for the Frankfurter currency data API" />
+<link rel="canonical" href="https://www.frankfurter.app/docs/" />
+<meta property="og:url" content="https://www.frankfurter.app/docs/" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Documentation" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"Documentation and code examples for the Frankfurter currency data API","headline":"Documentation","url":"https://www.frankfurter.app/docs/"}</script>
+<!-- End Jekyll SEO tag -->
+
+  </head>
+  <body>
+    <nav class="navbar" role="navigation" aria-label="main navigation">
+  <div class="container">
+    <div class="navbar-brand">
+      <a class="navbar-item is-size-5" href="/">
+        <strong>Frankfurter</strong>
+      </a>
+
+      <a role="button" class="navbar-burger burger" aria-label="menu" aria-expanded="false" data-target="top-navbar-menu">
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+      </a>
+    </div>
+    <div id="top-navbar-menu" class="navbar-menu">
+      <div class="navbar-start">
+        <a class="navbar-item" href="/docs">
+          Docs
+        </a>
+        <a class="navbar-item" href="//www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html" target="_blank">
+          Data sets
+        </a>
+        <a class="navbar-item" href="//stats.uptimerobot.com/3yoxkuvO2/" target="_blank">
+          Status
+        </a>
+      </div>
+      <div class="navbar-end">
+        <a class="navbar-item" href="//github.com/hakanensari/frankfurter" target="_blank">
+          <i class="fab fa-github fa-lg is-hidden-touch"></i>
+          <div class="is-hidden-desktop">
+            Source
+          </div>
+        </a>
+        <a class="navbar-item" href="//hub.docker.com/r/hakanensari/frankfurter/" target="_blank">
+          <i class="fab fa-docker fa-lg is-hidden-touch"></i>
+          <div class="is-hidden-desktop">
+            Docker image
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+    <section class="documentation section">
+  <div class="container">
+    <div class="columns">
+      <div class="column is-3 is-hidden-mobile">
+        <aside class="menu">
+  <p class="menu-label">
+    Documentation
+  </p>
+  <ul class="menu-list">
+    <li>
+      <a href="#usage">Usage</a>
+      <ul>
+        <li><a href="#latest">Latest</a></li>
+        <li><a href="#historical">Historical</a></li>
+        <li><a href="#timeseries">Time Series</a></li>
+        <li><a href="#conversion">Conversion</a></li>
+        <li><a href="#currencies">Currencies</a></li>
+      </ul>
+    </li>
+    <li>
+      <a href="#deployment">Deployment</a>
+      <ul>
+        <li><a href="#docker">Docker</a></li>
+        <li><a href="#docker-compose">Docker Compose</a></li>
+        <li><a href="#heroku">Heroku</a></li>
+      </ul>
+    </li>
+    <li>
+      <a href="#support">Support</a>
+    </li>
+  </ul>
+</aside>
+
+      </div>
+      <div class="column is-9 content">
+        <h1>Documentation</h1>
+        <p>
+          The Frankfurter API tracks foreign exchange references rates published
+          by the
+          <a
+            href="https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html"
+            target="_blank"
+            >European Central Bank</a
+          >. The data refreshes around 16:00 CET every working day.
+        </p>
+        <p>
+          Frankfurter integrates seamlessly with libraries like
+          <a
+            href="https://openexchangerates.github.io/money.js/"
+            target="_blank"
+            >Money.js</a
+          >
+          and
+          <a href="https://sarahdayan.github.io/dinero.js/" target="_blank"
+            >Dinero.js</a
+          >.
+        </p>
+        <h2 id="usage">Usage</h2>
+        <p>
+          The API is organised around paths that designate the requested date or
+          date range.
+        </p>
+
+        <h3 id="latest">Latest</h3>
+        <p>This endpoint returns the latest rates.</p>
+        <pre class="snippet"><code class="http">
+          GET /latest HTTP/1.1
+        </code></pre>
+        <p>
+          Rates quote against the Euro by default. You can quote against other
+          currencies using the <code>from</code> parameter.
+        </p>
+        <pre class="snippet"><code class="http">
+          GET /latest?from=USD HTTP/1.1
+        </code></pre>
+        <p><code>to</code> limits returned rates to specified values.</p>
+        <pre class="snippet"><code class="http">
+          GET /latest?to=USD,GBP HTTP/1.1
+        </code></pre>
+
+        <h3 id="historical">Historical</h3>
+        <p>
+          This endpoint returns historical rates for any working day since 4
+          January 1999.
+        </p>
+        <pre class="snippet"><code class="http">
+          GET /1999-01-04 HTTP/1.1
+        </code></pre>
+        <p>
+          You can again tweak the response using the <code>from</code> and
+          <code>to</code> parameters.
+        </p>
+        <h3 id="timeseries">Time Series</h3>
+        <p>
+          This endpoint returns a set of historical rates for a given time
+          period.
+        </p>
+        <pre class="snippet"><code class="http">
+          GET /2020-01-01..2020-01-31 HTTP/1.1
+        </code></pre>
+        <p>
+          If you omit the final date, Frankfurter returns all dates up to the
+          present.
+        </p>
+        <pre class="snippet"><code class="http">
+          GET /2020-01-01.. HTTP/1.1
+        </code></pre>
+        <p>
+          With a full list of currencies, the response grows large in size. For
+          better performance, use the <code>to</code> parameter to limit result
+          to rates you are interested in.
+        </p>
+        <pre class="snippet"><code class="http">
+          GET /2020-01-01..?to=USD HTTP/1.1
+        </code></pre>
+        <p>
+          Frankfurter returns all data points for up to 90 days. Above that, it
+          starts sampling by week or month based on the breadth of the date
+          range.
+        </p>
+
+        <h3 id="conversion">Conversion</h3>
+        <p>
+          You can convert any value between currencies using the above endpoints
+          in combination with the <code>amount</code> parameter.
+        </p>
+        <p>Below, we convert 10 British Pounds to US Dollars.</p>
+        <pre class="snippet"><code class="js">
+          const host = 'api.frankfurter.app';
+          fetch(`https://${host}/latest?amount=10&from=GBP&to=USD`)
+            .then(resp => resp.json())
+            .then((data) => {
+              alert(`10 GBP = ${data.rates.USD} USD`);
+            });
+        </code></pre>
+        <p>
+          A better approach is to fetch rates once and convert client-side using
+          <a
+            href="https://openexchangerates.github.io/money.js/"
+            target="_blank"
+            >Money.js</a
+          >
+          or
+          <a href="https://sarahdayan.github.io/dinero.js/" target="_blank"
+            >Dinero.js</a
+          >.
+        </p>
+
+        <h3 id="currencies">Currencies</h3>
+        <p>
+          This endpoint gets a list of available currency symbols along with
+          their full names.
+        </p>
+        <pre class="snippet"><code class="http">
+          GET /currencies HTTP/1.1
+        </code></pre>
+
+        <h2 id="deployment">Deployment</h2>
+        <p>
+          If you prefer to self-host, you can install Frankfurter in a few
+          minutes.
+        </p>
+        <h3 id="docker">Docker</h3>
+        <p>Run Frankfurter in the environment of your choice with Docker.</p>
+        <p>
+          Frankfurter provides a Docker image via
+          <a
+            href="http://hub.docker.com/r/hakanensari/frankfurter/"
+            target="_blank"
+            >Dockerhub</a
+          >
+          that can be used for deployments on any system running Docker. The
+          following one-liner starts a Frankfurter container with an existing
+          PostgreSQL server running on the host or elsewhere.
+        </p>
+        <pre class="snippet"><code class="sh">
+          docker run -d -p 8080:8080 \
+            -e "DATABASE_URL=&lt;postgres_url&gt;" \
+            --name frankfurter hakanensari/frankfurter
+        </code></pre>
+        <p>
+          This launches a Frankfurter instance on port 8080. Once the app
+          starts, it automatically builds the database, populating it with data
+          from the European Central Bank.
+        </p>
+
+        <h2 id="support">Support</h2>
+        <p>
+          Post an issue on
+          <a href="//github.com/hakanensari/frankfurter/issues" target="_blank"
+            >GitHub</a
+          >.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+    <footer class="footer">
+  <div class="content has-text-centered">
+    <p>
+      This website and API do not track you. The content of this website is licensed <a href="//creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY NC SA 4.0</a>.
+    </p>
+  </div>
+</footer>
+
+  </body>
+</html>

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>branches API Documentation</title>
+</head>
+<body>
+<hr />
+<p>stage: Create
+group: Source Code
+info: "To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments"
+description: "Documentation for the REST API for Git branches in GitLab."</p>
+<hr />
+<h1>Branches API</h1>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> GitLab.com, Self-managed, GitLab Dedicated</p>
+<p>This API operates on <a href="../user/project/repository/branches/index.md">repository branches</a>.</p>
+<p>See also <a href="protected_branches.md">Protected branches API</a>.</p>
+<h2>List repository branches</h2>
+<p>Get a list of repository branches from a project, sorted by name alphabetically.</p>
+<p>NOTE:
+This endpoint can be accessed without authentication if the repository is publicly accessible.</p>
+<p><code>plaintext
+GET /projects/:id/repository/branches</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type           | Required | Description |
+|:----------|:---------------|:---------|:------------|
+| <code>id</code>      | integer/string | yes      | ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user.|
+| <code>search</code>  | string         | no       | Return list of branches containing the search string. You can use <code>^term</code> to find branches that begin with <code>term</code>, and <code>term$</code> to find branches that end with <code>term</code>. |
+| <code>regex</code>   | string         | no       | Return list of branches with names matching a <a href="https://github.com/google/re2/wiki/Syntax">re2</a> regular expression. |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/5/repository/branches"</code></p>
+<p>Example response:</p>
+<p><code>json
+[
+  {
+    "name": "main",
+    "merged": false,
+    "protected": true,
+    "default": true,
+    "developers_can_push": false,
+    "developers_can_merge": false,
+    "can_push": true,
+    "web_url": "https://gitlab.example.com/my-group/my-project/-/tree/main",
+    "commit": {
+      "id": "7b5c3cc8be40ee161ae89a06bba6229da1032a0c",
+      "short_id": "7b5c3cc",
+      "created_at": "2012-06-28T03:44:20-07:00",
+      "parent_ids": [
+        "4ad91d3c1144c406e50c7b33bae684bd6837faf8"
+      ],
+      "title": "add projects API",
+      "message": "add projects API",
+      "author_name": "John Smith",
+      "author_email": "john@example.com",
+      "authored_date": "2012-06-27T05:51:39-07:00",
+      "committer_name": "John Smith",
+      "committer_email": "john@example.com",
+      "committed_date": "2012-06-28T03:44:20-07:00",
+      "trailers": {},
+      "web_url": "https://gitlab.example.com/my-group/my-project/-/commit/7b5c3cc8be40ee161ae89a06bba6229da1032a0c"
+    }
+  },
+  ...
+]</code></p>
+<h2>Get single repository branch</h2>
+<p>Get a single project repository branch.</p>
+<p>NOTE:
+This endpoint can be accessed without authentication if the repository is publicly accessible.</p>
+<p><code>plaintext
+GET /projects/:id/repository/branches/:branch</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type           | Required | Description                                                                                                  |
+|:----------|:---------------|:---------|:-------------------------------------------------------------------------------------------------------------|
+| <code>id</code>      | integer/string | yes      | ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user. |
+| <code>branch</code>  | string         | yes      | <a href="rest/index.md#namespaced-path-encoding">URL-encoded name</a> of the branch.                                                                                          |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/5/repository/branches/main"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "name": "main",
+  "merged": false,
+  "protected": true,
+  "default": true,
+  "developers_can_push": false,
+  "developers_can_merge": false,
+  "can_push": true,
+  "web_url": "https://gitlab.example.com/my-group/my-project/-/tree/main",
+  "commit": {
+    "id": "7b5c3cc8be40ee161ae89a06bba6229da1032a0c",
+    "short_id": "7b5c3cc",
+    "created_at": "2012-06-28T03:44:20-07:00",
+    "parent_ids": [
+      "4ad91d3c1144c406e50c7b33bae684bd6837faf8"
+    ],
+    "title": "add projects API",
+    "message": "add projects API",
+    "author_name": "John Smith",
+    "author_email": "john@example.com",
+    "authored_date": "2012-06-27T05:51:39-07:00",
+    "committer_name": "John Smith",
+    "committer_email": "john@example.com",
+    "committed_date": "2012-06-28T03:44:20-07:00",
+    "trailers": {},
+    "web_url": "https://gitlab.example.com/my-group/my-project/-/commit/7b5c3cc8be40ee161ae89a06bba6229da1032a0c"
+  }
+}</code></p>
+<h2>Protect repository branch</h2>
+<p>See <a href="protected_branches.md#protect-repository-branches"><code>POST /projects/:id/protected_branches</code></a> for
+information on protecting repository branches.</p>
+<h2>Unprotect repository branch</h2>
+<p>See <a href="protected_branches.md#unprotect-repository-branches"><code>DELETE /projects/:id/protected_branches/:name</code></a>
+for information on unprotecting repository branches.</p>
+<h2>Create repository branch</h2>
+<p>Create a new branch in the repository.</p>
+<p><code>plaintext
+POST /projects/:id/repository/branches</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type    | Required | Description                                                                                                  |
+|:----------|:--------|:---------|:-------------------------------------------------------------------------------------------------------------|
+| <code>id</code>      | integer | yes      | ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user. |
+| <code>branch</code>  | string  | yes      | Name of the branch.                                                                                          |
+| <code>ref</code>     | string  | yes      | Branch name or commit SHA to create branch from.                                                             |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/5/repository/branches?branch=newbranch&amp;ref=main"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "commit": {
+    "id": "7b5c3cc8be40ee161ae89a06bba6229da1032a0c",
+    "short_id": "7b5c3cc",
+    "created_at": "2012-06-28T03:44:20-07:00",
+    "parent_ids": [
+      "4ad91d3c1144c406e50c7b33bae684bd6837faf8"
+    ],
+    "title": "add projects API",
+    "message": "add projects API",
+    "author_name": "John Smith",
+    "author_email": "john@example.com",
+    "authored_date": "2012-06-27T05:51:39-07:00",
+    "committer_name": "John Smith",
+    "committer_email": "john@example.com",
+    "committed_date": "2012-06-28T03:44:20-07:00",
+    "trailers": {},
+    "web_url": "https://gitlab.example.com/my-group/my-project/-/commit/7b5c3cc8be40ee161ae89a06bba6229da1032a0c"
+  },
+  "name": "newbranch",
+  "merged": false,
+  "protected": false,
+  "default": false,
+  "developers_can_push": false,
+  "developers_can_merge": false,
+  "can_push": true,
+  "web_url": "https://gitlab.example.com/my-group/my-project/-/tree/newbranch"
+}</code></p>
+<h2>Delete repository branch</h2>
+<p>Delete a branch from the repository.</p>
+<p>NOTE:
+In the case of an error, an explanation message is provided.</p>
+<p><code>plaintext
+DELETE /projects/:id/repository/branches/:branch</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type           | Required | Description                                                                                                  |
+|:----------|:---------------|:---------|:-------------------------------------------------------------------------------------------------------------|
+| <code>id</code>      | integer/string | yes      | ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user. |
+| <code>branch</code>  | string         | yes      | Name of the branch.                                                                                          |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --request DELETE --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/5/repository/branches/newbranch"</code></p>
+<h2>Delete merged branches</h2>
+<p>Deletes all branches that are merged into the project's default branch.</p>
+<p>NOTE:
+<a href="../user/project/protected_branches.md">Protected branches</a> are not deleted as part of this operation.</p>
+<p><code>plaintext
+DELETE /projects/:id/repository/merged_branches</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type           | Required | Description                                                                                                  |
+|:----------|:---------------|:---------|:-------------------------------------------------------------------------------------------------------------|
+| <code>id</code>      | integer/string | yes      | ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user. |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --request DELETE --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/5/repository/merged_branches"</code></p>
+<h2>Related topics</h2>
+<ul>
+<li><a href="../user/project/repository/branches/index.md">Branches</a></li>
+<li><a href="../user/project/protected_branches.md">Protected branches</a></li>
+<li><a href="protected_branches.md">Protected branches API</a></li>
+</ul>
+</body>
+</html>

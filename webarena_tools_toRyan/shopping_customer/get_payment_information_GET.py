@@ -1,9 +1,19 @@
-import requests, json
+import requests
+import json
 from urllib.parse import quote
 
 def get_shopping_customer_auth_token():
+    """
+    Get customer authentication token from the API.
+    
+    Returns:
+        str: Authentication token for the customer
+        
+    Example:
+        token = get_shopping_customer_auth_token()
+    """
     response = requests.post(
-        url = f'http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:7770/rest/default/V1/integration/customer/token',
+        url = 'http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:7770/rest/default/V1/integration/customer/token',
         headers = {
             'content-type': 'application/json'
         },
@@ -12,46 +22,37 @@ def get_shopping_customer_auth_token():
             'password': 'Password.123'
         })
     )
-    return response.json()
+    return "Bearer " + response.json()
 
-def get_payment_information(cartId=None):
+
+def get_payment_information():
     """
-    Get payment information for a specified cart.
-    
-    Args:
-        cartId (str): The ID of the cart to retrieve payment information for.
-            Example: '12345', 'cart123', 'guest123'
+    Get payment information for the customer's cart.
     
     Returns:
-        requests.Response: The API response containing payment information.
-    
-    Raises:
-        AssertionError: If cartId is not provided.
+        requests.Response: Response object containing payment information
+        
+    Example:
+        response = get_payment_information()
+        payment_info = response.json()
     """
-    assert cartId is not None, 'Missing required parameter: cartId'
-    
-    api_url = f"http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:7770/rest/default/V1/carts/mine/payment-information"
+    base_url = "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:7770"
+    api_url = f"{base_url}/rest/default/V1/carts/mine/payment-information"
     headers = {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + get_shopping_customer_auth_token(),
+        'Content-Type': 'application/json', 
+        'Authorization': get_shopping_customer_auth_token()
     }
     
     response = requests.get(url=api_url, headers=headers, timeout=50, verify=False)
-    if response.status_code != 200:
-        # Try guest cart endpoint if customer cart fails
-        guest_api_url = f"http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:7770/rest/default/V1/guest-carts/{quote(str(cartId), safe='')}/payment-information"
-        response = requests.get(url=guest_api_url, headers=headers, timeout=50, verify=False)
-    
     return response
 
 if __name__ == '__main__':
-    r = get_payment_information(cartId='12345')
+    r = get_payment_information()
     r_json = None
     try:
         r_json = r.json()
     except:
         pass
-    import json
     result_dict = dict()
     result_dict['status_code'] = r.status_code
     result_dict['text'] = r.text

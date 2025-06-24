@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>project_snippets API Documentation</title>
+</head>
+<body>
+<hr />
+<p>stage: Create
+group: Source Code
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments</p>
+<hr />
+<h1>Project snippets</h1>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> GitLab.com, Self-managed, GitLab Dedicated</p>
+<h2>Snippet visibility level</h2>
+<p><a href="../api/project_snippets.md">Snippets</a> in GitLab can be either private, internal or public.
+You can set it with the <code>visibility</code> field in the snippet.</p>
+<p>Constants for snippet visibility levels are:</p>
+<ul>
+<li><strong>Private</strong>: The snippet is visible only to project members.</li>
+<li><strong>Internal</strong>: The snippet is visible for any authenticated user except <a href="../administration/external_users.md">external users</a>.</li>
+<li><strong>Public</strong>: The snippet can be accessed without any authentication.</li>
+</ul>
+<p>NOTE:
+From July 2019, the <code>Internal</code> visibility setting is disabled for new projects, groups,
+and snippets on GitLab.com. Existing projects, groups, and snippets using the <code>Internal</code>
+visibility setting keep this setting. You can read more about the change in the
+<a href="https://gitlab.com/gitlab-org/gitlab/-/issues/12388">relevant issue</a>.</p>
+<h2>List snippets</h2>
+<p>Get a list of project snippets.</p>
+<p><code>plaintext
+GET /projects/:id/snippets</code></p>
+<p>Parameters:</p>
+<p>| Attribute | Type           | Required | Description |
+|-----------|----------------|----------|-------------|
+| <code>id</code>      | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user. |</p>
+<h2>Single snippet</h2>
+<p>Get a single project snippet.</p>
+<p><code>plaintext
+GET /projects/:id/snippets/:snippet_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute    | Type           | Required | Description |
+|--------------|----------------|----------|-------------|
+| <code>id</code>         | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user. |
+| <code>snippet_id</code> | integer        | yes      | The ID of a project's snippet. |</p>
+<p><code>json
+{
+  "id": 1,
+  "title": "test",
+  "file_name": "add.rb",
+  "description": "Ruby test snippet",
+  "author": {
+    "id": 1,
+    "username": "john_smith",
+    "email": "john@example.com",
+    "name": "John Smith",
+    "state": "active",
+    "created_at": "2012-05-23T08:00:58Z"
+  },
+  "updated_at": "2012-06-28T10:52:04Z",
+  "created_at": "2012-06-28T10:52:04Z",
+  "imported": false,
+  "imported_from": "none",
+  "project_id": 1,
+  "web_url": "http://example.com/example/example/snippets/1",
+  "raw_url": "http://example.com/example/example/snippets/1/raw"
+}</code></p>
+<h2>Create new snippet</h2>
+<p>Creates a new project snippet. The user must have permission to create new snippets.</p>
+<p><code>plaintext
+POST /projects/:id/snippets</code></p>
+<p>Parameters:</p>
+<p>| Attribute         | Type            | Required | Description |
+|:------------------|:----------------|:---------|:------------|
+| <code>id</code>              | integer or string         | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user. |
+| <code>files:content</code>   | string          | yes      | Content of the snippet file. |
+| <code>files:file_path</code> | string          | yes      | File path of the snippet file. |
+| <code>title</code>           | string          | yes      | Title of a snippet. |
+| <code>content</code>         | string          | no       | Deprecated: Use <code>files</code> instead. Content of a snippet. |
+| <code>description</code>     | string          | no       | Description of a snippet. |
+| <code>file_name</code>       | string          | no       | Deprecated: Use <code>files</code> instead. Name of a snippet file. |
+| <code>files</code>           | array of hashes | no       | An array of snippet files. |
+| <code>visibility</code>      | string          | no       | Snippet's <a href="#snippet-visibility-level">visibility</a>. |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --request POST "https://gitlab.com/api/v4/projects/:id/snippets" \
+     --header "PRIVATE-TOKEN: &lt;your access token&gt;" \
+     --header "Content-Type: application/json" \
+     -d @snippet.json</code></p>
+<p><code>snippet.json</code> used in the above example request:</p>
+<p><code>json
+{
+  "title" : "Example Snippet Title",
+  "description" : "More verbose snippet description",
+  "visibility" : "private",
+  "files": [
+    {
+      "file_path": "example.txt",
+      "content" : "source code \n with multiple lines\n"
+    }
+  ]
+}</code></p>
+<h2>Update snippet</h2>
+<p>Updates an existing project snippet. The user must have permission to change an existing snippet.</p>
+<p>Updates to snippets with multiple files must use the <code>files</code> attribute.</p>
+<p><code>plaintext
+PUT /projects/:id/snippets/:snippet_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute             | Type            | Required | Description |
+|:----------------------|:----------------|:---------|:------------|
+| <code>id</code>                  | integer or string         | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user. |
+| <code>files:action</code>        | string          | yes      | Type of action to perform on the file. One of: <code>create</code>, <code>update</code>, <code>delete</code>, <code>move</code>. |
+| <code>snippet_id</code>          | integer         | yes      | The ID of a project's snippet. |
+| <code>content</code>             | string          | no       | Deprecated: Use <code>files</code> instead. Content of a snippet. |
+| <code>description</code>         | string          | no       | Description of a snippet. |
+| <code>files</code>               | array of hashes | no       | An array of snippet files. |
+| <code>files:content</code>       | string          | no       | Content of the snippet file. |
+| <code>files:file_path</code>     | string          | no       | File path of the snippet file. |
+| <code>file_name</code>           | string          | no       | Deprecated: Use <code>files</code> instead. Name of a snippet file. |
+| <code>files:previous_path</code> | string          | no       | Previous path of the snippet file. |
+| <code>title</code>               | string          | no       | Title of a snippet. |
+| <code>visibility</code>          | string          | no       | Snippet's <a href="#snippet-visibility-level">visibility</a>. |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --request PUT "https://gitlab.com/api/v4/projects/:id/snippets/:snippet_id" \
+     --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+     --header "Content-Type: application/json" \
+     -d @snippet.json</code></p>
+<p><code>snippet.json</code> used in the above example request:</p>
+<p><code>json
+{
+  "title" : "Updated Snippet Title",
+  "description" : "More verbose snippet description",
+  "visibility" : "private",
+  "files": [
+    {
+      "action": "update",
+      "file_path": "example.txt",
+      "content" : "updated source code \n with multiple lines\n"
+    }
+  ]
+}</code></p>
+<h2>Delete snippet</h2>
+<p>Deletes an existing project snippet. This returns a <code>204 No Content</code> status code if the operation was successfully or <code>404</code> if the resource was not found.</p>
+<p><code>plaintext
+DELETE /projects/:id/snippets/:snippet_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute    | Type           | Required | Description |
+|:-------------|:---------------|:---------|:------------|
+| <code>id</code>         | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user. |
+| <code>snippet_id</code> | integer        | yes      | The ID of a project's snippet. |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --request DELETE "https://gitlab.com/api/v4/projects/:id/snippets/:snippet_id" \
+     --header "PRIVATE-TOKEN: &lt;your_access_token&gt;"</code></p>
+<h2>Snippet content</h2>
+<p>Returns the raw project snippet as plain text.</p>
+<p><code>plaintext
+GET /projects/:id/snippets/:snippet_id/raw</code></p>
+<p>Parameters:</p>
+<p>| Attribute    | Type           | Required | Description |
+|:-------------|:---------------|:---------|:----------------------------------------------------------------------------------------------------------------|
+| <code>id</code>         | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user. |
+| <code>snippet_id</code> | integer        | yes      | The ID of a project's snippet. |</p>
+<p>Example request:</p>
+<p><code>shell
+curl "https://gitlab.com/api/v4/projects/:id/snippets/:snippet_id/raw" \
+     --header "PRIVATE-TOKEN: &lt;your_access_token&gt;"</code></p>
+<h2>Snippet repository file content</h2>
+<p>Returns the raw file content as plain text.</p>
+<p><code>plaintext
+GET /projects/:id/snippets/:snippet_id/files/:ref/:file_path/raw</code></p>
+<p>Parameters:</p>
+<p>| Attribute    | Type           | Required | Description |
+|:-------------|:---------------|:---------|:------------|
+| <code>id</code>         | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user. |
+| <code>file_path</code>  | string         | yes      | The URL-encoded path to the file, for example, <code>snippet%2Erb</code>. |
+| <code>ref</code>        | string         | yes      | The name of a branch, tag or commit, for example, <code>main</code>. |
+| <code>snippet_id</code> | integer        | yes      | The ID of a project's snippet. |</p>
+<p>Example request:</p>
+<p><code>shell
+curl "https://gitlab.com/api/v4/projects/1/snippets/2/files/master/snippet%2Erb/raw" \
+     --header "PRIVATE-TOKEN: &lt;your_access_token&gt;"</code></p>
+<h2>Get user agent details</h2>
+<p>Available only for users with administrator access.</p>
+<p><code>plaintext
+GET /projects/:id/snippets/:snippet_id/user_agent_detail</code></p>
+<p>| Attribute    | Type           | Required | Description |
+|--------------|----------------|----------|-------------|
+| <code>id</code>         | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user. |
+| <code>snippet_id</code> | Integer        | yes      | The ID of a snippet. |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/1/snippets/2/user_agent_detail"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "user_agent": "AppleWebKit/537.36",
+  "ip_address": "127.0.0.1",
+  "akismet_submitted": false
+}</code></p>
+</body>
+</html>

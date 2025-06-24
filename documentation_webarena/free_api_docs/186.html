@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en-us">
+ <head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="/css/bootstrap.min.css" rel="stylesheet">
+  <link href='http://fonts.googleapis.com/css?family=Oswald:400,300' rel='stylesheet' type='text/css'>
+  <link href="/css/style.css" rel="stylesheet">
+  <link href="/css/syntax.css" rel="stylesheet">
+  <title>Open Notify -- API Documentation</title>
+ </head>
+<body>
+<div class="wrapper">
+ <div id="header">
+ <div class="container">
+  <h1><a href="/">Open Notify</a></h1>
+   <ul id="navigation" class="nav nav-tabs">
+    
+      <li >
+        <a href="/">Home</a>
+      </li>
+    
+      <li class="active">
+        <a href="/Open-Notify-API">API Docs</a>
+      </li>
+    
+      <li >
+        <a href="https://github.com/open-notify">Source Code</a>
+      </li>
+    
+      <li >
+        <a href="/about.html">About</a>
+      </li>
+     
+  </ul>
+ </div>
+</div>
+<div id="content">
+ <div class="container">
+  <div class="row">
+   <div class="span3">
+    <div class="well navwell">
+      <ul class="nav nav-list">
+      <li class="nav-header">API Docs</li>
+      
+        <li >
+          <a href="/Open-Notify-API">Examples</a>
+        </li>
+      
+        <li >
+          <a href="/Open-Notify-API/ISS-Location-Now">ISS Current Location</a>
+        </li>
+      
+        <li >
+          <a href="/Open-Notify-API/People-In-Space">People In Space</a>
+        </li>
+      
+    </ul>
+
+    </div>
+   </div>
+   <div class="span8">
+    <h1 id="api-examples">API Examples</h1>
+
+<h2 id="current-iss-location">Current ISS Location</h2>
+
+<p>The <a href="http://en.wikipedia.org/wiki/International_Space_Station">International Space Station</a>
+is moving at close to 28,000 km/h so its location changes really fast! Where
+is it right now?</p>
+
+<p><strong>Documentation: <a href="ISS-Location-Now">ISS Location Now</a></strong></p>
+
+<h3 id="example">Example:</h3>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.1/dist/leaflet.css" />
+
+<script src="https://unpkg.com/leaflet@1.0.1/dist/leaflet.js"></script>
+
+<div id="map" style="width: 800px; height: 400px"> </div>
+<script src="http://code.jquery.com/jquery-2.0.3.min.js"> </script>
+
+<script src="map/iss-now.js"> </script>
+
+<p>Using leaflet and jquery one can write a script to show the current location of
+the ISS and update it every 5 seconds:</p>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="kd">function</span> <span class="nx">moveISS</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="nx">$</span><span class="p">.</span><span class="nx">getJSON</span><span class="p">(</span><span class="dl">'</span><span class="s1">http://api.open-notify.org/iss-now.json?callback=?</span><span class="dl">'</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kd">var</span> <span class="nx">lat</span> <span class="o">=</span> <span class="nx">data</span><span class="p">[</span><span class="dl">'</span><span class="s1">iss_position</span><span class="dl">'</span><span class="p">][</span><span class="dl">'</span><span class="s1">latitude</span><span class="dl">'</span><span class="p">];</span>
+        <span class="kd">var</span> <span class="nx">lon</span> <span class="o">=</span> <span class="nx">data</span><span class="p">[</span><span class="dl">'</span><span class="s1">iss_position</span><span class="dl">'</span><span class="p">][</span><span class="dl">'</span><span class="s1">longitude</span><span class="dl">'</span><span class="p">];</span>
+
+        <span class="c1">// See leaflet docs for setting up icons and map layers</span>
+        <span class="c1">// The update to the map is done here:</span>
+        <span class="nx">iss</span><span class="p">.</span><span class="nx">setLatLng</span><span class="p">([</span><span class="nx">lat</span><span class="p">,</span> <span class="nx">lon</span><span class="p">]);</span>
+        <span class="nx">isscirc</span><span class="p">.</span><span class="nx">setLatLng</span><span class="p">([</span><span class="nx">lat</span><span class="p">,</span> <span class="nx">lon</span><span class="p">]);</span>
+        <span class="nx">map</span><span class="p">.</span><span class="nx">panTo</span><span class="p">([</span><span class="nx">lat</span><span class="p">,</span> <span class="nx">lon</span><span class="p">],</span> <span class="nx">animate</span><span class="o">=</span><span class="kc">true</span><span class="p">);</span>
+    <span class="p">});</span>
+    <span class="nx">setTimeout</span><span class="p">(</span><span class="nx">moveISS</span><span class="p">,</span> <span class="mi">5000</span><span class="p">);</span> 
+<span class="p">}</span></code></pre></figure>
+
+<hr />
+
+<h2 id="number-of-people-in-space">Number of People In Space</h2>
+
+<p>How many people are in space right now?</p>
+
+<p><strong>Documentation: <a href="People-In-Space">Number of People In Space</a></strong></p>
+
+<h3 id="example-1">Example:</h3>
+
+<p>There are currently <span id="spacepeeps" style="font-weight:bold;">?</span> humans in space. They are:</p>
+<ul id="astronames"> </ul>
+
+<script>
+
+$.getJSON('http://api.open-notify.org/astros.json?callback=?', function(data) {
+    var number = data['number'];
+    $('#spacepeeps').html(number);
+
+    data['people'].forEach(function (d) {
+         $('#astronames').append('<li>' + d['name'] + '</li>');
+    });
+});
+
+</script>
+
+<p>Using jquery:</p>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="nx">$</span><span class="p">.</span><span class="nx">getJSON</span><span class="p">(</span><span class="dl">'</span><span class="s1">http://api.open-notify.org/astros.json?callback=?</span><span class="dl">'</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">number</span> <span class="o">=</span> <span class="nx">data</span><span class="p">[</span><span class="dl">'</span><span class="s1">number</span><span class="dl">'</span><span class="p">];</span>
+    <span class="nx">$</span><span class="p">(</span><span class="dl">'</span><span class="s1">#spacepeeps</span><span class="dl">'</span><span class="p">).</span><span class="nx">html</span><span class="p">(</span><span class="nx">number</span><span class="p">);</span>
+
+    <span class="nx">data</span><span class="p">[</span><span class="dl">'</span><span class="s1">people</span><span class="dl">'</span><span class="p">].</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">d</span><span class="p">)</span> <span class="p">{</span>
+         <span class="nx">$</span><span class="p">(</span><span class="dl">'</span><span class="s1">#astronames</span><span class="dl">'</span><span class="p">).</span><span class="nx">append</span><span class="p">(</span><span class="dl">'</span><span class="s1">&lt;li&gt;</span><span class="dl">'</span> <span class="o">+</span> <span class="nx">d</span><span class="p">[</span><span class="dl">'</span><span class="s1">name</span><span class="dl">'</span><span class="p">]</span> <span class="o">+</span> <span class="dl">'</span><span class="s1">&lt;/li&gt;</span><span class="dl">'</span><span class="p">);</span>
+    <span class="p">});</span>
+<span class="p">});</span></code></pre></figure>
+
+
+   </div>
+  </div>
+ </div>
+</div>
+
+</div>
+ <div id="footer">
+  <div class="container">
+    <p class="pull-right"><a href="#">Back to top</a></p>
+    <p>Like what I'm doing? Consider donating with <iframe style="border: 0; margin-bottom: -7px; padding: 0;"
+        src="https://www.gittip.com/natronics/widget.html"
+        width="48pt" height="22pt"></iframe>
+    </p>
+    <p>
+     &nbsp;
+    </p>
+    <p class="license">
+    This site is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/deed.en_US">
+     Creative Commons Attribution 3.0 Unported License.
+     <img alt="Creative Commons License" src="http://i.creativecommons.org/l/by/3.0/80x15.png">
+    </a>
+   </p>
+  </div>
+ </div>
+ <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-24692957-1']);
+  _gaq.push(['_setDomainName', 'open-notify.org']);
+  _gaq.push(['_setAllowLinker', true]);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+ </script>
+</body>
+</html>

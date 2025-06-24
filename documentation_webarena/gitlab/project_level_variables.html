@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>project_level_variables API Documentation</title>
+</head>
+<body>
+<hr />
+<p>stage: Verify
+group: Pipeline Security
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments</p>
+<hr />
+<h1>Project-level CI/CD variables API</h1>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> GitLab.com, Self-managed, GitLab Dedicated</p>
+<h2>List project variables</h2>
+<p>Get list of a project's variables.</p>
+<p><code>plaintext
+GET /projects/:id/variables</code></p>
+<p>| Attribute | Type           | Required | Description |
+|-----------|----------------|----------|-------------|
+| <code>id</code>      | integer/string | Yes      | ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/1/variables"</code></p>
+<p><code>json
+[
+    {
+        "variable_type": "env_var",
+        "key": "TEST_VARIABLE_1",
+        "value": "TEST_1",
+        "protected": false,
+        "masked": true,
+        "raw": false,
+        "environment_scope": "*",
+        "description": null
+    },
+    {
+        "variable_type": "env_var",
+        "key": "TEST_VARIABLE_2",
+        "value": "TEST_2",
+        "protected": false,
+        "masked": false,
+        "raw": false,
+        "environment_scope": "*",
+        "description": null
+    }
+]</code></p>
+<h2>Get a single variable</h2>
+<p>Get the details of a single variable. If there are multiple variables with the same key,
+use <code>filter</code> to select the correct <code>environment_scope</code>.</p>
+<p><code>plaintext
+GET /projects/:id/variables/:key</code></p>
+<p>| Attribute | Type           | Required | Description |
+|-----------|----------------|----------|-------------|
+| <code>id</code>      | integer/string | Yes      | ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> |
+| <code>key</code>     | string         | Yes      | The <code>key</code> of a variable |
+| <code>filter</code>  | hash           | No       | Available filters: <code>[environment_scope]</code>. See the <a href="#the-filter-parameter"><code>filter</code> parameter details</a>. |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/1/variables/TEST_VARIABLE_1"</code></p>
+<p><code>json
+{
+    "key": "TEST_VARIABLE_1",
+    "variable_type": "env_var",
+    "value": "TEST_1",
+    "protected": false,
+    "masked": true,
+    "raw": false,
+    "environment_scope": "*",
+    "description": null
+}</code></p>
+<h2>Create a variable</h2>
+<p>Create a new variable. If a variable with the same <code>key</code> already exists, the new variable
+must have a different <code>environment_scope</code>. Otherwise, GitLab returns a message similar to:
+<code>VARIABLE_NAME has already been taken</code>.</p>
+<p><code>plaintext
+POST /projects/:id/variables</code></p>
+<p>| Attribute           | Type           | Required | Description |
+|---------------------|----------------|----------|-------------|
+| <code>id</code>                | integer/string | Yes      | ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> |
+| <code>key</code>               | string         | Yes      | The <code>key</code> of a variable; must have no more than 255 characters; only <code>A-Z</code>, <code>a-z</code>, <code>0-9</code>, and <code>_</code> are allowed |
+| <code>value</code>             | string         | Yes      | The <code>value</code> of a variable |
+| <code>description</code>       | string         | No       | The description of the variable. Default: <code>null</code>. <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/409641">Introduced</a> in GitLab 16.2. |
+| <code>environment_scope</code> | string         | No       | The <code>environment_scope</code> of the variable. Default: <code>*</code> |
+| <code>masked</code>            | boolean        | No       | Whether the variable is masked. Default: <code>false</code> |
+| <code>protected</code>         | boolean        | No       | Whether the variable is protected. Default: <code>false</code> |
+| <code>raw</code>               | boolean        | No       | Whether the variable is treated as a raw string. Default: <code>false</code>. When <code>true</code>, variables in the value are not <a href="../ci/variables/index.md#prevent-cicd-variable-expansion">expanded</a>. |
+| <code>variable_type</code>     | string         | No       | The type of a variable. Available types are: <code>env_var</code> (default) and <code>file</code> |</p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+     "https://gitlab.example.com/api/v4/projects/1/variables" --form "key=NEW_VARIABLE" --form "value=new value"</code></p>
+<p><code>json
+{
+    "variable_type": "env_var",
+    "key": "NEW_VARIABLE",
+    "value": "new value",
+    "protected": false,
+    "masked": false,
+    "raw": false,
+    "environment_scope": "*",
+    "description": null
+}</code></p>
+<h2>Update a variable</h2>
+<p>Update a project's variable. If there are multiple variables with the same key,
+use <code>filter</code> to select the correct <code>environment_scope</code>.</p>
+<p><code>plaintext
+PUT /projects/:id/variables/:key</code></p>
+<p>| Attribute           | Type           | Required | Description |
+|---------------------|----------------|----------|-------------|
+| <code>id</code>                | integer/string | Yes      | ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> |
+| <code>key</code>               | string         | Yes      | The <code>key</code> of a variable |
+| <code>value</code>             | string         | Yes      | The <code>value</code> of a variable |
+| <code>description</code>       | string         | No       | The description of the variable. Default: <code>null</code>. <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/409641">Introduced</a> in GitLab 16.2. |
+| <code>environment_scope</code> | string         | No       | The <code>environment_scope</code> of the variable |
+| <code>filter</code>            | hash           | No       | Available filters: <code>[environment_scope]</code>. See the <a href="#the-filter-parameter"><code>filter</code> parameter details</a>. |
+| <code>masked</code>            | boolean        | No       | Whether the variable is masked |
+| <code>protected</code>         | boolean        | No       | Whether the variable is protected |
+| <code>raw</code>               | boolean        | No       | Whether the variable is treated as a raw string. Default: <code>false</code>. When <code>true</code>, variables in the value are not <a href="../ci/variables/index.md#prevent-cicd-variable-expansion">expanded</a>. |
+| <code>variable_type</code>     | string         | No       | The type of a variable. Available types are: <code>env_var</code> (default) and <code>file</code> |</p>
+<p><code>shell
+curl --request PUT --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+     "https://gitlab.example.com/api/v4/projects/1/variables/NEW_VARIABLE" --form "value=updated value"</code></p>
+<p><code>json
+{
+    "variable_type": "env_var",
+    "key": "NEW_VARIABLE",
+    "value": "updated value",
+    "protected": true,
+    "masked": false,
+    "raw": false,
+    "environment_scope": "*",
+    "description": "null"
+}</code></p>
+<h2>Delete a variable</h2>
+<p>Delete a project's variable. If there are multiple variables with the same key,
+use <code>filter</code> to select the correct <code>environment_scope</code>.</p>
+<p><code>plaintext
+DELETE /projects/:id/variables/:key</code></p>
+<p>| Attribute | Type           | Required | Description |
+|-----------|----------------|----------|-------------|
+| <code>id</code>      | integer/string | Yes      | ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> |
+| <code>key</code>     | string         | Yes      | The <code>key</code> of a variable |
+| <code>filter</code>  | hash           | No       | Available filters: <code>[environment_scope]</code>. See the <a href="#the-filter-parameter"><code>filter</code> parameter details</a>. |</p>
+<p><code>shell
+curl --request DELETE --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/1/variables/VARIABLE_1"</code></p>
+<h2>The <code>filter</code> parameter</h2>
+<p>When multiple variables have the same <code>key</code>, <a href="#get-a-single-variable">GET</a>, <a href="#update-a-variable">PUT</a>,
+or <a href="#delete-a-variable">DELETE</a> requests might return:</p>
+<p><code>plaintext
+There are multiple variables with provided parameters. Please use 'filter[environment_scope]'.</code></p>
+<p>Use <code>filter[environment_scope]</code> to select the variable with the matching <code>environment_scope</code> attribute.</p>
+<p>For example:</p>
+<ul>
+<li>GET:</li>
+</ul>
+<p><code>shell
+  curl --globoff --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+       "https://gitlab.example.com/api/v4/projects/1/variables/SCOPED_VARIABLE_1?filter[environment_scope]=production"</code></p>
+<ul>
+<li>PUT:</li>
+</ul>
+<p><code>shell
+  curl --request PUT --globoff --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+       "https://gitlab.example.com/api/v4/projects/1/variables/SCOPED_VARIABLE_1?value=scoped-variable-updated-value&amp;environment_scope=production&amp;filter[environment_scope]=production"</code></p>
+<ul>
+<li>DELETE:</li>
+</ul>
+<p><code>shell
+  curl --request DELETE --globoff --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+       "https://gitlab.example.com/api/v4/projects/1/variables/SCOPED_VARIABLE_1?filter[environment_scope]=production"</code></p>
+</body>
+</html>

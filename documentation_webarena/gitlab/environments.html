@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>environments API Documentation</title>
+</head>
+<body>
+<hr />
+<p>stage: Deploy
+group: Environments
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments</p>
+<hr />
+<h1>Environments API</h1>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> GitLab.com, Self-managed, GitLab Dedicated</p>
+<blockquote>
+<p>Support for <a href="../ci/jobs/ci_job_token.md">GitLab CI/CD job token</a> authentication <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/414549">introduced</a> in GitLab 16.2.</p>
+</blockquote>
+<h2>List environments</h2>
+<p>Get all environments for a given project.</p>
+<p><code>plaintext
+GET /projects/:id/environments</code></p>
+<p>| Attribute | Type           | Required | Description                                                                                                                                                   |
+|-----------|----------------|----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| <code>id</code>      | integer/string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded</a> path of the project.                                                                          |
+| <code>name</code>    | string         | no       | Return the environment with this name. Mutually exclusive with <code>search</code>.                                                                                      |
+| <code>search</code>  | string         | no       | Return list of environments matching the search criteria. Mutually exclusive with <code>name</code>. Must be at least 3 characters long.                                 |
+| <code>states</code>  | string         | no       | List all environments that match a specific state. Accepted values: <code>available</code>, <code>stopping</code>, or <code>stopped</code>. If no state value given, returns all environments. |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/1/environments?name=review%2Ffix-foo"</code></p>
+<p>Example response:</p>
+<p><code>json
+[
+  {
+    "id": 1,
+    "name": "review/fix-foo",
+    "slug": "review-fix-foo-dfjre3",
+    "external_url": "https://review-fix-foo-dfjre3.gitlab.example.com",
+    "state": "available",
+    "tier": "development",
+    "created_at": "2019-05-25T18:55:13.252Z",
+    "updated_at": "2019-05-27T18:55:13.252Z",
+    "enable_advanced_logs_querying": false,
+    "logs_api_path": "/project/-/logs/k8s.json?environment_name=review%2Ffix-foo",
+    "auto_stop_at": "2019-06-03T18:55:13.252Z"
+  }
+]</code></p>
+<h2>Get a specific environment</h2>
+<p><code>plaintext
+GET /projects/:id/environments/:environment_id</code></p>
+<p>| Attribute        | Type           | Required | Description                                                                          |
+|------------------|----------------|----------|--------------------------------------------------------------------------------------|
+| <code>id</code>             | integer/string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path</a> of the project. |
+| <code>environment_id</code> | integer        | yes      | The ID of the environment.                                                           |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/1/environments/1"</code></p>
+<p>Example of response</p>
+<p><code>json
+{
+  "id": 1,
+  "name": "review/fix-foo",
+  "slug": "review-fix-foo-dfjre3",
+  "external_url": "https://review-fix-foo-dfjre3.gitlab.example.com",
+  "state": "available",
+  "tier": "development",
+  "created_at": "2019-05-25T18:55:13.252Z",
+  "updated_at": "2019-05-27T18:55:13.252Z",
+  "enable_advanced_logs_querying": false,
+  "logs_api_path": "/project/-/logs/k8s.json?environment_name=review%2Ffix-foo",
+  "auto_stop_at": "2019-06-03T18:55:13.252Z",
+  "last_deployment": {
+    "id": 100,
+    "iid": 34,
+    "ref": "fdroid",
+    "sha": "416d8ea11849050d3d1f5104cf8cf51053e790ab",
+    "created_at": "2019-03-25T18:55:13.252Z",
+    "status": "success",
+    "user": {
+      "id": 1,
+      "name": "Administrator",
+      "state": "active",
+      "username": "root",
+      "avatar_url": "http://www.gravatar.com/avatar/e64c7d89f26bd1972efa854d13d7dd61?s=80&amp;d=identicon",
+      "web_url": "http://localhost:3000/root"
+    },
+    "deployable": {
+      "id": 710,
+      "status": "success",
+      "stage": "deploy",
+      "name": "staging",
+      "ref": "fdroid",
+      "tag": false,
+      "coverage": null,
+      "created_at": "2019-03-25T18:55:13.215Z",
+      "started_at": "2019-03-25T12:54:50.082Z",
+      "finished_at": "2019-03-25T18:55:13.216Z",
+      "duration": 21623.13423,
+      "project": {
+        "ci_job_token_scope_enabled": false
+      },
+      "user": {
+        "id": 1,
+        "name": "Administrator",
+        "username": "root",
+        "state": "active",
+        "avatar_url": "http://www.gravatar.com/avatar/e64c7d89f26bd1972efa854d13d7dd61?s=80&amp;d=identicon",
+        "web_url": "http://gitlab.dev/root",
+        "created_at": "2015-12-21T13:14:24.077Z",
+        "bio": null,
+        "location": null,
+        "public_email": "",
+        "skype": "",
+        "linkedin": "",
+        "twitter": "",
+        "website_url": "",
+        "organization": null
+      },
+      "commit": {
+        "id": "416d8ea11849050d3d1f5104cf8cf51053e790ab",
+        "short_id": "416d8ea1",
+        "created_at": "2016-01-02T15:39:18.000Z",
+        "parent_ids": [
+          "e9a4449c95c64358840902508fc827f1a2eab7df"
+        ],
+        "title": "Removed fabric to fix #40",
+        "message": "Removed fabric to fix #40\n",
+        "author_name": "Administrator",
+        "author_email": "admin@example.com",
+        "authored_date": "2016-01-02T15:39:18.000Z",
+        "committer_name": "Administrator",
+        "committer_email": "admin@example.com",
+        "committed_date": "2016-01-02T15:39:18.000Z"
+      },
+      "pipeline": {
+        "id": 34,
+        "sha": "416d8ea11849050d3d1f5104cf8cf51053e790ab",
+        "ref": "fdroid",
+        "status": "success",
+        "web_url": "http://localhost:3000/Commit451/lab-coat/pipelines/34"
+      },
+      "web_url": "http://localhost:3000/Commit451/lab-coat/-/jobs/710",
+      "artifacts": [
+        {
+          "file_type": "trace",
+          "size": 1305,
+          "filename": "job.log",
+          "file_format": null
+        }
+      ],
+      "runner": null,
+      "artifacts_expire_at": null
+    }
+  }
+}</code></p>
+<h2>Create a new environment</h2>
+<p>Creates a new environment with the given name and <code>external_url</code>.</p>
+<p>It returns <code>201</code> if the environment was successfully created, <code>400</code> for wrong parameters.</p>
+<p><code>plaintext
+POST /projects/:id/environments</code></p>
+<p>| Attribute      | Type           | Required | Description                                                                                                         |
+|----------------|----------------|----------|---------------------------------------------------------------------------------------------------------------------|
+| <code>id</code>           | integer/string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path</a> of the project.                                |
+| <code>name</code>         | string         | yes      | The name of the environment.                                                                                        |
+| <code>external_url</code> | string         | no       | Place to link to for this environment.                                                                              |
+| <code>tier</code>         | string         | no       | The tier of the new environment. Allowed values are <code>production</code>, <code>staging</code>, <code>testing</code>, <code>development</code>, and <code>other</code>. |</p>
+<p><code>shell
+curl --data "name=deploy&amp;external_url=https://deploy.gitlab.example.com" \
+     --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/1/environments"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "id": 1,
+  "name": "deploy",
+  "slug": "deploy",
+  "external_url": "https://deploy.gitlab.example.com",
+  "state": "available",
+  "tier": "production",
+  "created_at": "2019-05-25T18:55:13.252Z",
+  "updated_at": "2019-05-27T18:55:13.252Z"
+}</code></p>
+<h2>Update an existing environment</h2>
+<blockquote>
+<ul>
+<li>Parameter <code>name</code> <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/338897">removed</a> in GitLab 16.0.</li>
+</ul>
+</blockquote>
+<p>Updates an existing environment's name and/or <code>external_url</code>.</p>
+<p>It returns <code>200</code> if the environment was successfully updated. In case of an error, a status code <code>400</code> is returned.</p>
+<p><code>plaintext
+PUT /projects/:id/environments/:environments_id</code></p>
+<p>| Attribute        | Type           | Required | Description                                                                                                         |
+|------------------|----------------|----------|---------------------------------------------------------------------------------------------------------------------|
+| <code>id</code>             | integer/string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>.                                |
+| <code>environment_id</code> | integer        | yes      | The ID of the environment.                                                                                          |
+| <code>external_url</code>   | string         | no       | The new <code>external_url</code>.                                                                                             |
+| <code>tier</code>           | string         | no       | The tier of the new environment. Allowed values are <code>production</code>, <code>staging</code>, <code>testing</code>, <code>development</code>, and <code>other</code>. |</p>
+<p><code>shell
+curl --request PUT --data "external_url=https://staging.gitlab.example.com" \
+     --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/1/environments/1"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "id": 1,
+  "name": "staging",
+  "slug": "staging",
+  "external_url": "https://staging.gitlab.example.com",
+  "state": "available",
+  "tier": "staging",
+  "created_at": "2019-05-25T18:55:13.252Z",
+  "updated_at": "2019-05-27T18:55:13.252Z"
+}</code></p>
+<h2>Delete an environment</h2>
+<p>It returns <code>204</code> if the environment was successfully deleted, and <code>404</code> if the environment does not exist. The environment must be stopped first, otherwise the request returns <code>403</code>.</p>
+<p><code>plaintext
+DELETE /projects/:id/environments/:environment_id</code></p>
+<p>| Attribute        | Type           | Required | Description                                                                          |
+|------------------|----------------|----------|--------------------------------------------------------------------------------------|
+| <code>id</code>             | integer/string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path</a> of the project. |
+| <code>environment_id</code> | integer        | yes      | The ID of the environment.                                                           |</p>
+<p><code>shell
+curl --request DELETE --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/1/environments/1"</code></p>
+<h2>Delete multiple stopped review apps</h2>
+<p>It schedules for deletion multiple environments that have already been
+<a href="../ci/environments/index.md#stopping-an-environment">stopped</a> and
+are <a href="../ci/review_apps/index.md">in the review app folder</a>.
+The actual deletion is performed after 1 week from the time of execution.
+By default, it only deletes environments 30 days or older. You can change this default using the <code>before</code> parameter.</p>
+<p><code>plaintext
+DELETE /projects/:id/environments/review_apps</code></p>
+<p>| Attribute | Type           | Required | Description                                                                                                                                            |
+|-----------|----------------|----------|--------------------------------------------------------------------------------------------------------------------------------------------------------|
+| <code>id</code>      | integer/string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path</a> of the project.                                                                   |
+| <code>before</code>  | datetime       | no       | The date before which environments can be deleted. Defaults to 30 days ago. Expected in ISO 8601 format (<code>YYYY-MM-DDTHH:MM:SSZ</code>).                      |
+| <code>limit</code>   | integer        | no       | Maximum number of environments to delete. Defaults to 100.                                                                                             |
+| <code>dry_run</code> | boolean        | no       | Defaults to <code>true</code> for safety reasons. It performs a dry run where no actual deletion is performed. Set to <code>false</code> to actually delete the environment. |</p>
+<p><code>shell
+curl --request DELETE --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/1/environments/review_apps"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "scheduled_entries": [
+    {
+      "id": 387,
+      "name": "review/023f1bce01229c686a73",
+      "slug": "review-023f1bce01-3uxznk",
+      "external_url": null
+    },
+    {
+      "id": 388,
+      "name": "review/85d4c26a388348d3c4c0",
+      "slug": "review-85d4c26a38-5giw1c",
+      "external_url": null
+    }
+  ],
+  "unprocessable_entries": []
+}</code></p>
+<h2>Stop an environment</h2>
+<p>It returns <code>200</code> if the environment was successfully stopped, and <code>404</code> if the environment does not exist.</p>
+<p><code>plaintext
+POST /projects/:id/environments/:environment_id/stop</code></p>
+<p>| Attribute        | Type           | Required | Description                                                                          |
+|------------------|----------------|----------|--------------------------------------------------------------------------------------|
+| <code>id</code>             | integer/string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path</a> of the project. |
+| <code>environment_id</code> | integer        | yes      | The ID of the environment.                                                           |
+| <code>force</code>          | boolean        | no       | Force environment to stop without executing <code>on_stop</code> actions.                       |</p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/1/environments/1/stop"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "id": 1,
+  "name": "deploy",
+  "slug": "deploy",
+  "external_url": "https://deploy.gitlab.example.com",
+  "state": "stopped",
+  "created_at": "2019-05-25T18:55:13.252Z",
+  "updated_at": "2019-05-27T18:55:13.252Z"
+}</code></p>
+<h2>Stop stale environments</h2>
+<p>Issue stop request to all environments that were last modified or deployed to before a specified date. Excludes protected environments. Returns <code>200</code> if stop request was successful and <code>400</code> if the before date is invalid. For details of exactly when the environment is stopped, see <a href="../ci/environments/index.md#stopping-an-environment">Stop an environment</a>.</p>
+<p><code>plaintext
+POST /projects/:id/environments/stop_stale</code></p>
+<p>| Attribute | Type           | Required | Description                                                                                                                                                                                    |
+|-----------|----------------|----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| <code>id</code>      | integer/string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path</a> of the project.                                                                                                           |
+| <code>before</code>  | date           | yes      | Stop environments that have been modified or deployed to before the specified date. Expected in ISO 8601 format (<code>2019-03-15T08:00:00Z</code>). Valid inputs are between 10 years ago and 1 week ago |</p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/1/environments/stop_stale?before=10%2F10%2F2021"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "message": "Successfully requested stop for all stale environments"
+}</code></p>
+</body>
+</html>

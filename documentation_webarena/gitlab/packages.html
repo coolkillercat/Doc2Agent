@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>packages API Documentation</title>
+</head>
+<body>
+<hr />
+<p>stage: Package
+group: Package Registry
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments</p>
+<hr />
+<h1>Packages API</h1>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> GitLab.com, Self-managed, GitLab Dedicated</p>
+<blockquote>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/issues/349418">Introduced</a> support for <a href="../ci/jobs/ci_job_token.md">GitLab CI/CD job token</a> authentication for the project-level API in GitLab 15.3.</li>
+</ul>
+</blockquote>
+<p>The API documentation of <a href="../administration/packages/index.md">GitLab Packages</a>.</p>
+<h2>List packages</h2>
+<h3>For a project</h3>
+<p>Get a list of project packages. All package types are included in results. When
+accessed without authentication, only packages of public projects are returned.
+By default, packages with <code>default</code> and <code>error</code> status are returned. Use the <code>status</code> parameter to view other
+packages.</p>
+<p><code>plaintext
+GET /projects/:id/packages</code></p>
+<p>| Attribute             | Type           | Required | Description |
+|:----------------------|:---------------|:---------|:------------|
+| <code>id</code>                  | integer/string | yes      | ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>. |
+| <code>order_by</code>            | string         | no       | The field to use as order. One of <code>created_at</code> (default), <code>name</code>, <code>version</code>, or <code>type</code>. |
+| <code>sort</code>                | string         | no       | The direction of the order, either <code>asc</code> (default) for ascending order or <code>desc</code> for descending order. |
+| <code>package_type</code>        | string         | no       | Filter the returned packages by type. One of <code>conan</code>, <code>maven</code>, <code>npm</code>, <code>pypi</code>, <code>composer</code>, <code>nuget</code>, <code>helm</code>, <code>terraform_module</code>, or <code>golang</code>. |
+| <code>package_name</code>        | string         | no       | Filter the project packages with a fuzzy search by name. |
+| <code>package_version</code>     | string         | no       | Filter the project packages by version. If used in combination with <code>include_versionless</code>, then no versionless packages are returned. <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/349065">Introduced</a> in GitLab 16.6. |
+| <code>include_versionless</code> | boolean        | no       | When set to true, versionless packages are included in the response. |
+| <code>status</code>              | string         | no       | Filter the returned packages by status. One of <code>default</code>, <code>hidden</code>, <code>processing</code>, <code>error</code>, or <code>pending_destruction</code>. |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/:id/packages"</code></p>
+<blockquote>
+<p><strong>Deprecation:</strong></p>
+<p>The <code>pipelines</code> attribute in the response is deprecated in favor of the <a href="#list-package-pipelines">list package pipelines endpoint</a>, which was <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/341950">introduced</a> in GitLab 16.0. If the package does not have any pipelines, the <code>pipelines</code> attribute is not included in the response. Otherwise, the <code>pipelines</code> attribute returns an empty array.</p>
+</blockquote>
+<p>Example response:</p>
+<p><code>json
+[
+  {
+    "id": 1,
+    "name": "com/mycompany/my-app",
+    "version": "1.0-SNAPSHOT",
+    "package_type": "maven",
+    "created_at": "2019-11-27T03:37:38.711Z"
+  },
+  {
+    "id": 2,
+    "name": "@foo/bar",
+    "version": "1.0.3",
+    "package_type": "npm",
+    "created_at": "2019-11-27T03:37:38.711Z"
+  },
+  {
+    "id": 3,
+    "name": "Hello/0.1@mycompany/stable",
+    "conan_package_name": "Hello",
+    "version": "0.1",
+    "package_type": "conan",
+    "_links": {
+      "web_path": "/foo/bar/-/packages/3",
+      "delete_api_path": "https://gitlab.example.com/api/v4/projects/1/packages/3"
+    },
+    "created_at": "2029-12-16T20:33:34.316Z",
+    "tags": []
+  }
+]</code></p>
+<p>By default, the <code>GET</code> request returns 20 results, because the API is <a href="rest/index.md#pagination">paginated</a>.</p>
+<p>Although you can filter packages by status, working with packages that have a <code>processing</code> status
+can result in malformed data or broken packages.</p>
+<h3>For a group</h3>
+<p>Get a list of project packages at the group level.
+When accessed without authentication, only packages of public projects are returned.
+By default, packages with <code>default</code> and <code>error</code> status are returned. Use the <code>status</code> parameter to view other
+packages.</p>
+<p><code>plaintext
+GET /groups/:id/packages</code></p>
+<p>| Attribute             | Type           | Required | Description |
+|:----------------------|:---------------|:---------|:------------|
+| <code>id</code>                  | integer/string | yes      | ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the group</a>. |
+| <code>exclude_subgroups</code>   | boolean        | no       | If the parameter is included as true, packages from projects from subgroups are not listed. Default is <code>false</code>. |
+| <code>order_by</code>            | string         | no       | The field to use as order. One of <code>created_at</code> (default), <code>name</code>, <code>version</code>, <code>type</code>, or <code>project_path</code>. |
+| <code>sort</code>                | string         | no       | The direction of the order, either <code>asc</code> (default) for ascending order or <code>desc</code> for descending order. |
+| <code>package_type</code>        | string         | no       | Filter the returned packages by type. One of <code>conan</code>, <code>maven</code>, <code>npm</code>, <code>pypi</code>, <code>composer</code>, <code>nuget</code>, <code>helm</code>, or <code>golang</code>. |
+| <code>package_name</code>        | string         | no       | Filter the project packages with a fuzzy search by name. |
+| <code>package_version</code>     | string         | no       | Filter the returned packages by version. If used in combination with <code>include_versionless</code>, then no versionless packages are returned. <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/349065">Introduced</a> in GitLab 16.6. |
+| <code>include_versionless</code> | boolean        | no       | When set to true, versionless packages are included in the response. |
+| <code>status</code>              | string         | no       | Filter the returned packages by status. One of <code>default</code>, <code>hidden</code>, <code>processing</code>, <code>error</code>, or <code>pending_destruction</code>. |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/groups/:id/packages?exclude_subgroups=false"</code></p>
+<blockquote>
+<p><strong>Deprecation:</strong></p>
+<p>The <code>pipelines</code> attribute in the response is deprecated in favor of the <a href="#list-package-pipelines">list package pipelines endpoint</a>, which was <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/341950">introduced</a> in GitLab 16.0. If the package does not have any pipelines, the <code>pipelines</code> attribute is not included in the response. Otherwise, the <code>pipelines</code> attribute returns an empty array.</p>
+</blockquote>
+<p>Example response:</p>
+<p><code>json
+[
+  {
+    "id": 1,
+    "name": "com/mycompany/my-app",
+    "version": "1.0-SNAPSHOT",
+    "package_type": "maven",
+    "_links": {
+      "web_path": "/namespace1/project1/-/packages/1",
+      "delete_api_path": "/namespace1/project1/-/packages/1"
+    },
+    "created_at": "2019-11-27T03:37:38.711Z",
+    "pipelines": [
+      {
+        "id": 123,
+        "status": "pending",
+        "ref": "new-pipeline",
+        "sha": "a91957a858320c0e17f3a0eca7cfacbff50ea29a",
+        "web_url": "https://example.com/foo/bar/pipelines/47",
+        "created_at": "2016-08-11T11:28:34.085Z",
+        "updated_at": "2016-08-11T11:32:35.169Z",
+        "user": {
+          "name": "Administrator",
+          "avatar_url": "https://www.gravatar.com/avatar/e64c7d89f26bd1972efa854d13d7dd61?s=80&amp;d=identicon"
+        }
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "name": "@foo/bar",
+    "version": "1.0.3",
+    "package_type": "npm",
+    "_links": {
+      "web_path": "/namespace1/project1/-/packages/1",
+      "delete_api_path": "/namespace1/project1/-/packages/1"
+    },
+    "created_at": "2019-11-27T03:37:38.711Z",
+    "pipelines": [
+      {
+        "id": 123,
+        "status": "pending",
+        "ref": "new-pipeline",
+        "sha": "a91957a858320c0e17f3a0eca7cfacbff50ea29a",
+        "web_url": "https://example.com/foo/bar/pipelines/47",
+        "created_at": "2016-08-11T11:28:34.085Z",
+        "updated_at": "2016-08-11T11:32:35.169Z",
+        "user": {
+          "name": "Administrator",
+          "avatar_url": "https://www.gravatar.com/avatar/e64c7d89f26bd1972efa854d13d7dd61?s=80&amp;d=identicon"
+        }
+      }
+    ]
+  }
+]</code></p>
+<p>By default, the <code>GET</code> request returns 20 results, because the API is <a href="rest/index.md#pagination">paginated</a>.</p>
+<p>The <code>_links</code> object contains the following properties:</p>
+<ul>
+<li><code>web_path</code>: The path which you can visit in GitLab and see the details of the package.</li>
+<li><code>delete_api_path</code>: The API path to delete the package. Only available if the request user has permission to do so.</li>
+</ul>
+<p>Although you can filter packages by status, working with packages that have a <code>processing</code> status
+can result in malformed data or broken packages.</p>
+<h2>Get a project package</h2>
+<p>Get a single project package. Only packages with status <code>default</code> are returned.</p>
+<p><code>plaintext
+GET /projects/:id/packages/:package_id</code></p>
+<p>| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| <code>id</code>      | integer/string | yes | ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>. |
+| <code>package_id</code>      | integer | yes | ID of a package. |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/:id/packages/:package_id"</code></p>
+<blockquote>
+<p><strong>Deprecation:</strong></p>
+<p>The <code>pipelines</code> attribute in the response is deprecated in favor of the <a href="#list-package-pipelines">list package pipelines endpoint</a>, which was <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/341950">introduced</a> in GitLab 16.0. If the package does not have any pipelines, the <code>pipelines</code> attribute is not included in the response. Otherwise, the <code>pipelines</code> attribute returns an empty array.</p>
+</blockquote>
+<p>Example response:</p>
+<p><code>json
+{
+  "id": 1,
+  "name": "com/mycompany/my-app",
+  "version": "1.0-SNAPSHOT",
+  "package_type": "maven",
+  "_links": {
+    "web_path": "/namespace1/project1/-/packages/1",
+    "delete_api_path": "/namespace1/project1/-/packages/1"
+  },
+  "created_at": "2019-11-27T03:37:38.711Z",
+  "last_downloaded_at": "2022-09-07T07:51:50.504Z",
+  "pipelines": [
+    {
+      "id": 123,
+      "status": "pending",
+      "ref": "new-pipeline",
+      "sha": "a91957a858320c0e17f3a0eca7cfacbff50ea29a",
+      "web_url": "https://example.com/foo/bar/pipelines/47",
+      "created_at": "2016-08-11T11:28:34.085Z",
+      "updated_at": "2016-08-11T11:32:35.169Z",
+      "user": {
+        "name": "Administrator",
+        "avatar_url": "https://www.gravatar.com/avatar/e64c7d89f26bd1972efa854d13d7dd61?s=80&amp;d=identicon"
+      }
+    }
+  ],
+  "versions": [
+    {
+      "id":2,
+      "version":"2.0-SNAPSHOT",
+      "created_at":"2020-04-28T04:42:11.573Z",
+      "pipelines": [
+        {
+          "id": 234,
+          "status": "pending",
+          "ref": "new-pipeline",
+          "sha": "a91957a858320c0e17f3a0eca7cfacbff50ea29a",
+          "web_url": "https://example.com/foo/bar/pipelines/58",
+          "created_at": "2016-08-11T11:28:34.085Z",
+          "updated_at": "2016-08-11T11:32:35.169Z",
+          "user": {
+            "name": "Administrator",
+            "avatar_url": "https://www.gravatar.com/avatar/e64c7d89f26bd1972efa854d13d7dd61?s=80&amp;d=identicon"
+          }
+        }
+      ]
+    }
+  ]
+}</code></p>
+<p>The <code>_links</code> object contains the following properties:</p>
+<ul>
+<li><code>web_path</code>: The path which you can visit in GitLab and see the details of the package. Only available if the package has status <code>default</code>.</li>
+<li><code>delete_api_path</code>: The API path to delete the package. Only available if the request user has permission to do so.</li>
+</ul>
+<h2>List package files</h2>
+<p>Get a list of package files of a single package.</p>
+<p><code>plaintext
+GET /projects/:id/packages/:package_id/package_files</code></p>
+<p>| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| <code>id</code>      | integer/string | yes | ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> |
+| <code>package_id</code>      | integer | yes | ID of a package. |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/:id/packages/:package_id/package_files"</code></p>
+<p>Example response:</p>
+<p><code>json
+[
+  {
+    "id": 25,
+    "package_id": 4,
+    "created_at": "2018-11-07T15:25:52.199Z",
+    "file_name": "my-app-1.5-20181107.152550-1.jar",
+    "size": 2421,
+    "file_md5": "58e6a45a629910c6ff99145a688971ac",
+    "file_sha1": "ebd193463d3915d7e22219f52740056dfd26cbfe",
+    "file_sha256": "a903393463d3915d7e22219f52740056dfd26cbfeff321b",
+    "pipelines": [
+      {
+        "id": 123,
+        "status": "pending",
+        "ref": "new-pipeline",
+        "sha": "a91957a858320c0e17f3a0eca7cfacbff50ea29a",
+        "web_url": "https://example.com/foo/bar/pipelines/47",
+        "created_at": "2016-08-11T11:28:34.085Z",
+        "updated_at": "2016-08-11T11:32:35.169Z",
+        "user": {
+          "name": "Administrator",
+          "avatar_url": "https://www.gravatar.com/avatar/e64c7d89f26bd1972efa854d13d7dd61?s=80&amp;d=identicon"
+        }
+      }
+    ]
+  },
+  {
+    "id": 26,
+    "package_id": 4,
+    "created_at": "2018-11-07T15:25:56.776Z",
+    "file_name": "my-app-1.5-20181107.152550-1.pom",
+    "size": 1122,
+    "file_md5": "d90f11d851e17c5513586b4a7e98f1b2",
+    "file_sha1": "9608d068fe88aff85781811a42f32d97feb440b5",
+    "file_sha256": "2987d068fe88aff85781811a42f32d97feb4f092a399"
+  },
+  {
+    "id": 27,
+    "package_id": 4,
+    "created_at": "2018-11-07T15:26:00.556Z",
+    "file_name": "maven-metadata.xml",
+    "size": 767,
+    "file_md5": "6dfd0cce1203145a927fef5e3a1c650c",
+    "file_sha1": "d25932de56052d320a8ac156f745ece73f6a8cd2",
+    "file_sha256": "ac849d002e56052d320a8ac156f745ece73f6a8cd2f3e82"
+  }
+]</code></p>
+<p>By default, the <code>GET</code> request returns 20 results, because the API is <a href="rest/index.md#pagination">paginated</a>.</p>
+<h2>List package pipelines</h2>
+<blockquote>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/issues/341950">Introduced</a> in GitLab 16.1.</li>
+</ul>
+</blockquote>
+<p>Get a list of pipelines for a single package. The results are sorted by <code>id</code> in descending order.</p>
+<p>The results are <a href="rest/index.md#keyset-based-pagination">paginated</a> and return up to 20 records per page.</p>
+<p><code>plaintext
+GET /projects/:id/packages/:package_id/pipelines</code></p>
+<p>| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| <code>id</code>      | integer/string | yes | ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> |
+| <code>package_id</code>      | integer | yes | ID of a package. |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/:id/packages/:package_id/pipelines"</code></p>
+<p>Example response:</p>
+<p><code>json
+[
+  {
+    "id": 1,
+    "iid": 1,
+    "project_id": 9,
+    "sha": "2b6127f6bb6f475c4e81afcc2251e3f941e554f9",
+    "ref": "mytag",
+    "status": "failed",
+    "source": "push",
+    "created_at": "2023-02-01T12:19:21.895Z",
+    "updated_at": "2023-02-01T14:00:05.922Z",
+    "web_url": "http://gdk.test:3001/feature-testing/composer-repository/-/pipelines/1",
+    "user": {
+      "id": 1,
+      "username": "root",
+      "name": "Administrator",
+      "state": "active",
+      "avatar_url": "https://www.gravatar.com/avatar/e64c7d89f26bd1972efa854d13d7dd61?s=80\u0026d=identicon",
+      "web_url": "http://gdk.test:3001/root"
+    }
+  },
+  {
+    "id": 2,
+    "iid": 2,
+    "project_id": 9,
+    "sha": "e564015ac6cb3d8617647802c875b27d392f72a6",
+    "ref": "main",
+    "status": "canceled",
+    "source": "push",
+    "created_at": "2023-02-01T12:23:23.694Z",
+    "updated_at": "2023-02-01T12:26:28.635Z",
+    "web_url": "http://gdk.test:3001/feature-testing/composer-repository/-/pipelines/2",
+    "user": {
+      "id": 1,
+      "username": "root",
+      "name": "Administrator",
+      "state": "active",
+      "avatar_url": "https://www.gravatar.com/avatar/e64c7d89f26bd1972efa854d13d7dd61?s=80\u0026d=identicon",
+      "web_url": "http://gdk.test:3001/root"
+    }
+  }
+]</code></p>
+<h2>Delete a project package</h2>
+<p>Deletes a project package.</p>
+<p><code>plaintext
+DELETE /projects/:id/packages/:package_id</code></p>
+<p>| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| <code>id</code>      | integer/string | yes | ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> |
+| <code>package_id</code>      | integer | yes | ID of a package. |</p>
+<p><code>shell
+curl --request DELETE --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/:id/packages/:package_id"</code></p>
+<p>Can return the following status codes:</p>
+<ul>
+<li><code>204 No Content</code>, if the package was deleted successfully.</li>
+<li><code>404 Not Found</code>, if the package was not found.</li>
+</ul>
+<p>If <a href="../user/packages/package_registry/supported_functionality.md#forwarding-requests">request forwarding</a> is enabled,
+deleting a package can introduce a <a href="../user/packages/package_registry/supported_functionality.md#deleting-packages">dependency confusion risk</a>.</p>
+<h2>Delete a package file</h2>
+<p>WARNING:
+Deleting a package file may corrupt your package making it unusable or unpullable from your package
+manager client. When deleting a package file, be sure that you understand what you're doing.</p>
+<p>Delete a package file:</p>
+<p><code>plaintext
+DELETE /projects/:id/packages/:package_id/package_files/:package_file_id</code></p>
+<p>| Attribute         | Type           | Required | Description |
+| ----------------- | -------------- | -------- | ----------- |
+| <code>id</code>              | integer/string | yes | ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>. |
+| <code>package_id</code>      | integer        | yes | ID of a package. |
+| <code>package_file_id</code> | integer        | yes | ID of a package file. |</p>
+<p><code>shell
+curl --request DELETE --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/:id/packages/:package_id/package_files/:package_file_id"</code></p>
+<p>Can return the following status codes:</p>
+<ul>
+<li><code>204 No Content</code>: The package was deleted successfully.</li>
+<li><code>403 Forbidden</code>: The user does not have permission to delete the file.</li>
+<li><code>404 Not Found</code>: The package or package file was not found.</li>
+</ul>
+</body>
+</html>

@@ -1,41 +1,42 @@
-import requests, json
-from urllib.parse import quote
+import requests
+import json
 
-def get_shopping_admin_admin_auth_token():
+def get_shopping_admin_auth_token():
+    ENDPOINT = 'http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:7770'
     response = requests.post(
-        url=f'http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:7780/rest/default/V1/integration/admin/token',
-        headers={
+        url = f'{ENDPOINT}/rest/default/V1/integration/admin/token',
+        headers = {
             'content-type': 'application/json'
         },
-        data=json.dumps({
+        data = json.dumps({
             'username': 'admin',
             'password': 'admin1234'
         })
     )
-    return response.json()
+    return "Bearer " + response.json()
+
 
 def list_invoice_comments(id=None):
     """
-    Retrieves comments for a specific invoice.
+    Lists comments for a specified invoice.
     
     Args:
-        id (int): The ID of the invoice to retrieve comments for.
+        id (int): The invoice ID. Required.
         
     Returns:
-        requests.Response: The API response containing invoice comments.
+        requests.Response: The API response object.
+        
+    Example:
+        >>> response = list_invoice_comments(id=123)
+        >>> print(response.status_code)
+        200
     """
     assert id is not None, 'Missing required parameter: id'
-    api_url = f"http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:7780/rest/default/V1/invoices/{quote(str(id), safe='')}/comments"
-    querystring = {'id': id}
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + get_shopping_admin_admin_auth_token(),
-    }
     
-    response = requests.get(url=api_url, headers=headers, params=querystring, timeout=50, verify=False)
-    if response.status_code != 200:
-        response2 = requests.get(url=api_url, timeout=50) # in case API can't handle redundant params
-        response = response2
+    api_url = f"http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:7770/rest/default/V1/invoices/{id}/comments"
+    headers = {'Content-Type': 'application/json', 'Authorization': get_shopping_admin_auth_token()}
+    
+    response = requests.get(url=api_url, headers=headers, timeout=50, verify=False)
     return response
 
 if __name__ == '__main__':

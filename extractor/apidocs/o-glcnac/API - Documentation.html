@@ -1,0 +1,2885 @@
+<!--
+API Documentation HTML Template  - 1.0.1
+Copyright © 2016 Florian Nicolas
+Licensed under the MIT license.
+https://github.com/ticlekiwi/API-Documentation-HTML-Template
+!-->
+<!DOCTYPE html>
+<html lang="en"><script>
+    (function() {
+    class RuffleMimeType {
+        constructor(a, b, c) {
+            this.type = a, this.description = b, this.suffixes = c
+        }
+    }
+    class RuffleMimeTypeArray {
+        constructor(a) {
+            this.__mimetypes = [], this.__named_mimetypes = {};
+            for (let b of a) this.install(b)
+        }
+        install(a) {
+            let b = this.__mimetypes.length;
+            this.__mimetypes.push(a), this.__named_mimetypes[a.type] = a, this[a.type] = a, this[b] = a
+        }
+        item(a) {
+            return this.__mimetypes[a]
+        }
+        namedItem(a) {
+            return this.__named_mimetypes[a]
+        }
+        get length() {
+            return this.__mimetypes.length
+        }
+    }
+    class RufflePlugin extends RuffleMimeTypeArray {
+        constructor(a, b, c, d) {
+            super(d), this.name = a, this.description = b, this.filename = c
+        }
+        install(a) {
+            a.enabledPlugin || (a.enabledPlugin = this), super.install(a)
+        }
+    }
+    class RufflePluginArray {
+        constructor(a) {
+            this.__plugins = [], this.__named_plugins = {};
+            for (let b of a) this.install(b)
+        }
+        install(a) {
+            let b = this.__plugins.length;
+            this.__plugins.push(a), this.__named_plugins[a.name] = a, this[a.name] = a, this[b] = a
+        }
+        item(a) {
+            return this.__plugins[a]
+        }
+        namedItem(a) {
+            return this.__named_plugins[a]
+        }
+        get length() {
+            return this.__plugins.length
+        }
+    }
+    const FLASH_PLUGIN = new RufflePlugin("Shockwave Flash", "Shockwave Flash 32.0 r0", "ruffle.js", [new RuffleMimeType("application/futuresplash", "Shockwave Flash", "spl"), new RuffleMimeType("application/x-shockwave-flash", "Shockwave Flash", "swf"), new RuffleMimeType("application/x-shockwave-flash2-preview", "Shockwave Flash", "swf"), new RuffleMimeType("application/vnd.adobe.flash-movie", "Shockwave Flash", "swf")]);
+
+    function install_plugin(a) {
+        navigator.plugins.install || Object.defineProperty(navigator, "plugins", {
+            value: new RufflePluginArray(navigator.plugins),
+            writable: !1
+        }), navigator.plugins.install(a), 0 < a.length && !navigator.mimeTypes.install && Object.defineProperty(navigator, "mimeTypes", {
+            value: new RuffleMimeTypeArray(navigator.mimeTypes),
+            writable: !1
+        });
+        for (var b = 0; b < a.length; b += 1) navigator.mimeTypes.install(a[b])
+    }
+    install_plugin(FLASH_PLUGIN);
+})();
+</script><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <title>API - Documentation</title>
+    <meta name="description" content="Atlas of O-GlcNAcylated proteins">
+
+    <meta name="author" content="Olivier-Van Stichelen Lab, Florian Malard">
+
+    <meta name="keywords" content="protein, oglcnac, O-GlcNAc">
+
+    <style>@charset "utf-8";
+
+    /* RESET
+    ----------------------------------------------------------------------------------------*/
+
+    html, body, div, span, applet, object, iframe,
+    h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+    a, abbr, acronym, address, big, cite, code,
+    del, dfn, em, ins, kbd, q, s, samp,
+    small, strike, strong, sub, sup, tt, var,
+    b, u, i, center,
+    dl, dt, dd, ol, ul, li,
+    fieldset, form, label, legend,
+    table, caption, tbody, tfoot, thead, tr, th, td,
+    article, aside, canvas, details, embed,
+    figure, figcaption, footer, hgroup,
+    menu, nav, output, ruby, section, summary,
+    time, mark, audio, video {
+        margin: 0;
+        padding: 0;
+        border: 0;
+        font-size:100%;
+        font: inherit;
+        vertical-align: baseline;
+    }
+    article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section {
+        display: block;
+    }
+    img, embed, object, video { max-width: 100%; }
+    .ie6 img.full, .ie6 object.full, .ie6 embed, .ie6 video { width: 100%; }
+
+    /* BASE
+    ----------------------------------------------------------------------------------------*/
+
+    *{
+        -webkit-transition: all 0.3s ease;
+        -moz-transition: all 0.3s ease;
+        -o-transition: all 0.3s ease;
+        -ms-transition: all 0.3s ease;
+        transition: all 0.3s ease;
+    }
+    html,
+    body{
+        position:relative;
+        min-height: 100%;
+        height: 100%;
+        -webkit-backface-visibility: hidden;
+        font-family: 'Roboto', sans-serif;
+    }
+    strong{
+        font-weight: 500;
+    }
+    i{
+        font-style: italic;
+    }
+    .overflow-hidden{
+        position: relative;
+        overflow: hidden;
+    }
+    .content a{
+        color: #00a8e3;
+        text-decoration: none;
+    }
+    .content a:hover{
+        text-decoration: underline;
+    }
+    .scroll-to-link{
+        cursor: pointer;
+    }
+    p, .content ul, .content ol{
+        font-size: 14px;
+        color: #777A7A;
+        margin-bottom: 16px;
+        line-height: 1.6;
+        font-weight: 300;
+    }
+    .content h1:first-child{
+        font-size: 1.333em;
+        color: #034c8f;
+        padding-top: 2.5em;
+        text-transform: uppercase;
+        border-top: 1px solid rgba(255,255,255,0.3);
+        border-top-width: 0;
+        margin-top: 0;
+        margin-bottom: 1.3em;
+        clear: both;
+        font-family: 'Roboto Condensed', sans-serif;
+    }
+    code,
+    pre{
+        font-family: 'Source Code Pro', monospace;
+    }
+    .higlighted{
+        background-color: rgba(0,0,0,0.05);
+        padding: 3px;
+        border-radius: 3px;
+    }
+
+    /* LEFT-MENU
+    ----------------------------------------------------------------------------------------*/
+
+    .left-menu{
+        position: fixed;
+        z-index: 3;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 300px;
+        box-sizing: border-box;
+        background-color: #f4f5f8;
+        overflow-x: hidden;
+        font-size: 18px;
+    }
+    .content-logo{
+        position: relative;
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 1.425em 11.5%;
+        padding-right: 0;
+    }
+    .content-logo img{
+        display: inline-block;
+        max-width: 70%;
+        vertical-align: middle;
+    }
+    .content-logo span{
+        display: inline-block;
+        margin-left: 10px;
+        vertical-align: middle;
+        color: #323F4C;
+        font-size: 1.1em;
+        font-family: 'Roboto Condensed', sans-serif;
+    }
+    .content-menu{
+        margin: 2em auto 2em;
+        padding: 0 0 100px;
+        font-family: 'Roboto Condensed', sans-serif;
+    }
+    .content-menu ul{
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        line-height: 28px;
+    }
+    .content-menu ul li{
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        line-height: 42px;
+    }
+    .content-menu ul li:hover,
+    .content-menu ul li.active{
+        background-color:#DCDEE9;
+    }
+    .content-menu ul li:hover a,
+    .content-menu ul li.active a{
+        color: #00a8e3;
+    }
+    .content-menu ul li a{
+        padding: 0.5em 13.25% 0em;
+        color: #777A7A;
+        letter-spacing: 0.025em;
+        line-height: 1.2;
+        text-transform: capitalize;
+    }
+
+    /* CONTENT-PAGE
+    ----------------------------------------------------------------------------------------*/
+
+    .content-page {
+        position: relative;
+        box-sizing: border-box;
+        margin-left: 300px;
+        z-index: 2;
+        background-color: #fff;
+        min-height: 100%;
+        padding-bottom: 1px;
+    }
+    .content-code{
+        width: 50%;
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        background-color: #323f4c;
+        border-color: #323f4c;
+    }
+    .content {
+        position: relative;
+        z-index: 30;
+    }
+    .content h1,
+    .content h2,
+    .content h3,
+    .content h4,
+    .content h5,
+    .content h6,
+    .content p,
+    .content table,
+    .content aside,
+    .content dl {
+        margin-right: 50%;
+        padding: 0 28px;
+        box-sizing: border-box;
+        display: block;
+        max-width: 680px;
+    }
+    .content ul,
+    .content ol {
+        padding: 0 44px;
+    }
+    .content h2,
+    .content h3,
+    .content h4,
+    .content h5,
+    .content h6 {
+        font-size: 15px;
+        margin-top: 2.5em;
+        margin-bottom: 0.8em;
+        color: #034c8f;
+        text-transform: uppercase;
+        font-family: 'Roboto Condensed', sans-serif;
+    }
+    .content h2{
+        font-size: 1.333em;
+    }
+    .content h4{
+        color: #00a8e3;
+        margin-top: 0;
+        text-transform: none;
+        font-size: 14px;
+        margin-bottom: 0.2em;
+    }
+    .content-page .content p,
+    .content-page .content pre {
+        max-width: 680px;
+    }
+    .content pre,
+    .content blockquote {
+        background-color: #323f4c;
+        border-color: #323f4c;
+        color: #fff;
+        padding: 0 28px 2em;
+        margin: 0;
+        width: 50%;
+        float: right;
+        clear: right;
+        box-sizing: border-box;
+    }
+    .content pre code, .content pre {
+        font-size: 12px;
+        line-height: 1.5;
+    }
+    .content blockquote,
+    .content pre,
+    .content pre code{
+        padding-top: 0;
+        margin-top: 0;
+    }
+    .content pre code{
+        margin-top: -2em;
+    }
+    .content table {
+        font-size: 0.825em;
+        margin-bottom: 1.5em;
+        border-collapse: collapse;
+        border-spacing: 0;
+    }
+    .content table tr:last-child {
+        border-bottom: 1px solid #ccc;
+    }
+    .content table th {
+        font-size: 0.925em;
+        padding: 5px 18px 5px 0;
+        border-bottom: 1px solid #ccc;
+        vertical-align: bottom;
+        text-align: left;
+        line-height: 1.6;
+    }
+    .content table td {
+        padding: 5px 18px 5px 0;
+        text-align: left;
+        vertical-align: top;
+        line-height: 1.6;
+        font-family: 'Roboto', sans-serif;
+        font-weight: 300;
+        color: #777A7A;
+    }
+
+    /* ONE CONTENT COLUMN VERSION
+    ----------------------------------------------------------------------------------------*/
+
+    body.one-content-column-version .content h1,
+    body.one-content-column-version .content h2,
+    body.one-content-column-version .content h3,
+    body.one-content-column-version .content h4,
+    body.one-content-column-version .content h5,
+    body.one-content-column-version .content h6,
+    body.one-content-column-version .content p,
+    body.one-content-column-version .content table,
+    body.one-content-column-version .content ul,
+    body.one-content-column-version .content ol,
+    body.one-content-column-version .content aside,
+    body.one-content-column-version .content dl {
+        margin-right: 0;
+        max-width: 100%;
+    }
+    body.one-content-column-version .content-page .content p,
+    body.one-content-column-version .content-page .content pre {
+        max-width: 100%;
+    }
+    body.one-content-column-version .content-page {
+        background-color: #323f4c;
+    }
+    body.one-content-column-version .content h1:first-child,
+    body.one-content-column-version .content h2,
+    body.one-content-column-version .content h3,
+    body.one-content-column-version .content h4,
+    body.one-content-column-version .content h5,
+    body.one-content-column-version .content h6 {
+        color: #59C3C3;
+    }
+    body.one-content-column-version p {
+        color: #D6F0F0;
+    }
+    body.one-content-column-version .content table td {
+        color: #D6F0F0;
+    }
+    body.one-content-column-version .content thead {
+        color: #417179;
+    }
+
+    /* RESPONSIVE
+    ----------------------------------------------------------------------------------------*/
+
+    @media only screen and (max-width:980px){
+        .content h1, .content h2, .content h3, .content h4, .content h5, .content h6, .content p, .content table, .content ul, .content ol, .content aside, .content dl {
+            margin-right: 0;
+        }
+        .content-code{
+            display: none;
+        }
+        .content pre, .content blockquote {
+            margin: 20px 0;
+            padding: 28px;
+            display: block;
+            width: auto;
+            float: none;
+        }
+        .content pre code {
+            margin-top: 0;
+        }
+    }
+
+    @media only screen and (max-width:680px){
+        .left-menu{
+            position: relative;
+            width: auto;
+        }
+        .left-menu .content-menu{
+            display: none;
+        }
+        .content-page{
+            margin-left: 0;
+        }
+    }
+
+    /* BROWSER AND NON-SEMANTIC STYLING
+    ----------------------------------------------------------------------------------------*/
+
+    .cf:before, .cf:after { content: ""; display: block; }
+    .cf:after { clear: both; }
+    .ie6 .cf { zoom: 1 }
+    .hljs {
+        display:block;
+        overflow-x:auto;
+        padding:0.5em;
+        background:#323F4C;
+    }
+    .hljs {
+        color:#fff;
+    }
+    .hljs-strong,.hljs-emphasis {
+        color:#a8a8a2
+    }
+    .hljs-bullet,.hljs-quote,.hljs-link,.hljs-number,.hljs-regexp,.hljs-literal {
+        color:#6896ba
+    }
+    .hljs-code,.hljs-selector-class {
+        color:#a6e22e
+    }
+    .hljs-emphasis {
+        font-style:italic
+    }
+    .hljs-keyword,.hljs-selector-tag,.hljs-section,.hljs-attribute,.hljs-name,.hljs-variable {
+        color:#cb7832
+    }
+    .hljs-params {
+        color:#b9b9b9
+    }
+    .hljs-string {
+        color:#6a8759
+    }
+    .hljs-subst,.hljs-type,.hljs-built_in,.hljs-builtin-name,.hljs-symbol,.hljs-selector-id,.hljs-selector-attr,.hljs-selector-pseudo,.hljs-template-tag,.hljs-template-variable,.hljs-addition {
+        color:#e0c46c
+    }
+    .hljs-comment,.hljs-deletion,.hljs-meta {
+        color:#7f7f7f
+    }
+
+    </style>
+
+    <script src="API%20-%20Documentation_files/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+    <script src="API%20-%20Documentation_files/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+<style data-id="immersive-translate-input-injected-css">.immersive-translate-input {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 2147483647;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.immersive-translate-attach-loading::after {
+  content: " ";
+
+  --loading-color: #f78fb6;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: block;
+  margin: 12px auto;
+  position: relative;
+  color: white;
+  left: -100px;
+  box-sizing: border-box;
+  animation: immersiveTranslateShadowRolling 1.5s linear infinite;
+
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-2000%, -50%);
+  z-index: 100;
+}
+
+.immersive-translate-loading-spinner {
+  vertical-align: middle !important;
+  width: 10px !important;
+  height: 10px !important;
+  display: inline-block !important;
+  margin: 0 4px !important;
+  border: 2px rgba(221, 244, 255, 0.6) solid !important;
+  border-top: 2px rgba(0, 0, 0, 0.375) solid !important;
+  border-left: 2px rgba(0, 0, 0, 0.375) solid !important;
+  border-radius: 50% !important;
+  padding: 0 !important;
+  -webkit-animation: immersive-translate-loading-animation 0.6s infinite linear !important;
+  animation: immersive-translate-loading-animation 0.6s infinite linear !important;
+}
+
+@-webkit-keyframes immersive-translate-loading-animation {
+  from {
+    -webkit-transform: rotate(0deg);
+  }
+
+  to {
+    -webkit-transform: rotate(359deg);
+  }
+}
+
+@keyframes immersive-translate-loading-animation {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(359deg);
+  }
+}
+
+
+.immersive-translate-input-loading {
+  --loading-color: #f78fb6;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: block;
+  margin: 12px auto;
+  position: relative;
+  color: white;
+  left: -100px;
+  box-sizing: border-box;
+  animation: immersiveTranslateShadowRolling 1.5s linear infinite;
+}
+
+@keyframes immersiveTranslateShadowRolling {
+  0% {
+    box-shadow: 0px 0 rgba(255, 255, 255, 0), 0px 0 rgba(255, 255, 255, 0), 0px 0 rgba(255, 255, 255, 0), 0px 0 rgba(255, 255, 255, 0);
+  }
+
+  12% {
+    box-shadow: 100px 0 var(--loading-color), 0px 0 rgba(255, 255, 255, 0), 0px 0 rgba(255, 255, 255, 0), 0px 0 rgba(255, 255, 255, 0);
+  }
+
+  25% {
+    box-shadow: 110px 0 var(--loading-color), 100px 0 var(--loading-color), 0px 0 rgba(255, 255, 255, 0), 0px 0 rgba(255, 255, 255, 0);
+  }
+
+  36% {
+    box-shadow: 120px 0 var(--loading-color), 110px 0 var(--loading-color), 100px 0 var(--loading-color), 0px 0 rgba(255, 255, 255, 0);
+  }
+
+  50% {
+    box-shadow: 130px 0 var(--loading-color), 120px 0 var(--loading-color), 110px 0 var(--loading-color), 100px 0 var(--loading-color);
+  }
+
+  62% {
+    box-shadow: 200px 0 rgba(255, 255, 255, 0), 130px 0 var(--loading-color), 120px 0 var(--loading-color), 110px 0 var(--loading-color);
+  }
+
+  75% {
+    box-shadow: 200px 0 rgba(255, 255, 255, 0), 200px 0 rgba(255, 255, 255, 0), 130px 0 var(--loading-color), 120px 0 var(--loading-color);
+  }
+
+  87% {
+    box-shadow: 200px 0 rgba(255, 255, 255, 0), 200px 0 rgba(255, 255, 255, 0), 200px 0 rgba(255, 255, 255, 0), 130px 0 var(--loading-color);
+  }
+
+  100% {
+    box-shadow: 200px 0 rgba(255, 255, 255, 0), 200px 0 rgba(255, 255, 255, 0), 200px 0 rgba(255, 255, 255, 0), 200px 0 rgba(255, 255, 255, 0);
+  }
+}
+
+
+.immersive-translate-search-recomend {
+  border: 1px solid #dadce0;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  position: relative;
+  font-size: 16px;
+}
+
+.immersive-translate-search-enhancement-en-title {
+  color: #4d5156;
+}
+
+/* dark */
+@media (prefers-color-scheme: dark) {
+  .immersive-translate-search-recomend {
+    border: 1px solid #3c4043;
+  }
+
+  .immersive-translate-close-action svg {
+    fill: #bdc1c6;
+  }
+
+  .immersive-translate-search-enhancement-en-title {
+    color: #bdc1c6;
+  }
+}
+
+
+.immersive-translate-search-settings {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  cursor: pointer;
+}
+
+.immersive-translate-search-recomend::before {
+  /* content: " "; */
+  /* width: 20px; */
+  /* height: 20px; */
+  /* top: 16px; */
+  /* position: absolute; */
+  /* background: center / contain url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAxlBMVEUAAADpTInqTIjpSofnSIfqS4nfS4XqS4nqTIjsTYnrTInqTIroS4jvQIDqTIn////+/v7rSYjpTIn8/v7uaZzrTIr9/f3wfansWJL88/b85e73qc39+/v3xNnylrvrVI/98fb62Obva5/8+fr76vH4y9zpSIj74e353Oj1ocTzm77xhK/veKbtYpjsXJTqU47oTInxjrXyh7L99fj40eH2ttH1udD3sc31ssz1rMnykLXucqPtbqD85e/1xdn2u9DzqcXrUY6FaJb8AAAADnRSTlMA34BgIM8Q37/fz7+/EGOHcVQAAAGhSURBVDjLhZPncuowEEZFTW7bXVU7xsYYTO/p7bb3f6lICIOYJOT4h7/VnFmvrBFjrF3/CR/SajBHswafctG0Qg3O8O0Xa8BZ6uw7eLjqr30SofCDVSkemMinfL1ecy20r5ygR5zz3ArcAqJExPTPKhDENEmS30Q9+yo4lEQkqVTiIEAHCT10xWERRdH0Bq0aCOPZNDV3s0xaYce1lHEoDHU8wEh3qRJypNcTAeKUIjgKMeGLDoRCLVLTVf+Ownj8Kk6H9HM6QXPgYjQSB0F00EJEu10ILQrs/QeP77BSSr0MzLOyuJJQbnUoOOIUI/A8EeJk9E4YUHUWiRyTVKGgQUB8/3e/NpdGlfI+FMQyWsCBWyz4A/ZyHXyiiz0Ne5aGZssoxRmcChw8/EFKQ5JwwkUo3FRT5yXS7q+Y/rHDZmFktzpGMvO+5QofA4FPpEmGw+EWRCFvnaof7Zhe8NuYSLR0xErKLThUSs8gnODh87ssy6438yzbLzxl012HS19vfCf3CNhnbWOL1eEsDda+gDPUvri8tSZzNFrwIZf1NmNvqC1I/t8j7nYAAAAASUVORK5CYII='); */
+}
+
+.immersive-translate-search-title {}
+
+.immersive-translate-search-title-wrapper {}
+
+.immersive-translate-search-time {
+  font-size: 12px;
+  margin: 4px 0 24px;
+  color: #70757a;
+}
+
+.immersive-translate-expand-items {
+  display: none;
+}
+
+.immersive-translate-search-more {
+  margin-top: 16px;
+  font-size: 14px;
+}
+
+.immersive-translate-modal {
+  display: none;
+  position: fixed;
+  z-index: 2147483647;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgb(0, 0, 0);
+  background-color: rgba(0, 0, 0, 0.4);
+  font-size: 15px;
+}
+
+.immersive-translate-modal-content {
+  background-color: #fefefe;
+  margin: 10% auto;
+  padding: 40px 24px 24px;
+  border: 1px solid #888;
+  border-radius: 10px;
+  width: 80%;
+  max-width: 270px;
+  font-family: system-ui, -apple-system, "Segoe UI", "Roboto", "Ubuntu",
+    "Cantarell", "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol", "Noto Color Emoji";
+  position: relative
+}
+
+.immersive-translate-modal .immersive-translate-modal-content-in-input {
+  max-width: 500px;
+}
+.immersive-translate-modal-content-in-input .immersive-translate-modal-body {
+  text-align: left;
+  max-height: unset;
+}
+
+.immersive-translate-modal-title {
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: #333333;
+}
+
+.immersive-translate-modal-body {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 400;
+  color: #333333;
+  word-break: break-all;
+  margin-top: 24px;
+}
+
+@media screen and (max-width: 768px) {
+  .immersive-translate-modal-body {
+    max-height: 250px;
+    overflow-y: auto;
+  }
+}
+
+.immersive-translate-close {
+  color: #666666;
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.immersive-translate-close:hover,
+.immersive-translate-close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.immersive-translate-modal-footer {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 24px;
+}
+
+.immersive-translate-btn {
+  width: fit-content;
+  color: #fff;
+  background-color: #ea4c89;
+  border: none;
+  font-size: 16px;
+  margin: 0 8px;
+  padding: 9px 30px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.immersive-translate-btn:hover {
+  background-color: #f082ac;
+}
+
+.immersive-translate-cancel-btn {
+  /* gray color */
+  background-color: rgb(89, 107, 120);
+}
+
+
+.immersive-translate-cancel-btn:hover {
+  background-color: hsl(205, 20%, 32%);
+}
+
+.immersive-translate-action-btn {
+  background-color: transparent;
+  color: #EA4C89;
+  border: 1px solid #EA4C89
+}
+
+.immersive-translate-btn svg {
+  margin-right: 5px;
+}
+
+.immersive-translate-link {
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-drag: none;
+  text-decoration: none;
+  color: #007bff;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, .1);
+}
+
+.immersive-translate-primary-link {
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-drag: none;
+  text-decoration: none;
+  color: #ea4c89;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, .1);
+}
+
+.immersive-translate-modal input[type="radio"] {
+  margin: 0 6px;
+  cursor: pointer;
+}
+
+.immersive-translate-modal label {
+  cursor: pointer;
+}
+
+.immersive-translate-close-action {
+  position: absolute;
+  top: 2px;
+  right: 0px;
+  cursor: pointer;
+}</style></head>
+
+<body>
+    <div class="left-menu">
+        <div class="content-logo">
+            <span>The <i>O</i>-GlcNAc Database<br>API Documentation</span>
+        </div>
+        <div class="content-menu">
+            <ul>
+                <li class="scroll-to-link active" data-target="get-started">
+                    <a>GET STARTED</a>
+                </li>
+                <li class="scroll-to-link" data-target="get-characters">
+                    <a>Get Proteins</a>
+                </li>
+                <li class="scroll-to-link" data-target="errors">
+                    <a>Errors</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="content-page">
+        <div class="content-code"></div>
+        <div class="content">
+            <div class="overflow-hidden content-section" id="content-get-started">
+                <h1 id="get-started">Get started</h1>
+                <pre>                    API Endpoint
+
+                    https://oglcnac.mcw.edu/api/v1/
+                </pre>
+                <p>
+                    The <i>O</i>-GlcNAc Database REST API provides programmatic access to read protein <i>O</i>-GlcNAcylation data.
+                </p>
+                <p>
+                    This API is public but limits the number of requests to 60/m. Please download datasets in JSON format <a href="https://www.oglcnac.mcw.edu/download">here</a> to overcome those limitations.
+                </p>
+                <p>
+                    This is a Beta version. If you wish new API endpoints or filters to be added, please email to <a href="mailto:admin@oglcnac.com" target="_blank">admin@oglcnac.com</a>.
+                </p>
+            </div>
+            <div class="overflow-hidden content-section" id="content-get-proteins">
+                <h2 id="get-proteins">get proteins</h2>
+                <pre><code class="bash hljs">
+                    Proteins API Endpoint
+
+                    https://oglcnac.mcw.edu/api/v1/proteins/
+
+                </code></pre>
+                <pre><code class="bash hljs">
+                    <span class="hljs-comment"># Here is a curl example</span>
+                    curl \
+                    https://oglcnac.mcw.edu/api/v1/proteins/?query_protein=P08047
+
+                </code></pre>
+                <p>
+                    To get proteins you need to make a GET call to the following url :<br>
+                    <code class="higlighted">https://oglcnac.mcw.edu/api/v1/proteins/</code>
+                </p>
+                <br>
+                <pre><code class="json hljs">
+                    Result example :
+
+                    {
+                        <span class="hljs-attr">"_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                        <span class="hljs-attr">"PTM"</span>: {
+                            <span class="hljs-attr">"INIT_MET"</span>: [
+                                {
+                                    <span class="hljs-attr">"M1"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"Removed"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"M"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"M"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"1"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ]
+                                    }
+                                }
+                            ],
+                            <span class="hljs-attr">"MOD_RES"</span>: [
+                                {
+                                    <span class="hljs-attr">"S2"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"phosphorylation"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"S"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"S"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"2"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"S7"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"phosphorylation"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"S"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"S"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"7"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"S59"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"phosphorylation"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"S"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"S"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"59"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"S101"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"phosphorylation"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"S"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"S"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"101"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"T278"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"phosphorylation"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"T"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"T"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"278"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"T453"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"phosphorylation"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"T"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"T"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"453"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"S612"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"phosphorylation"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"S"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"S"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"612"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"T640"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"phosphorylation"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"T"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"T"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"640"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"S641"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"phosphorylation"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"S"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"S"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"641"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"T651"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"phosphorylation"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"T"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"T"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"651"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"T668"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"phosphorylation"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"T"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"T"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"668"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"S670"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"phosphorylation"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"S"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"S"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"670"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"T681"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"phosphorylation"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"T"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"T"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"681"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"S698"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"phosphorylation"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"S"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"S"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"698"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"S702"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"phosphorylation"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"S"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"S"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"702"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"T739"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"phosphorylation"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"T"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"T"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"739"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ]
+                                    }
+                                }
+                            ],
+                            <span class="hljs-attr">"CARBOHYD"</span>: [
+                                {
+                                    <span class="hljs-attr">"S491"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"oglcnacylation"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"S"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"S"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"491"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"S612"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"oglcnacylation"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"S"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"S"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"612"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"T640"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"oglcnacylation"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"T"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"T"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"640"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"S641"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"oglcnacylation"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"S"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"S"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"641"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"S698"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"oglcnacylation"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"S"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"S"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"698"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"S702"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"oglcnacylation"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"S"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_free"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"monoisotopic_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"average_mass_ptm"</span>: <span class="hljs-literal">null</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"S"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-string">""</span>,
+                                            <span class="hljs-string">"702"</span>,
+                                            <span class="hljs-string">""</span>
+                                        ]
+                                    }
+                                }
+                            ]
+                        },
+                        <span class="hljs-attr">"code"</span>: <span class="hljs-number">1</span>,
+                        <span class="hljs-attr">"desactivated_sites"</span>: [],
+                        <span class="hljs-attr">"gene_names"</span>: [
+                            <span class="hljs-string">"SP1"</span>,
+                            <span class="hljs-string">"TSFP1"</span>
+                        ],
+                        <span class="hljs-attr">"isoform_ids"</span>: [
+                            <span class="hljs-string">"P08047-0"</span>,
+                            <span class="hljs-string">"P08047-2"</span>,
+                            <span class="hljs-string">"P08047-3"</span>
+                        ],
+                        <span class="hljs-attr">"length"</span>: <span class="hljs-number">785</span>,
+                        <span class="hljs-attr">"length_pmids"</span>: <span class="hljs-number">35</span>,
+                        <span class="hljs-attr">"lineage"</span>: [
+                            <span class="hljs-string">"Eukaryota"</span>,
+                            <span class="hljs-string">"Metazoa"</span>,
+                            <span class="hljs-string">"Chordata"</span>,
+                            <span class="hljs-string">"Craniata"</span>,
+                            <span class="hljs-string">"Vertebrata"</span>,
+                            <span class="hljs-string">"Euteleostomi"</span>,
+                            <span class="hljs-string">"Mammalia"</span>,
+                            <span class="hljs-string">"Eutheria"</span>,
+                            <span class="hljs-string">"Euarchontoglires"</span>,
+                            <span class="hljs-string">"Primates"</span>,
+                            <span class="hljs-string">"Haplorrhini"</span>,
+                            <span class="hljs-string">"Catarrhini"</span>,
+                            <span class="hljs-string">"Hominidae"</span>,
+                            <span class="hljs-string">"Homo"</span>
+                        ],
+                        <span class="hljs-attr">"main_id"</span>: <span class="hljs-string">"P08047"</span>,
+                        <span class="hljs-attr">"main_name"</span>: <span class="hljs-string">"SP1"</span>,
+                        <span class="hljs-attr">"mass"</span>: <span class="hljs-number">80693</span>,
+                        <span class="hljs-attr">"organism_name"</span>: <span class="hljs-string">"HUMAN"</span>,
+                        <span class="hljs-attr">"organism_sci"</span>: <span class="hljs-string">"Homo sapiens"</span>,
+                        <span class="hljs-attr">"pmid_list"</span>: [
+                            <span class="hljs-string">"20699577"</span>,
+                            <span class="hljs-string">"17049555"</span>,
+                            <span class="hljs-string">"9452489"</span>,
+                            <span class="hljs-string">"28510447"</span>,
+                            <span class="hljs-string">"19302979"</span>,
+                            <span class="hljs-string">"9079710"</span>,
+                            <span class="hljs-string">"16408927"</span>,
+                            <span class="hljs-string">"24129563"</span>,
+                            <span class="hljs-string">"9111324"</span>,
+                            <span class="hljs-string">"16027160"</span>,
+                            <span class="hljs-string">"27655845"</span>,
+                            <span class="hljs-string">"17614351"</span>,
+                            <span class="hljs-string">"24995865"</span>,
+                            <span class="hljs-string">"16332679"</span>,
+                            <span class="hljs-string">"31847126"</span>,
+                            <span class="hljs-string">"24553187"</span>,
+                            <span class="hljs-string">"21740066"</span>,
+                            <span class="hljs-string">"26499076"</span>,
+                            <span class="hljs-string">"23013401"</span>,
+                            <span class="hljs-string">"29351928"</span>,
+                            <span class="hljs-string">"31866443"</span>,
+                            <span class="hljs-string">"28054006"</span>,
+                            <span class="hljs-string">"11371615"</span>,
+                            <span class="hljs-string">"24802710"</span>,
+                            <span class="hljs-string">"25352121"</span>,
+                            <span class="hljs-string">"21105874"</span>,
+                            <span class="hljs-string">"20305658"</span>,
+                            <span class="hljs-string">"30397120"</span>,
+                            <span class="hljs-string">"21795679"</span>,
+                            <span class="hljs-string">"33214551"</span>,
+                            <span class="hljs-string">"33686291"</span>,
+                            <span class="hljs-string">"19193796"</span>,
+                            <span class="hljs-string">"20657584"</span>,
+                            <span class="hljs-string">"9343410"</span>,
+                            <span class="hljs-string">"23301498"</span>
+                        ],
+                        <span class="hljs-attr">"protein_altFullName"</span>: [],
+                        <span class="hljs-attr">"protein_altShortName"</span>: [],
+                        <span class="hljs-attr">"protein_recFullName"</span>: [
+                            <span class="hljs-string">"Transcription factor Sp1"</span>
+                        ],
+                        <span class="hljs-attr">"protein_recShortName"</span>: [],
+                        <span class="hljs-attr">"reload"</span>: <span class="hljs-literal">false</span>,
+                        <span class="hljs-attr">"score"</span>: <span class="hljs-number">100.0</span>,
+                        <span class="hljs-attr">"sequence"</span>: <span class="hljs-string">"MSDQDHSMDEMTAVVKIEKGVGGNNGGNGNGGGAFSQARSSSTGSSSSTGGGGQESQPSPLALLAATCSRIESPNENSNNSQGPSQSGGTGELDLTATQLSQGANGWQIISSSSGATPTSKEQSGSSTNGSNGSESSKNRTVSGGQYVVAAAPNLQNQQVLTGLPGVMPNIQYQVIPQFQTVDGQQLQFAATGAQVQQDGSGQIQIIPGANQQIITNRGSGGNIIAAMPNLLQQAVPLQGLANNVLSGQTQYVTNVPVALNGNITLLPVNSVSAATLTPSSQAVTISSSGSQESGSQPVTSGTTISSASLVSSQASSSSFFTNANSYSTTTTTSNMGIMNFTTSGSSGTNSQGQTPQRVSGLQGSDALNIQQNQTSGGSLQAGQQKEGEQNQQTQQQQILIQPQLVQGGQALQALQAAPLSGQTFTTQAISQETLQNLQLQAVPNSGPIIIRTPTVGPNGQVSWQTLQLQNLQVQNPQAQTITLAPMQGVSLGQTSSSNTTLTPIASAASIPAGTVTVNAAQLSSMPGLQTINLSALGTSGIQVHPIQGLPLAIANAPGDHGAQLGLHGAGGDGIHDDTAGGEEGENSPDAQPQAGRRTRREACTCPYCKDSEGRGSGDPGKKKQHICHIQGCGKVYGKTSHLRAHLRWHTGERPFMCTWSYCGKRFTRSDELQRHKRTHTGEKKFACPECPKRFMRSDHLSKHIKTHQNKKGGPGVALSVGTLPLDSGAGSEGSGTATPSALITTNMVAMEAICPEGIARLANSGINVMQVADLQSINISGNGF"</span>,
+                        <span class="hljs-attr">"sites"</span>: [
+                            [
+                                <span class="hljs-string">"S120"</span>,
+                                <span class="hljs-string">"P08047-0"</span>
+                            ],
+                            [
+                                <span class="hljs-string">"S126"</span>,
+                                <span class="hljs-string">"P08047-0"</span>
+                            ],
+                            [
+                                <span class="hljs-string">"T128"</span>,
+                                <span class="hljs-string">"P08047-0"</span>
+                            ],
+                            [
+                                <span class="hljs-string">"S134"</span>,
+                                <span class="hljs-string">"P08047-0"</span>
+                            ],
+                            [
+                                <span class="hljs-string">"T254"</span>,
+                                <span class="hljs-string">"P08047-0"</span>
+                            ],
+                            [
+                                <span class="hljs-string">"T265"</span>,
+                                <span class="hljs-string">"P08047-0"</span>
+                            ],
+                            [
+                                <span class="hljs-string">"S271"</span>,
+                                <span class="hljs-string">"P08047-0"</span>
+                            ],
+                            [
+                                <span class="hljs-string">"S273"</span>,
+                                <span class="hljs-string">"P08047-0"</span>
+                            ],
+                            [
+                                <span class="hljs-string">"T276"</span>,
+                                <span class="hljs-string">"P08047-0"</span>
+                            ],
+                            [
+                                <span class="hljs-string">"S312"</span>,
+                                <span class="hljs-string">"P08047-0"</span>
+                            ],
+                            [
+                                <span class="hljs-string">"T394"</span>,
+                                <span class="hljs-string">"P08047-0"</span>
+                            ],
+                            [
+                                <span class="hljs-string">"S421"</span>,
+                                <span class="hljs-string">"P08047-0"</span>
+                            ],
+                            [
+                                <span class="hljs-string">"T424"</span>,
+                                <span class="hljs-string">"P08047-0"</span>
+                            ],
+                            [
+                                <span class="hljs-string">"S446"</span>,
+                                <span class="hljs-string">"P08047-0"</span>
+                            ],
+                            [
+                                <span class="hljs-string">"T453"</span>,
+                                <span class="hljs-string">"P08047-0"</span>
+                            ],
+                            [
+                                <span class="hljs-string">"T455"</span>,
+                                <span class="hljs-string">"P08047-0"</span>
+                            ],
+                            [
+                                <span class="hljs-string">"S491"</span>,
+                                <span class="hljs-string">"P08047-0"</span>
+                            ],
+                            [
+                                <span class="hljs-string">"S507"</span>,
+                                <span class="hljs-string">"P08047-0"</span>
+                            ],
+                            [
+                                <span class="hljs-string">"S510"</span>,
+                                <span class="hljs-string">"P08047-0"</span>
+                            ],
+                            [
+                                <span class="hljs-string">"T517"</span>,
+                                <span class="hljs-string">"P08047-0"</span>
+                            ],
+                            [
+                                <span class="hljs-string">"S612"</span>,
+                                <span class="hljs-string">"P08047-0"</span>
+                            ],
+                            [
+                                <span class="hljs-string">"T640"</span>,
+                                <span class="hljs-string">"P08047-0"</span>
+                            ],
+                            [
+                                <span class="hljs-string">"S641"</span>,
+                                <span class="hljs-string">"P08047-0"</span>
+                            ],
+                            [
+                                <span class="hljs-string">"S698"</span>,
+                                <span class="hljs-string">"P08047-0"</span>
+                            ],
+                            [
+                                <span class="hljs-string">"S702"</span>,
+                                <span class="hljs-string">"P08047-0"</span>
+                            ]
+                        ],
+                        <span class="hljs-attr">"species_links"</span>: [
+                            [
+                                <span class="hljs-string">"P08047-0"</span>,
+                                <span class="hljs-string">"SP1_HUMAN"</span>
+                            ],
+                            [
+                                <span class="hljs-string">"O89090-0"</span>,
+                                <span class="hljs-string">"SP1_MOUSE"</span>
+                            ],
+                            [
+                                <span class="hljs-string">"Q01714-0"</span>,
+                                <span class="hljs-string">"SP1_RAT"</span>
+                            ]
+                        ],
+                        <span class="hljs-attr">"status"</span>: <span class="hljs-literal">true</span>,
+                        <span class="hljs-attr">"ts"</span>: <span class="hljs-number">0</span>,
+                        <span class="hljs-attr">"uniprot_name"</span>: <span class="hljs-string">"SP1_HUMAN"</span>,
+                        <span class="hljs-attr">"untested_sites"</span>: [],
+                        <span class="hljs-attr">"validated_sites"</span>: [
+                            {
+                                <span class="hljs-attr">"position"</span>: <span class="hljs-string">"640"</span>,
+                                <span class="hljs-attr">"status"</span>: <span class="hljs-literal">true</span>,
+                                <span class="hljs-attr">"result"</span>: [
+                                    <span class="hljs-string">"T640"</span>,
+                                    <span class="hljs-string">"P08047-0"</span>
+                                ],
+                                <span class="hljs-attr">"submitted"</span>: [
+                                    [
+                                        <span class="hljs-string">"T640"</span>
+                                    ],
+                                    [
+                                        <span class="hljs-literal">true</span>,
+                                        <span class="hljs-literal">false</span>,
+                                        <span class="hljs-literal">false</span>
+                                    ],
+                                    [
+                                        <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-string">"P08047-2"</span>,
+                                        <span class="hljs-string">"P08047-3"</span>
+                                    ]
+                                ],
+                                <span class="hljs-attr">"comment"</span>: <span class="hljs-literal">null</span>,
+                                <span class="hljs-attr">"alternative"</span>: []
+                            },
+                            {
+                                <span class="hljs-attr">"position"</span>: <span class="hljs-string">"446"</span>,
+                                <span class="hljs-attr">"status"</span>: <span class="hljs-literal">true</span>,
+                                <span class="hljs-attr">"result"</span>: [
+                                    <span class="hljs-string">"S446"</span>,
+                                    <span class="hljs-string">"P08047-0"</span>
+                                ],
+                                <span class="hljs-attr">"submitted"</span>: [
+                                    [
+                                        <span class="hljs-string">"S446"</span>
+                                    ],
+                                    [
+                                        <span class="hljs-literal">true</span>,
+                                        <span class="hljs-literal">false</span>,
+                                        <span class="hljs-literal">false</span>
+                                    ],
+                                    [
+                                        <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-string">"P08047-2"</span>,
+                                        <span class="hljs-string">"P08047-3"</span>
+                                    ]
+                                ],
+                                <span class="hljs-attr">"comment"</span>: <span class="hljs-literal">null</span>,
+                                <span class="hljs-attr">"alternative"</span>: []
+                            },
+                            {
+                                <span class="hljs-attr">"position"</span>: <span class="hljs-string">"702"</span>,
+                                <span class="hljs-attr">"status"</span>: <span class="hljs-literal">true</span>,
+                                <span class="hljs-attr">"result"</span>: [
+                                    <span class="hljs-string">"S702"</span>,
+                                    <span class="hljs-string">"P08047-0"</span>
+                                ],
+                                <span class="hljs-attr">"submitted"</span>: [
+                                    [
+                                        <span class="hljs-string">"S702"</span>
+                                    ],
+                                    [
+                                        <span class="hljs-literal">true</span>,
+                                        <span class="hljs-literal">false</span>,
+                                        <span class="hljs-literal">false</span>
+                                    ],
+                                    [
+                                        <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-string">"P08047-2"</span>,
+                                        <span class="hljs-string">"P08047-3"</span>
+                                    ]
+                                ],
+                                <span class="hljs-attr">"comment"</span>: <span class="hljs-literal">null</span>,
+                                <span class="hljs-attr">"alternative"</span>: []
+                            },
+                            {
+                                <span class="hljs-attr">"position"</span>: <span class="hljs-string">"641"</span>,
+                                <span class="hljs-attr">"status"</span>: <span class="hljs-literal">true</span>,
+                                <span class="hljs-attr">"result"</span>: [
+                                    <span class="hljs-string">"S641"</span>,
+                                    <span class="hljs-string">"P08047-0"</span>
+                                ],
+                                <span class="hljs-attr">"submitted"</span>: [
+                                    [
+                                        <span class="hljs-string">"S641"</span>
+                                    ],
+                                    [
+                                        <span class="hljs-literal">true</span>,
+                                        <span class="hljs-literal">false</span>,
+                                        <span class="hljs-literal">false</span>
+                                    ],
+                                    [
+                                        <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-string">"P08047-2"</span>,
+                                        <span class="hljs-string">"P08047-3"</span>
+                                    ]
+                                ],
+                                <span class="hljs-attr">"comment"</span>: <span class="hljs-literal">null</span>,
+                                <span class="hljs-attr">"alternative"</span>: []
+                            },
+                            {
+                                <span class="hljs-attr">"position"</span>: <span class="hljs-string">"128"</span>,
+                                <span class="hljs-attr">"status"</span>: <span class="hljs-literal">true</span>,
+                                <span class="hljs-attr">"result"</span>: [
+                                    <span class="hljs-string">"T128"</span>,
+                                    <span class="hljs-string">"P08047-0"</span>
+                                ],
+                                <span class="hljs-attr">"submitted"</span>: [
+                                    [
+                                        <span class="hljs-string">"T128"</span>
+                                    ],
+                                    [
+                                        <span class="hljs-literal">true</span>,
+                                        <span class="hljs-literal">false</span>,
+                                        <span class="hljs-literal">false</span>
+                                    ],
+                                    [
+                                        <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-string">"P08047-2"</span>,
+                                        <span class="hljs-string">"P08047-3"</span>
+                                    ]
+                                ],
+                                <span class="hljs-attr">"comment"</span>: <span class="hljs-literal">null</span>,
+                                <span class="hljs-attr">"alternative"</span>: []
+                            },
+                            {
+                                <span class="hljs-attr">"position"</span>: <span class="hljs-string">"421"</span>,
+                                <span class="hljs-attr">"status"</span>: <span class="hljs-literal">true</span>,
+                                <span class="hljs-attr">"result"</span>: [
+                                    <span class="hljs-string">"S421"</span>,
+                                    <span class="hljs-string">"P08047-0"</span>
+                                ],
+                                <span class="hljs-attr">"submitted"</span>: [
+                                    [
+                                        <span class="hljs-string">"S421"</span>
+                                    ],
+                                    [
+                                        <span class="hljs-literal">true</span>,
+                                        <span class="hljs-literal">false</span>,
+                                        <span class="hljs-literal">false</span>
+                                    ],
+                                    [
+                                        <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-string">"P08047-2"</span>,
+                                        <span class="hljs-string">"P08047-3"</span>
+                                    ]
+                                ],
+                                <span class="hljs-attr">"comment"</span>: <span class="hljs-literal">null</span>,
+                                <span class="hljs-attr">"alternative"</span>: []
+                            },
+                            {
+                                <span class="hljs-attr">"position"</span>: <span class="hljs-string">"698"</span>,
+                                <span class="hljs-attr">"status"</span>: <span class="hljs-literal">true</span>,
+                                <span class="hljs-attr">"result"</span>: [
+                                    <span class="hljs-string">"S698"</span>,
+                                    <span class="hljs-string">"P08047-0"</span>
+                                ],
+                                <span class="hljs-attr">"submitted"</span>: [
+                                    [
+                                        <span class="hljs-string">"S698"</span>
+                                    ],
+                                    [
+                                        <span class="hljs-literal">true</span>,
+                                        <span class="hljs-literal">false</span>,
+                                        <span class="hljs-literal">false</span>
+                                    ],
+                                    [
+                                        <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-string">"P08047-2"</span>,
+                                        <span class="hljs-string">"P08047-3"</span>
+                                    ]
+                                ],
+                                <span class="hljs-attr">"comment"</span>: <span class="hljs-literal">null</span>,
+                                <span class="hljs-attr">"alternative"</span>: []
+                            },
+                            {
+                                <span class="hljs-attr">"position"</span>: <span class="hljs-string">"276"</span>,
+                                <span class="hljs-attr">"status"</span>: <span class="hljs-literal">true</span>,
+                                <span class="hljs-attr">"result"</span>: [
+                                    <span class="hljs-string">"T276"</span>,
+                                    <span class="hljs-string">"P08047-0"</span>
+                                ],
+                                <span class="hljs-attr">"submitted"</span>: [
+                                    [
+                                        <span class="hljs-string">"T276"</span>
+                                    ],
+                                    [
+                                        <span class="hljs-literal">true</span>,
+                                        <span class="hljs-literal">false</span>,
+                                        <span class="hljs-literal">false</span>
+                                    ],
+                                    [
+                                        <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-string">"P08047-2"</span>,
+                                        <span class="hljs-string">"P08047-3"</span>
+                                    ]
+                                ],
+                                <span class="hljs-attr">"comment"</span>: <span class="hljs-literal">null</span>,
+                                <span class="hljs-attr">"alternative"</span>: []
+                            },
+                            {
+                                <span class="hljs-attr">"position"</span>: <span class="hljs-string">"134"</span>,
+                                <span class="hljs-attr">"status"</span>: <span class="hljs-literal">true</span>,
+                                <span class="hljs-attr">"result"</span>: [
+                                    <span class="hljs-string">"S134"</span>,
+                                    <span class="hljs-string">"P08047-0"</span>
+                                ],
+                                <span class="hljs-attr">"submitted"</span>: [
+                                    [
+                                        <span class="hljs-string">"S134"</span>
+                                    ],
+                                    [
+                                        <span class="hljs-literal">true</span>,
+                                        <span class="hljs-literal">false</span>,
+                                        <span class="hljs-literal">false</span>
+                                    ],
+                                    [
+                                        <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-string">"P08047-2"</span>,
+                                        <span class="hljs-string">"P08047-3"</span>
+                                    ]
+                                ],
+                                <span class="hljs-attr">"comment"</span>: <span class="hljs-literal">null</span>,
+                                <span class="hljs-attr">"alternative"</span>: []
+                            },
+                            {
+                                <span class="hljs-attr">"position"</span>: <span class="hljs-string">"120"</span>,
+                                <span class="hljs-attr">"status"</span>: <span class="hljs-literal">true</span>,
+                                <span class="hljs-attr">"result"</span>: [
+                                    <span class="hljs-string">"S120"</span>,
+                                    <span class="hljs-string">"P08047-0"</span>
+                                ],
+                                <span class="hljs-attr">"submitted"</span>: [
+                                    [
+                                        <span class="hljs-string">"S120"</span>
+                                    ],
+                                    [
+                                        <span class="hljs-literal">true</span>,
+                                        <span class="hljs-literal">false</span>,
+                                        <span class="hljs-literal">false</span>
+                                    ],
+                                    [
+                                        <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-string">"P08047-2"</span>,
+                                        <span class="hljs-string">"P08047-3"</span>
+                                    ]
+                                ],
+                                <span class="hljs-attr">"comment"</span>: <span class="hljs-literal">null</span>,
+                                <span class="hljs-attr">"alternative"</span>: []
+                            },
+                            {
+                                <span class="hljs-attr">"position"</span>: <span class="hljs-string">"424"</span>,
+                                <span class="hljs-attr">"status"</span>: <span class="hljs-literal">true</span>,
+                                <span class="hljs-attr">"result"</span>: [
+                                    <span class="hljs-string">"T424"</span>,
+                                    <span class="hljs-string">"P08047-0"</span>
+                                ],
+                                <span class="hljs-attr">"submitted"</span>: [
+                                    [
+                                        <span class="hljs-string">"T424"</span>
+                                    ],
+                                    [
+                                        <span class="hljs-literal">true</span>,
+                                        <span class="hljs-literal">false</span>,
+                                        <span class="hljs-literal">false</span>
+                                    ],
+                                    [
+                                        <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-string">"P08047-2"</span>,
+                                        <span class="hljs-string">"P08047-3"</span>
+                                    ]
+                                ],
+                                <span class="hljs-attr">"comment"</span>: <span class="hljs-literal">null</span>,
+                                <span class="hljs-attr">"alternative"</span>: []
+                            },
+                            {
+                                <span class="hljs-attr">"position"</span>: <span class="hljs-string">"271"</span>,
+                                <span class="hljs-attr">"status"</span>: <span class="hljs-literal">true</span>,
+                                <span class="hljs-attr">"result"</span>: [
+                                    <span class="hljs-string">"S271"</span>,
+                                    <span class="hljs-string">"P08047-0"</span>
+                                ],
+                                <span class="hljs-attr">"submitted"</span>: [
+                                    [
+                                        <span class="hljs-string">"S271"</span>
+                                    ],
+                                    [
+                                        <span class="hljs-literal">true</span>,
+                                        <span class="hljs-literal">false</span>,
+                                        <span class="hljs-literal">false</span>
+                                    ],
+                                    [
+                                        <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-string">"P08047-2"</span>,
+                                        <span class="hljs-string">"P08047-3"</span>
+                                    ]
+                                ],
+                                <span class="hljs-attr">"comment"</span>: <span class="hljs-literal">null</span>,
+                                <span class="hljs-attr">"alternative"</span>: []
+                            },
+                            {
+                                <span class="hljs-attr">"position"</span>: <span class="hljs-string">"612"</span>,
+                                <span class="hljs-attr">"status"</span>: <span class="hljs-literal">true</span>,
+                                <span class="hljs-attr">"result"</span>: [
+                                    <span class="hljs-string">"S612"</span>,
+                                    <span class="hljs-string">"P08047-0"</span>
+                                ],
+                                <span class="hljs-attr">"submitted"</span>: [
+                                    [
+                                        <span class="hljs-string">"S612"</span>
+                                    ],
+                                    [
+                                        <span class="hljs-literal">true</span>,
+                                        <span class="hljs-literal">false</span>,
+                                        <span class="hljs-literal">false</span>
+                                    ],
+                                    [
+                                        <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-string">"P08047-2"</span>,
+                                        <span class="hljs-string">"P08047-3"</span>
+                                    ]
+                                ],
+                                <span class="hljs-attr">"comment"</span>: <span class="hljs-literal">null</span>,
+                                <span class="hljs-attr">"alternative"</span>: []
+                            },
+                            {
+                                <span class="hljs-attr">"position"</span>: <span class="hljs-string">"507"</span>,
+                                <span class="hljs-attr">"status"</span>: <span class="hljs-literal">true</span>,
+                                <span class="hljs-attr">"result"</span>: [
+                                    <span class="hljs-string">"S507"</span>,
+                                    <span class="hljs-string">"P08047-0"</span>
+                                ],
+                                <span class="hljs-attr">"submitted"</span>: [
+                                    [
+                                        <span class="hljs-string">"S507"</span>
+                                    ],
+                                    [
+                                        <span class="hljs-literal">true</span>,
+                                        <span class="hljs-literal">false</span>,
+                                        <span class="hljs-literal">false</span>
+                                    ],
+                                    [
+                                        <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-string">"P08047-2"</span>,
+                                        <span class="hljs-string">"P08047-3"</span>
+                                    ]
+                                ],
+                                <span class="hljs-attr">"comment"</span>: <span class="hljs-literal">null</span>,
+                                <span class="hljs-attr">"alternative"</span>: []
+                            },
+                            {
+                                <span class="hljs-attr">"position"</span>: <span class="hljs-string">"394"</span>,
+                                <span class="hljs-attr">"status"</span>: <span class="hljs-literal">true</span>,
+                                <span class="hljs-attr">"result"</span>: [
+                                    <span class="hljs-string">"T394"</span>,
+                                    <span class="hljs-string">"P08047-0"</span>
+                                ],
+                                <span class="hljs-attr">"submitted"</span>: [
+                                    [
+                                        <span class="hljs-string">"T394"</span>
+                                    ],
+                                    [
+                                        <span class="hljs-literal">true</span>,
+                                        <span class="hljs-literal">false</span>,
+                                        <span class="hljs-literal">false</span>
+                                    ],
+                                    [
+                                        <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-string">"P08047-2"</span>,
+                                        <span class="hljs-string">"P08047-3"</span>
+                                    ]
+                                ],
+                                <span class="hljs-attr">"comment"</span>: <span class="hljs-literal">null</span>,
+                                <span class="hljs-attr">"alternative"</span>: []
+                            },
+                            {
+                                <span class="hljs-attr">"position"</span>: <span class="hljs-string">"265"</span>,
+                                <span class="hljs-attr">"status"</span>: <span class="hljs-literal">true</span>,
+                                <span class="hljs-attr">"result"</span>: [
+                                    <span class="hljs-string">"T265"</span>,
+                                    <span class="hljs-string">"P08047-0"</span>
+                                ],
+                                <span class="hljs-attr">"submitted"</span>: [
+                                    [
+                                        <span class="hljs-string">"T265"</span>
+                                    ],
+                                    [
+                                        <span class="hljs-literal">true</span>,
+                                        <span class="hljs-literal">false</span>,
+                                        <span class="hljs-literal">false</span>
+                                    ],
+                                    [
+                                        <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-string">"P08047-2"</span>,
+                                        <span class="hljs-string">"P08047-3"</span>
+                                    ]
+                                ],
+                                <span class="hljs-attr">"comment"</span>: <span class="hljs-literal">null</span>,
+                                <span class="hljs-attr">"alternative"</span>: []
+                            },
+                            {
+                                <span class="hljs-attr">"position"</span>: <span class="hljs-string">"312"</span>,
+                                <span class="hljs-attr">"status"</span>: <span class="hljs-literal">true</span>,
+                                <span class="hljs-attr">"result"</span>: [
+                                    <span class="hljs-string">"S312"</span>,
+                                    <span class="hljs-string">"P08047-0"</span>
+                                ],
+                                <span class="hljs-attr">"submitted"</span>: [
+                                    [
+                                        <span class="hljs-string">"S312"</span>
+                                    ],
+                                    [
+                                        <span class="hljs-literal">true</span>,
+                                        <span class="hljs-literal">false</span>,
+                                        <span class="hljs-literal">false</span>
+                                    ],
+                                    [
+                                        <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-string">"P08047-2"</span>,
+                                        <span class="hljs-string">"P08047-3"</span>
+                                    ]
+                                ],
+                                <span class="hljs-attr">"comment"</span>: <span class="hljs-literal">null</span>,
+                                <span class="hljs-attr">"alternative"</span>: []
+                            },
+                            {
+                                <span class="hljs-attr">"position"</span>: <span class="hljs-string">"517"</span>,
+                                <span class="hljs-attr">"status"</span>: <span class="hljs-literal">true</span>,
+                                <span class="hljs-attr">"result"</span>: [
+                                    <span class="hljs-string">"T517"</span>,
+                                    <span class="hljs-string">"P08047-0"</span>
+                                ],
+                                <span class="hljs-attr">"submitted"</span>: [
+                                    [
+                                        <span class="hljs-string">"T517"</span>
+                                    ],
+                                    [
+                                        <span class="hljs-literal">true</span>,
+                                        <span class="hljs-literal">false</span>,
+                                        <span class="hljs-literal">false</span>
+                                    ],
+                                    [
+                                        <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-string">"P08047-2"</span>,
+                                        <span class="hljs-string">"P08047-3"</span>
+                                    ]
+                                ],
+                                <span class="hljs-attr">"comment"</span>: <span class="hljs-literal">null</span>,
+                                <span class="hljs-attr">"alternative"</span>: []
+                            },
+                            {
+                                <span class="hljs-attr">"position"</span>: <span class="hljs-string">"126"</span>,
+                                <span class="hljs-attr">"status"</span>: <span class="hljs-literal">true</span>,
+                                <span class="hljs-attr">"result"</span>: [
+                                    <span class="hljs-string">"S126"</span>,
+                                    <span class="hljs-string">"P08047-0"</span>
+                                ],
+                                <span class="hljs-attr">"submitted"</span>: [
+                                    [
+                                        <span class="hljs-string">"S126"</span>
+                                    ],
+                                    [
+                                        <span class="hljs-literal">true</span>,
+                                        <span class="hljs-literal">false</span>,
+                                        <span class="hljs-literal">false</span>
+                                    ],
+                                    [
+                                        <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-string">"P08047-2"</span>,
+                                        <span class="hljs-string">"P08047-3"</span>
+                                    ]
+                                ],
+                                <span class="hljs-attr">"comment"</span>: <span class="hljs-literal">null</span>,
+                                <span class="hljs-attr">"alternative"</span>: []
+                            },
+                            {
+                                <span class="hljs-attr">"position"</span>: <span class="hljs-string">"510"</span>,
+                                <span class="hljs-attr">"status"</span>: <span class="hljs-literal">true</span>,
+                                <span class="hljs-attr">"result"</span>: [
+                                    <span class="hljs-string">"S510"</span>,
+                                    <span class="hljs-string">"P08047-0"</span>
+                                ],
+                                <span class="hljs-attr">"submitted"</span>: [
+                                    [
+                                        <span class="hljs-string">"S510"</span>
+                                    ],
+                                    [
+                                        <span class="hljs-literal">true</span>,
+                                        <span class="hljs-literal">false</span>,
+                                        <span class="hljs-literal">false</span>
+                                    ],
+                                    [
+                                        <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-string">"P08047-2"</span>,
+                                        <span class="hljs-string">"P08047-3"</span>
+                                    ]
+                                ],
+                                <span class="hljs-attr">"comment"</span>: <span class="hljs-literal">null</span>,
+                                <span class="hljs-attr">"alternative"</span>: []
+                            },
+                            {
+                                <span class="hljs-attr">"position"</span>: <span class="hljs-string">"455"</span>,
+                                <span class="hljs-attr">"status"</span>: <span class="hljs-literal">true</span>,
+                                <span class="hljs-attr">"result"</span>: [
+                                    <span class="hljs-string">"T455"</span>,
+                                    <span class="hljs-string">"P08047-0"</span>
+                                ],
+                                <span class="hljs-attr">"submitted"</span>: [
+                                    [
+                                        <span class="hljs-string">"T455"</span>
+                                    ],
+                                    [
+                                        <span class="hljs-literal">true</span>,
+                                        <span class="hljs-literal">false</span>,
+                                        <span class="hljs-literal">false</span>
+                                    ],
+                                    [
+                                        <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-string">"P08047-2"</span>,
+                                        <span class="hljs-string">"P08047-3"</span>
+                                    ]
+                                ],
+                                <span class="hljs-attr">"comment"</span>: <span class="hljs-literal">null</span>,
+                                <span class="hljs-attr">"alternative"</span>: []
+                            },
+                            {
+                                <span class="hljs-attr">"position"</span>: <span class="hljs-string">"453"</span>,
+                                <span class="hljs-attr">"status"</span>: <span class="hljs-literal">true</span>,
+                                <span class="hljs-attr">"result"</span>: [
+                                    <span class="hljs-string">"T453"</span>,
+                                    <span class="hljs-string">"P08047-0"</span>
+                                ],
+                                <span class="hljs-attr">"submitted"</span>: [
+                                    [
+                                        <span class="hljs-string">"T453"</span>
+                                    ],
+                                    [
+                                        <span class="hljs-literal">true</span>,
+                                        <span class="hljs-literal">false</span>,
+                                        <span class="hljs-literal">false</span>
+                                    ],
+                                    [
+                                        <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-string">"P08047-2"</span>,
+                                        <span class="hljs-string">"P08047-3"</span>
+                                    ]
+                                ],
+                                <span class="hljs-attr">"comment"</span>: <span class="hljs-literal">null</span>,
+                                <span class="hljs-attr">"alternative"</span>: []
+                            },
+                            {
+                                <span class="hljs-attr">"position"</span>: <span class="hljs-string">"254"</span>,
+                                <span class="hljs-attr">"status"</span>: <span class="hljs-literal">true</span>,
+                                <span class="hljs-attr">"result"</span>: [
+                                    <span class="hljs-string">"T254"</span>,
+                                    <span class="hljs-string">"P08047-0"</span>
+                                ],
+                                <span class="hljs-attr">"submitted"</span>: [
+                                    [
+                                        <span class="hljs-string">"T254"</span>
+                                    ],
+                                    [
+                                        <span class="hljs-literal">true</span>,
+                                        <span class="hljs-literal">false</span>,
+                                        <span class="hljs-literal">false</span>
+                                    ],
+                                    [
+                                        <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-string">"P08047-2"</span>,
+                                        <span class="hljs-string">"P08047-3"</span>
+                                    ]
+                                ],
+                                <span class="hljs-attr">"comment"</span>: <span class="hljs-literal">null</span>,
+                                <span class="hljs-attr">"alternative"</span>: []
+                            },
+                            {
+                                <span class="hljs-attr">"position"</span>: <span class="hljs-string">"491"</span>,
+                                <span class="hljs-attr">"status"</span>: <span class="hljs-literal">true</span>,
+                                <span class="hljs-attr">"result"</span>: [
+                                    <span class="hljs-string">"S491"</span>,
+                                    <span class="hljs-string">"P08047-0"</span>
+                                ],
+                                <span class="hljs-attr">"submitted"</span>: [
+                                    [
+                                        <span class="hljs-string">"S491"</span>
+                                    ],
+                                    [
+                                        <span class="hljs-literal">true</span>,
+                                        <span class="hljs-literal">false</span>,
+                                        <span class="hljs-literal">false</span>
+                                    ],
+                                    [
+                                        <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-string">"P08047-2"</span>,
+                                        <span class="hljs-string">"P08047-3"</span>
+                                    ]
+                                ],
+                                <span class="hljs-attr">"comment"</span>: <span class="hljs-literal">null</span>,
+                                <span class="hljs-attr">"alternative"</span>: []
+                            },
+                            {
+                                <span class="hljs-attr">"position"</span>: <span class="hljs-string">"273"</span>,
+                                <span class="hljs-attr">"status"</span>: <span class="hljs-literal">true</span>,
+                                <span class="hljs-attr">"result"</span>: [
+                                    <span class="hljs-string">"S273"</span>,
+                                    <span class="hljs-string">"P08047-0"</span>
+                                ],
+                                <span class="hljs-attr">"submitted"</span>: [
+                                    [
+                                        <span class="hljs-string">"S273"</span>
+                                    ],
+                                    [
+                                        <span class="hljs-literal">true</span>,
+                                        <span class="hljs-literal">false</span>,
+                                        <span class="hljs-literal">false</span>
+                                    ],
+                                    [
+                                        <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-string">"P08047-2"</span>,
+                                        <span class="hljs-string">"P08047-3"</span>
+                                    ]
+                                ],
+                                <span class="hljs-attr">"comment"</span>: <span class="hljs-literal">null</span>,
+                                <span class="hljs-attr">"alternative"</span>: []
+                            }
+                        ],
+                        <span class="hljs-attr">"species_colors"</span>: [
+                            <span class="hljs-string">"#ACD2EC"</span>,
+                            <span class="hljs-string">"#5E7585"</span>
+                        ],
+                        <span class="hljs-attr">"full_name"</span>: [
+                            <span class="hljs-string">"Transcription factor Sp1"</span>
+                        ],
+                        <span class="hljs-attr">"length_sites"</span>: <span class="hljs-number">25</span>,
+                        <span class="hljs-attr">"COMPUTED"</span>: {
+                            <span class="hljs-attr">"OGLCNAC"</span>: [
+                                {
+                                    <span class="hljs-attr">"S120"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"oglcnac"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"S"</span>,
+                                        <span class="hljs-attr">"organism_sci"</span>: <span class="hljs-string">"Homo sapiens"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_free"</span>: <span class="hljs-number">1061.4989</span>,
+                                        <span class="hljs-attr">"average_maso_free"</span>: <span class="hljs-number">1062.1014400000001</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_ptm"</span>: <span class="hljs-number">1264.5783000000001</span>,
+                                        <span class="hljs-attr">"average_maso_ptm"</span>: <span class="hljs-number">1265.29644</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">"GATPT"</span>,
+                                            <span class="hljs-string">"S"</span>,
+                                            <span class="hljs-string">"KEQSG"</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-number">115</span>,
+                                            <span class="hljs-string">"120"</span>,
+                                            <span class="hljs-number">125</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"S126"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"oglcnac"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"S"</span>,
+                                        <span class="hljs-attr">"organism_sci"</span>: <span class="hljs-string">"Homo sapiens"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_free"</span>: <span class="hljs-number">1080.46834</span>,
+                                        <span class="hljs-attr">"average_maso_free"</span>: <span class="hljs-number">1081.06104</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_ptm"</span>: <span class="hljs-number">1283.54774</span>,
+                                        <span class="hljs-attr">"average_maso_ptm"</span>: <span class="hljs-number">1284.25604</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">"KEQSG"</span>,
+                                            <span class="hljs-string">"S"</span>,
+                                            <span class="hljs-string">"STNGS"</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-number">121</span>,
+                                            <span class="hljs-string">"126"</span>,
+                                            <span class="hljs-number">131</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"T128"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"oglcnac"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"T"</span>,
+                                        <span class="hljs-attr">"organism_sci"</span>: <span class="hljs-string">"Homo sapiens"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_free"</span>: <span class="hljs-number">994.39518</span>,
+                                        <span class="hljs-attr">"average_maso_free"</span>: <span class="hljs-number">994.92714</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_ptm"</span>: <span class="hljs-number">1197.47458</span>,
+                                        <span class="hljs-attr">"average_maso_ptm"</span>: <span class="hljs-number">1198.12214</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">"QSGSS"</span>,
+                                            <span class="hljs-string">"T"</span>,
+                                            <span class="hljs-string">"NGSNG"</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-number">123</span>,
+                                            <span class="hljs-string">"128"</span>,
+                                            <span class="hljs-number">133</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"S134"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"oglcnac"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"S"</span>,
+                                        <span class="hljs-attr">"organism_sci"</span>: <span class="hljs-string">"Homo sapiens"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_free"</span>: <span class="hljs-number">1079.44794</span>,
+                                        <span class="hljs-attr">"average_maso_free"</span>: <span class="hljs-number">1080.03284</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_ptm"</span>: <span class="hljs-number">1282.52734</span>,
+                                        <span class="hljs-attr">"average_maso_ptm"</span>: <span class="hljs-number">1283.22784</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">"NGSNG"</span>,
+                                            <span class="hljs-string">"S"</span>,
+                                            <span class="hljs-string">"ESSKN"</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-number">129</span>,
+                                            <span class="hljs-string">"134"</span>,
+                                            <span class="hljs-number">139</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"T254"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"oglcnac"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"T"</span>,
+                                        <span class="hljs-attr">"organism_sci"</span>: <span class="hljs-string">"Homo sapiens"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_free"</span>: <span class="hljs-number">1218.62444</span>,
+                                        <span class="hljs-attr">"average_maso_free"</span>: <span class="hljs-number">1219.3599399999998</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_ptm"</span>: <span class="hljs-number">1421.7038400000001</span>,
+                                        <span class="hljs-attr">"average_maso_ptm"</span>: <span class="hljs-number">1422.5549399999998</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">"QTQYV"</span>,
+                                            <span class="hljs-string">"T"</span>,
+                                            <span class="hljs-string">"NVPVA"</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-number">249</span>,
+                                            <span class="hljs-string">"254"</span>,
+                                            <span class="hljs-number">259</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"T265"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"oglcnac"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"T"</span>,
+                                        <span class="hljs-attr">"organism_sci"</span>: <span class="hljs-string">"Homo sapiens"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_free"</span>: <span class="hljs-number">1166.6659000000002</span>,
+                                        <span class="hljs-attr">"average_maso_free"</span>: <span class="hljs-number">1167.3705400000001</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_ptm"</span>: <span class="hljs-number">1369.7453000000003</span>,
+                                        <span class="hljs-attr">"average_maso_ptm"</span>: <span class="hljs-number">1370.56554</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">"LNGNI"</span>,
+                                            <span class="hljs-string">"T"</span>,
+                                            <span class="hljs-string">"LLPVN"</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-number">260</span>,
+                                            <span class="hljs-string">"265"</span>,
+                                            <span class="hljs-number">270</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"S271"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"oglcnac"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"S"</span>,
+                                        <span class="hljs-attr">"organism_sci"</span>: <span class="hljs-string">"Homo sapiens"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_free"</span>: <span class="hljs-number">1070.5971499999998</span>,
+                                        <span class="hljs-attr">"average_maso_free"</span>: <span class="hljs-number">1071.23884</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_ptm"</span>: <span class="hljs-number">1273.67655</span>,
+                                        <span class="hljs-attr">"average_maso_ptm"</span>: <span class="hljs-number">1274.43384</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">"LLPVN"</span>,
+                                            <span class="hljs-string">"S"</span>,
+                                            <span class="hljs-string">"VSAAT"</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-number">266</span>,
+                                            <span class="hljs-string">"271"</span>,
+                                            <span class="hljs-number">276</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"S273"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"oglcnac"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"S"</span>,
+                                        <span class="hljs-attr">"organism_sci"</span>: <span class="hljs-string">"Homo sapiens"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_free"</span>: <span class="hljs-number">1058.56077</span>,
+                                        <span class="hljs-attr">"average_maso_free"</span>: <span class="hljs-number">1059.18454</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_ptm"</span>: <span class="hljs-number">1261.6401700000001</span>,
+                                        <span class="hljs-attr">"average_maso_ptm"</span>: <span class="hljs-number">1262.37954</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">"PVNSV"</span>,
+                                            <span class="hljs-string">"S"</span>,
+                                            <span class="hljs-string">"AATLT"</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-number">268</span>,
+                                            <span class="hljs-string">"273"</span>,
+                                            <span class="hljs-number">278</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"T276"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"oglcnac"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"T"</span>,
+                                        <span class="hljs-attr">"organism_sci"</span>: <span class="hljs-string">"Homo sapiens"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_free"</span>: <span class="hljs-number">1019.5134899999999</span>,
+                                        <span class="hljs-attr">"average_maso_free"</span>: <span class="hljs-number">1020.10454</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_ptm"</span>: <span class="hljs-number">1222.59289</span>,
+                                        <span class="hljs-attr">"average_maso_ptm"</span>: <span class="hljs-number">1223.29954</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">"SVSAA"</span>,
+                                            <span class="hljs-string">"T"</span>,
+                                            <span class="hljs-string">"LTPSS"</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-number">271</span>,
+                                            <span class="hljs-string">"276"</span>,
+                                            <span class="hljs-number">281</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"S312"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"oglcnac"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"S"</span>,
+                                        <span class="hljs-attr">"organism_sci"</span>: <span class="hljs-string">"Homo sapiens"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_free"</span>: <span class="hljs-number">1022.4880099999998</span>,
+                                        <span class="hljs-attr">"average_maso_free"</span>: <span class="hljs-number">1023.06474</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_ptm"</span>: <span class="hljs-number">1225.5674099999999</span>,
+                                        <span class="hljs-attr">"average_maso_ptm"</span>: <span class="hljs-number">1226.25974</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">"SASLV"</span>,
+                                            <span class="hljs-string">"S"</span>,
+                                            <span class="hljs-string">"SQASS"</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-number">307</span>,
+                                            <span class="hljs-string">"312"</span>,
+                                            <span class="hljs-number">317</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"T394"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"oglcnac"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"T"</span>,
+                                        <span class="hljs-attr">"organism_sci"</span>: <span class="hljs-string">"Homo sapiens"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_free"</span>: <span class="hljs-number">1371.63788</span>,
+                                        <span class="hljs-attr">"average_maso_free"</span>: <span class="hljs-number">1372.4139399999997</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_ptm"</span>: <span class="hljs-number">1574.71728</span>,
+                                        <span class="hljs-attr">"average_maso_ptm"</span>: <span class="hljs-number">1575.6089399999996</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">"EQNQQ"</span>,
+                                            <span class="hljs-string">"T"</span>,
+                                            <span class="hljs-string">"QQQQI"</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-number">389</span>,
+                                            <span class="hljs-string">"394"</span>,
+                                            <span class="hljs-number">399</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"S421"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"oglcnac"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"S"</span>,
+                                        <span class="hljs-attr">"organism_sci"</span>: <span class="hljs-string">"Homo sapiens"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_free"</span>: <span class="hljs-number">1119.55602</span>,
+                                        <span class="hljs-attr">"average_maso_free"</span>: <span class="hljs-number">1120.22724</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_ptm"</span>: <span class="hljs-number">1322.63542</span>,
+                                        <span class="hljs-attr">"average_maso_ptm"</span>: <span class="hljs-number">1323.4222399999999</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">"QAAPL"</span>,
+                                            <span class="hljs-string">"S"</span>,
+                                            <span class="hljs-string">"GQTFT"</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-number">416</span>,
+                                            <span class="hljs-string">"421"</span>,
+                                            <span class="hljs-number">426</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"T424"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"oglcnac"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"T"</span>,
+                                        <span class="hljs-attr">"organism_sci"</span>: <span class="hljs-string">"Homo sapiens"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_free"</span>: <span class="hljs-number">1149.5665900000001</span>,
+                                        <span class="hljs-attr">"average_maso_free"</span>: <span class="hljs-number">1150.25354</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_ptm"</span>: <span class="hljs-number">1352.6459900000002</span>,
+                                        <span class="hljs-attr">"average_maso_ptm"</span>: <span class="hljs-number">1353.4485399999999</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">"PLSGQ"</span>,
+                                            <span class="hljs-string">"T"</span>,
+                                            <span class="hljs-string">"FTTQA"</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-number">419</span>,
+                                            <span class="hljs-string">"424"</span>,
+                                            <span class="hljs-number">429</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"S446"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"oglcnac"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"S"</span>,
+                                        <span class="hljs-attr">"organism_sci"</span>: <span class="hljs-string">"Homo sapiens"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_free"</span>: <span class="hljs-number">1107.62878</span>,
+                                        <span class="hljs-attr">"average_maso_free"</span>: <span class="hljs-number">1108.3028400000003</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_ptm"</span>: <span class="hljs-number">1310.70818</span>,
+                                        <span class="hljs-attr">"average_maso_ptm"</span>: <span class="hljs-number">1311.4978400000002</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">"QAVPN"</span>,
+                                            <span class="hljs-string">"S"</span>,
+                                            <span class="hljs-string">"GPIII"</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-number">441</span>,
+                                            <span class="hljs-string">"446"</span>,
+                                            <span class="hljs-number">451</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"T453"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"oglcnac"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"T"</span>,
+                                        <span class="hljs-attr">"organism_sci"</span>: <span class="hljs-string">"Homo sapiens"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_free"</span>: <span class="hljs-number">1162.70736</span>,
+                                        <span class="hljs-attr">"average_maso_free"</span>: <span class="hljs-number">1163.4257400000001</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_ptm"</span>: <span class="hljs-number">1365.7867600000002</span>,
+                                        <span class="hljs-attr">"average_maso_ptm"</span>: <span class="hljs-number">1366.62074</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">"PIIIR"</span>,
+                                            <span class="hljs-string">"T"</span>,
+                                            <span class="hljs-string">"PTVGP"</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-number">448</span>,
+                                            <span class="hljs-string">"453"</span>,
+                                            <span class="hljs-number">458</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"T455"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"oglcnac"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"T"</span>,
+                                        <span class="hljs-attr">"organism_sci"</span>: <span class="hljs-string">"Homo sapiens"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_free"</span>: <span class="hljs-number">1123.63493</span>,
+                                        <span class="hljs-attr">"average_maso_free"</span>: <span class="hljs-number">1124.3053400000001</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_ptm"</span>: <span class="hljs-number">1326.71433</span>,
+                                        <span class="hljs-attr">"average_maso_ptm"</span>: <span class="hljs-number">1327.50034</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">"IIRTP"</span>,
+                                            <span class="hljs-string">"T"</span>,
+                                            <span class="hljs-string">"VGPNG"</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-number">450</span>,
+                                            <span class="hljs-string">"455"</span>,
+                                            <span class="hljs-number">460</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"S491"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"oglcnac"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"S"</span>,
+                                        <span class="hljs-attr">"organism_sci"</span>: <span class="hljs-string">"Homo sapiens"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_free"</span>: <span class="hljs-number">1103.5281</span>,
+                                        <span class="hljs-attr">"average_maso_free"</span>: <span class="hljs-number">1104.24324</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_ptm"</span>: <span class="hljs-number">1306.6075</span>,
+                                        <span class="hljs-attr">"average_maso_ptm"</span>: <span class="hljs-number">1307.43824</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">"PMQGV"</span>,
+                                            <span class="hljs-string">"S"</span>,
+                                            <span class="hljs-string">"LGQTS"</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-number">486</span>,
+                                            <span class="hljs-string">"491"</span>,
+                                            <span class="hljs-number">496</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"S507"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"oglcnac"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"S"</span>,
+                                        <span class="hljs-attr">"organism_sci"</span>: <span class="hljs-string">"Homo sapiens"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_free"</span>: <span class="hljs-number">1039.59133</span>,
+                                        <span class="hljs-attr">"average_maso_free"</span>: <span class="hljs-number">1040.22474</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_ptm"</span>: <span class="hljs-number">1242.67073</span>,
+                                        <span class="hljs-attr">"average_maso_ptm"</span>: <span class="hljs-number">1243.41974</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">"LTPIA"</span>,
+                                            <span class="hljs-string">"S"</span>,
+                                            <span class="hljs-string">"AASIP"</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-number">502</span>,
+                                            <span class="hljs-string">"507"</span>,
+                                            <span class="hljs-number">512</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"S510"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"oglcnac"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"S"</span>,
+                                        <span class="hljs-attr">"organism_sci"</span>: <span class="hljs-string">"Homo sapiens"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_free"</span>: <span class="hljs-number">957.5130800000001</span>,
+                                        <span class="hljs-attr">"average_maso_free"</span>: <span class="hljs-number">958.0793400000001</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_ptm"</span>: <span class="hljs-number">1160.59248</span>,
+                                        <span class="hljs-attr">"average_maso_ptm"</span>: <span class="hljs-number">1161.2743400000002</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">"IASAA"</span>,
+                                            <span class="hljs-string">"S"</span>,
+                                            <span class="hljs-string">"IPAGT"</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-number">505</span>,
+                                            <span class="hljs-string">"510"</span>,
+                                            <span class="hljs-number">515</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"T517"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"oglcnac"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"T"</span>,
+                                        <span class="hljs-attr">"organism_sci"</span>: <span class="hljs-string">"Homo sapiens"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_free"</span>: <span class="hljs-number">1027.5297999999998</span>,
+                                        <span class="hljs-attr">"average_maso_free"</span>: <span class="hljs-number">1028.13014</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_ptm"</span>: <span class="hljs-number">1230.6091999999999</span>,
+                                        <span class="hljs-attr">"average_maso_ptm"</span>: <span class="hljs-number">1231.32514</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">"PAGTV"</span>,
+                                            <span class="hljs-string">"T"</span>,
+                                            <span class="hljs-string">"VNAAQ"</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-number">512</span>,
+                                            <span class="hljs-string">"517"</span>,
+                                            <span class="hljs-number">522</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"S612"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"oglcnac"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"S"</span>,
+                                        <span class="hljs-attr">"organism_sci"</span>: <span class="hljs-string">"Homo sapiens"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_free"</span>: <span class="hljs-number">1197.5084200000001</span>,
+                                        <span class="hljs-attr">"average_maso_free"</span>: <span class="hljs-number">1198.27264</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_ptm"</span>: <span class="hljs-number">1400.5878200000002</span>,
+                                        <span class="hljs-attr">"average_maso_ptm"</span>: <span class="hljs-number">1401.4676399999998</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">"PYCKD"</span>,
+                                            <span class="hljs-string">"S"</span>,
+                                            <span class="hljs-string">"EGRGS"</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-number">607</span>,
+                                            <span class="hljs-string">"612"</span>,
+                                            <span class="hljs-number">617</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"T640"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"oglcnac"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"T"</span>,
+                                        <span class="hljs-attr">"organism_sci"</span>: <span class="hljs-string">"Homo sapiens"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_free"</span>: <span class="hljs-number">1258.7145799999998</span>,
+                                        <span class="hljs-attr">"average_maso_free"</span>: <span class="hljs-number">1259.47404</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_ptm"</span>: <span class="hljs-number">1461.79398</span>,
+                                        <span class="hljs-attr">"average_maso_ptm"</span>: <span class="hljs-number">1462.66904</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">"KVYGK"</span>,
+                                            <span class="hljs-string">"T"</span>,
+                                            <span class="hljs-string">"SHLRA"</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-number">635</span>,
+                                            <span class="hljs-string">"640"</span>,
+                                            <span class="hljs-number">645</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"S641"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"oglcnac"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"S"</span>,
+                                        <span class="hljs-attr">"organism_sci"</span>: <span class="hljs-string">"Homo sapiens"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_free"</span>: <span class="hljs-number">1267.67853</span>,
+                                        <span class="hljs-attr">"average_maso_free"</span>: <span class="hljs-number">1268.4410400000002</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_ptm"</span>: <span class="hljs-number">1470.75793</span>,
+                                        <span class="hljs-attr">"average_maso_ptm"</span>: <span class="hljs-number">1471.63604</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">"VYGKT"</span>,
+                                            <span class="hljs-string">"S"</span>,
+                                            <span class="hljs-string">"HLRAH"</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-number">636</span>,
+                                            <span class="hljs-string">"641"</span>,
+                                            <span class="hljs-number">646</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"S698"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"oglcnac"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"S"</span>,
+                                        <span class="hljs-attr">"organism_sci"</span>: <span class="hljs-string">"Homo sapiens"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_free"</span>: <span class="hljs-number">1403.7455699999998</span>,
+                                        <span class="hljs-attr">"average_maso_free"</span>: <span class="hljs-number">1404.65314</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_ptm"</span>: <span class="hljs-number">1606.82497</span>,
+                                        <span class="hljs-attr">"average_maso_ptm"</span>: <span class="hljs-number">1607.8481399999998</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">"KRFMR"</span>,
+                                            <span class="hljs-string">"S"</span>,
+                                            <span class="hljs-string">"DHLSK"</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-number">693</span>,
+                                            <span class="hljs-string">"698"</span>,
+                                            <span class="hljs-number">703</span>
+                                        ]
+                                    }
+                                },
+                                {
+                                    <span class="hljs-attr">"S702"</span>: {
+                                        <span class="hljs-attr">"nature"</span>: <span class="hljs-string">"oglcnac"</span>,
+                                        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"S"</span>,
+                                        <span class="hljs-attr">"organism_sci"</span>: <span class="hljs-string">"Homo sapiens"</span>,
+                                        <span class="hljs-attr">"isoform_id"</span>: <span class="hljs-string">"P08047-0"</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_free"</span>: <span class="hljs-number">1320.7262099999998</span>,
+                                        <span class="hljs-attr">"average_maso_free"</span>: <span class="hljs-number">1321.50204</span>,
+                                        <span class="hljs-attr">"monoisotopic_maso_ptm"</span>: <span class="hljs-number">1523.80561</span>,
+                                        <span class="hljs-attr">"average_maso_ptm"</span>: <span class="hljs-number">1524.69704</span>,
+                                        <span class="hljs-attr">"sequence"</span>: [
+                                            <span class="hljs-string">"RSDHL"</span>,
+                                            <span class="hljs-string">"S"</span>,
+                                            <span class="hljs-string">"KHIKT"</span>
+                                        ],
+                                        <span class="hljs-attr">"numbers"</span>: [
+                                            <span class="hljs-number">697</span>,
+                                            <span class="hljs-string">"702"</span>,
+                                            <span class="hljs-number">707</span>
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                </code></pre>
+                <h4>QUERY PARAMETERS</h4>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Field</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>query_protein</td>
+                            <td>String</td>
+                            <td>UniProtKB ID</td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+            <div class="overflow-hidden content-section" id="content-errors">
+                <h2 id="errors">Errors</h2>
+                <p>
+                    The <i>O</i>-GlcNAc Database API uses the following error codes:
+                </p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Error Code</th>
+                            <th>Meaning</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>{}</td>
+                            <td>
+                                No result found for the requested UniProtKB ID
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="content-code"></div>
+    </div>
+
+    <script>
+        $(document).ready(function(){
+            var elements = [];
+
+            $(".scroll-to-link").click(function(e) {
+                e.preventDefault();
+                var id = $(this).attr('data-target');
+                $('html,body').animate({scrollTop: $("#"+id).offset().top - 20});
+                return false;
+            });
+
+            function calculElements(){
+                var total_height = 0;
+                elements = [];
+                $('.content-section').each(function(){
+                    var the_section = {};
+                    the_section.id = $(this).attr('id').replace('content-', '');
+                    total_height +=  $(this).height();
+                    the_section.max_height = total_height;
+                    elements.push(the_section);
+                });
+            }
+
+            function onScroll(){
+                var scroll = $(window).scrollTop();
+                for (var i = 0; i < elements.length; i++) {
+                    var the_section = elements[i];
+                    if(scroll <= the_section.max_height){
+                        $(".content-menu ul li").removeClass('active');
+                        $( ".content-menu ul li[data-target='"+the_section.id+"']" ).addClass('active');
+                        break;
+                    }
+                }
+                if(scroll + $(window).height() == $(document).height()) { // end of scroll, last element
+                    $(".content-menu ul li").removeClass('active');
+                    $( ".content-menu ul li:last-child" ).addClass('active');
+                }
+            }
+
+            calculElements();
+            $(window).resize(function(e){
+                e.preventDefault();
+                calculElements();
+            });
+
+            $(window).on('scroll', function(e) {
+                e.preventDefault();
+                onScroll();
+            });
+        });
+    </script>
+
+
+</body><div id="immersive-translate-popup" style="all: initial"></div></html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>suggestions API Documentation</title>
+</head>
+<body>
+<hr />
+<p>stage: Create
+group: Source Code
+info: "To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments"</p>
+<hr />
+<h1>Suggest Changes API</h1>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> GitLab.com, Self-managed, GitLab Dedicated</p>
+<p>This page describes the API for <a href="../user/project/merge_requests/reviews/suggestions.md">suggesting changes</a>.</p>
+<p>Every API call to suggestions must be authenticated.</p>
+<h2>Create a suggestion</h2>
+<p>To create a suggestion through the API, use the Discussions API to
+<a href="discussions.md#create-new-merge-request-thread">create a new thread in the merge request diff</a>.
+The format for suggestions is:</p>
+<p><code>markdown
+```suggestion:-3+0
+example text
+```</code></p>
+<h2>Apply a suggestion</h2>
+<p>Applies a suggested patch in a merge request. Users must have
+at least the Developer role to perform such action.</p>
+<p><code>plaintext
+PUT /suggestions/:id/apply</code></p>
+<p>| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| <code>id</code> | integer | yes | The ID of a suggestion |
+| <code>commit_message</code> | string | no | A custom commit message to use instead of the default generated message or the project's default message |</p>
+<p><code>shell
+curl --request PUT --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/suggestions/5/apply"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "id": 5,
+  "from_line": 10,
+  "to_line": 10,
+  "applicable": true,
+  "applied": false,
+  "from_content": "This is an eaxmple\n",
+  "to_content": "This is an example\n"
+}</code></p>
+<h2>Apply multiple suggestions</h2>
+<p><code>plaintext
+PUT /suggestions/batch_apply</code></p>
+<p>| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| <code>ids</code> | integer | yes | The IDs of suggestions |
+| <code>commit_message</code> | string | no | A custom commit message to use instead of the default generated message or the project's default message |</p>
+<p><code>shell
+curl --request PUT --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" --header 'Content-Type: application/json' --data '{"ids": [5, 6]}' "https://gitlab.example.com/api/v4/suggestions/batch_apply"</code></p>
+<p>Example response:</p>
+<p><code>json
+[
+  {
+    "id": 5,
+    "from_line": 10,
+    "to_line": 10,
+    "applicable": true,
+    "applied": false,
+    "from_content": "This is an eaxmple\n",
+    "to_content": "This is an example\n"
+  }
+  {
+    "id": 6,
+    "from_line": 19
+    "to_line": 19,
+    "applicable": true,
+    "applied": false,
+    "from_content": "This is another eaxmple\n",
+    "to_content": "This is another example\n"
+  }
+ ]</code></p>
+</body>
+</html>

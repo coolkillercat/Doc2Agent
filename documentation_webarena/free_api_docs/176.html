@@ -1,0 +1,1864 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>ipapi.is - Documentation for Developers</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description"
+    content="ipapi.is offers precise IP data via a user-friendly API, encompassing geolocation, ASN data, hosting detection, VPN detection, and proxy detection.">
+  <meta name="author" content="ipapi.is">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/img/favicon/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/img/favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/img/favicon/favicon-16x16.png">
+  <link rel="manifest" href="/img/favicon/site.webmanifest">
+
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#ffffff">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css">
+  <link rel="stylesheet" href="/css/style.css?v=12" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-4GE01ZMH3F"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+
+    gtag('config', 'G-4GE01ZMH3F');
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/gh/manucaralmo/GlowCookies@3.1.8/src/glowCookies.min.js"></script>
+  <script>
+    glowCookies.start('en', {
+      style: 1,
+      policyLink: 'https://ipapi.is/terms.html',
+      hideAfterClick: true,
+    });
+  </script>
+
+  
+</head>
+
+<body class="light-mode">
+  <nav class="navbar py-5 px-5-desktop">
+    <div class="container is-fluid">
+      <div class="navbar-brand">
+        <a class="navbar-item" href="/">
+          <img src="/img/ipapi-logo-black.svg"
+            alt="Precise IP data via a user-friendly API, encompassing geolocation, ASN data, hosting detection, VPN detection, and proxy detection"
+            class="branding-logo">
+        </a>
+        <a class="navbar-burger" role="button" aria-label="menu" aria-expanded="false">
+          <span aria-hidden="true"></span>
+          <span aria-hidden="true"></span>
+          <span aria-hidden="true"></span>
+          <span aria-hidden="true"></span>
+        </a>
+      </div>
+      <div class="navbar-menu">
+        <div class="navbar-end">
+          <a class="navbar-item" href="/about.html">About</a>
+          <a class="navbar-item" href="/pricing.html">Pricing</a>
+          <a class="navbar-item" href="/blog.html">Blog</a>
+          <a class="navbar-item" href="/developers.html">Documentation</a>
+
+          <div class="navbar-item has-dropdown is-hoverable">
+            <a class="navbar-link" href="/hosting-detection.html">
+              IP Databases
+            </a>
+            <div class="navbar-dropdown">
+              <a class="navbar-item" href="/hosting-detection.html">IP to Hosting / Cloud</a>
+              <a class="navbar-item" href="/geolocation.html">IP to Geolocation</a>
+              <a class="navbar-item" href="/asn.html">IP to ASN</a>
+            </div>
+          </div>
+
+          <a class="navbar-item" href="https://github.com/ipapi-is">
+            <i class="fa-brands fa-github" style="margin-right: .45rem;"></i>
+            GitHub
+          </a>
+          <a class="navbar-item" href="/app/">
+            Log In
+          </a>
+
+          <div class="navbar-item is-flex is-align-items-center">
+            <div class="buttons">
+              <a class="button is-success" href="/app/signup">
+                <i class="fa-solid fa-user-plus" style="margin-right: .45rem;"></i>
+                Sign Up
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+  </nav>
+
+  <section id="documentation" class="section first-section">
+  <div class="container">
+    <div class="is-hidden-tablet is-hidden-desktopm mb-5">
+  <button id="showMobileMenu" class="button is-block">
+    <span class="icon mr-1">
+      <i class="fa-solid fa-bars"></i>
+    </span>
+    Show Table of Contents
+  </button>
+</div>
+
+<script>
+  document.getElementById('showMobileMenu').addEventListener('click', function (event) {
+    let sideMenu = document.querySelector('.side-menu');
+    if (sideMenu) {
+      sideMenu.parentElement.classList.toggle('is-hidden-mobile');
+    }
+  });
+</script>
+    <div class="columns">
+      <div class="column is-3-desktop is-hidden-mobile">
+        <aside class="menu side-menu">
+          <p class="menu-label">
+            Start
+          </p>
+          <ul class="menu-list">
+            <li><a href="#documentation">Introduction</a></li>
+            <li><a href="#quickstart">Quickstart</a></li>
+            <li><a href="#data-sources">Data Sources</a></li>
+            <li><a href="#api-servers">API Servers</a></li>
+          </ul>
+          <p class="menu-label">
+            API Features
+          </p>
+          <ul class="menu-list">
+            <li><a href="#api-features">API Features</a></li>
+            <li><a href="#geolocation-database">Geolocation Database</a></li>
+            <li><a href="#asn-database">ASN Database</a></li>
+            <li><a href="#hosting-ip-ranges-database">Hosting IP Ranges Database</a></li>
+          </ul>
+          <p class="menu-label">
+            API Response Format
+          </p>
+          <ul class="menu-list">
+            <li><a href="#api-response-format">API Response Format</a></li>
+            <li class="toggle-menu">
+              <a href="#top-level-api-output">
+                <span class="icon">
+                  <i class="fa fa-chevron-right"></i>
+                </span>
+                Top Level API Output
+              </a>
+              <ul class="toggle-target sub-menu">
+                <li><a href="#ip">Field <code>ip</code></a></li>
+                <li><a href="#rir">Field <code>rir</code></a></li>
+                <li><a href="#is_bogon">Field <code>is_bogon</code></a></li>
+                <li><a href="#is_mobile">Field <code>is_mobile</code></a></li>
+                <li><a href="#is_crawler">Field <code>is_crawler</code></a></li>
+                <li><a href="#is_datacenter">Field <code>is_datacenter</code></a></li>
+                <li><a href="#is_tor">Field <code>is_tor</code></a></li>
+                <li><a href="#is_proxy">Field <code>is_proxy</code></a></li>
+                <li><a href="#is_vpn">Field <code>is_vpn</code></a></li>
+                <li><a href="#is_abuser">Field <code>is_abuser</code></a></li>
+                <li><a href="#elapsed_ms">Field <code>elapsed_ms</code></a></li>
+              </ul>
+            </li>
+            <li><a href="#datacenter-object">The <code>datacenter</code> object</a></li>
+            <li><a href="#company-object">The <code>company</code> object</a></li>
+            <li><a href="#asn-object">The <code>asn</code> object</a></li>
+            <li><a href="#location-object">The <code>location</code> object</a></li>
+          </ul>
+          <p class="menu-label">
+            API Endpoints
+          </p>
+          <ul class="menu-list">
+            <li><a href="#get-endpoint">GET Endpoint</a></li>
+            <li><a href="#post-endpoint">POST Endpoint</a></li>
+          </ul>
+        </aside>
+      </div>
+
+      <div class="column is-12 is-9-desktop mx-auto">
+        <div class="content">
+          <h1 class="title is-1" id="docs">
+            <span class="icon mr-4">
+              <i class="fa-solid fa-book"></i>
+            </span> Documentation
+          </h1>
+
+          <div class="post-meta">
+            <div class="meta-item date-modified">
+              <i class="fa-solid fa-clock-rotate-left"></i>
+              <span class="metadata-description">Page last updated on <strong>April 26, 2024</strong></span>
+            </div>
+          </div>
+
+          <hr>
+
+          <div class="notification is-success is-light">
+            <span class="icon">
+              <i class="fa fa-circle-info"></i>
+            </span>
+            Please always use the following API endpoint <strong><a
+                href="https://api.ipapi.is/">api.ipapi.is</a></strong>
+
+            <ul>
+              <li>Lookup any IP address with: <a
+                  href="https://api.ipapi.is/?q=52.46.64.223">api.ipapi.is/?q=52.46.64.223</a>
+              </li>
+              <li>Lookup any ASN: <a href="https://api.ipapi.is/?q=as20880">api.ipapi.is/?q=as20880</a></li>
+            </ul>
+          </div>
+
+          <p><a href="https://ipapi.is/">ipapi.is</a> provides useful meta-information for IPv4 and IPv6 addresses.
+            For example, the API response includes the organization associated with the IP address, ASN meta-data,
+            geolocation
+            intelligence, and the raw WHOIS data for the IP address.
+          </p>
+          <p>Furthermore, the API response enables the derivation of <strong>security information</strong> for each IP
+            address.
+            For instance, it indicates whether an IP address belongs to:
+          </p>
+          <ul>
+            <li>a hosting provider (<code>is_datacenter</code>)</li>
+            <li>is a TOR exit node (<code>is_tor</code>)</li>
+            <li>if an IP address is a proxy server exit node (socks4, socks5, or http proxy) (<code>is_proxy</code>)
+            </li>
+            <li>is a VPN exit node (<code>is_vpn</code>)</li>
+            <li>or is linked to an IP address that has engaged in abusive actions (<code>is_abuser</code>)</li>
+          </ul>
+
+          <p>The API places a strong emphasis on <strong>hosting detection</strong>. A sophisticated hosting
+            detection algorithm has been developed to achieve a high detection rate. <a
+              href="https://ipapi.is/hosting-detection.html">Thousands of different hosting providers</a> around the
+            globe are tracked.
+            WHOIS records, public IP ranges from hosting providers, and a proprietary hosting discovery algorithm
+            are used to determine whether an IP address belongs to a hosting provider.
+          </p>
+          <p>
+            <a href="https://ipapi.is/">ipapi.is</a> claims to possess the most effective hosting
+            detection
+            algorithm in the IP address provider space. This success is primarily due to the process of downloading and
+            analyzing
+            websites of all major
+            organizations that own IP addresses on the Internet.
+          </p>
+          <p><a href="https://ipapi.is/">ipapi.is</a> also includes accurate and comprehensive ASN meta-data.
+            The API includes raw WHOIS data
+            for each active ASN. API fields such as the <code>type</code> field included in the
+            <code>company</code> or <code>asn</code> output object are determined by analyzing the company
+            (organization)
+            that owns
+            the autonomous system or IP range. <a href="https://ipapi.is/">ipapi.is</a> differentiates between the
+            following
+            company (organization)
+            types:
+          </p>
+          <ul>
+            <li><code>hosting</code> - The ASN or network is owned by a hosting provider (Example: <a
+                href="https://api.ipapi.is?q=37.148.167.137">37.148.167.137</a>)
+            </li>
+            <li><code>education</code> - The ASN or network is affiliated with a university or another educational
+              institution (Example: <a href="https://api.ipapi.is?q=128.146.65.112">128.146.65.112</a>)</li>
+            <li>
+              <code>government</code> - The ASN or network is part of a governmental institution (Example: <a
+                href="https://api.ipapi.is?q=192.91.184.0">192.91.184.0</a>)
+            </li>
+            <li><code>banking</code> - The ASN or network is associated with a banking or financial institution
+              (Example:
+              <a href="https://api.ipapi.is?q=199.67.175.0">199.67.175.0</a>)
+            </li>
+            <li><code>isp</code> - The ASN or network belongs to an Internet Service Provider (ISP)
+              (Example: <a href="https://api.ipapi.is?q=108.15.237.36">108.15.237.36</a>)</li>
+            <li><code>business</code> - If the type does not fit any of the above categories, it is classified under the
+              generic
+              <code>business</code> type (Example:
+              <a href="https://api.ipapi.is?q=17.133.85.230">17.133.85.230</a>)
+            </li>
+          </ul>
+
+          <h2 id="quickstart" class="title is-2 anchor-title">
+            <a class="anchor-link" href="#quickstart">
+              #
+            </a>
+            <span class="anchor-name">
+              Quickstart
+            </span>
+          </h2>
+
+          <hr />
+          <p>
+            In order to lookup any IP address, use the following API endpoint: <a
+              href="https://api.ipapi.is?q=3.5.140.2">https://api.ipapi.is?q=3.5.140.2</a>
+          </p>
+          <p>Lookup your own IP address by omitting the query string (no <code>q</code> parameter): <a
+              href="https://api.ipapi.is">https://api.ipapi.is</a></p>
+          <p>Usage with JavaScript:</p>
+
+          <pre class="code-style"><code class="JavaScript language-JavaScript">fetch('https://api.ipapi.is?q=23.236.48.55')
+  .then(res =&gt; res.json())
+  .then(res =&gt; console.log(res));</code></pre>
+
+
+          <p>Usage with NodeJS:</p>
+
+          <pre class="code-style"><code class="JavaScript language-javascript">const https = require('https');
+
+https.get('https://api.ipapi.is/', (res) => {
+  let data = '';
+
+  res.on('data', (chunk) => {
+    data += chunk;
+  });
+
+  res.on('end', () => {
+    console.log(JSON.parse(data));
+  });
+
+}).on('error', (err) => {
+  console.error('Error:', err.message);
+});</code></pre>
+
+          <p>Usage with <code>curl</code>:</p>
+
+          <pre class="code-style"><code class="bash language-bash">curl 'https://api.ipapi.is?q=32.5.140.2'</code></pre>
+
+          <h2 id="data-sources" class="title is-2 anchor-title">
+            <a class="anchor-link" href="#data-sources">
+              #
+            </a>
+            <span class="anchor-name">
+              Data Sources
+            </span>
+          </h2>
+
+          <hr />
+          <p><a href="https://ipapi.is/">ipapi.is</a> utilizes the following sources for API data:</p>
+          <ul>
+            <li>Public WHOIS records from Regional Internet Registries (RIRs) such as <a
+                href="https://www.ripe.net/">RIPE NCC</a>, <a href="https://www.apnic.net/">APNIC</a>, and <a
+                href="https://www.arin.net/">ARIN</a>. For privacy reasons, the public and downloadable WHOIS databases
+              from the five RIRs are often incomplete. Therefore, millions of IP ranges and ASNs are periodically
+              queried with a <code>whois</code> client to keep <a href="https://ipapi.is/">ipapi.is</a> up-to-date.</li>
+            <li>Public <a href="https://thyme.apnic.net/current/">BGP routing table data</a> is used to source ASN data
+              and to obtain the routes (prefixes) for active ASN.</li>
+            <li>Public IP blocklists, such as <a
+                href="https://github.com/firehol/blocklist-ipsets">firehol/blocklist-ipset</a> and <a
+                href="https://github.com/stamparm/ipsum">stamparm/ipsum</a>, are used to identify the
+              <code>is_abuser</code> flag.
+            </li>
+            <li>The API employs a proprietary datacenter/hosting detection algorithm. Accurate hosting detection is
+              achieved by aggregating data from many different sources, including:
+              <ul>
+                <li>Manually labeling organizations as hosting providers (inefficient)</li>
+                <li>Automatically labeling organizations as hosting providers based on the organization name, domain,
+                  website content, and HTML meta tags (efficient, but with a high rate of false positives and requiring
+                  scraping/crawling of millions of organization websites)</li>
+                <li>Using self-published IP ranges from major cloud providers such as:
+                  <ul>
+                    <li><a href="https://www.gstatic.com/ipranges/goog.json">Google Cloud IP Ranges</a></li>
+                    <li><a href="https://www.microsoft.com/en-us/download/details.aspx?id=56519">Microsoft Azure IP
+                        Ranges</a></li>
+                    <li><a href="https://ip-ranges.amazonaws.com/ip-ranges.json">Amazon AWS IP ranges</a></li>
+                  </ul>
+                </li>
+                <li>Considering open-source projects that identify hosting IP addresses, such as <a
+                    href="https://github.com/client9/ipcat">github.com/client9/ipcat</a>, <a
+                    href="https://github.com/Umkus/ip-index">github.com/Umkus/ip-index</a>, or <a
+                    href="https://github.com/X4BNet/lists_vpn">github.com/X4BNet/lists_vpn</a></li>
+              </ul>
+            </li>
+            <li>The API leverages IP threat data from various public honeypots and a own honeypot server network.</li>
+            <li>A <a href="/geolocation.html">proprietary geolocation database</a> was developed from scratch.
+              Geolocation data is primarily sourced from WHOIS data. For instance, some Regional Internet Registries
+              like <a href="https://help.apnic.net/s/article/Geolocation">APNIC</a> support the <code>geofeed</code> and
+              <code>geoloc</code> properties in WHOIS records. <a
+                href="https://www.ripe.net/manage-ips-and-asns/db/tools/geolocation-in-the-ripe-database">RIPE NCC also
+                supports</a> the <code>geoloc</code> attribute as of 2016.
+            </li>
+          </ul>
+
+          <h2 id="api-servers" class="title is-2 anchor-title">
+            <a class="anchor-link" href="#api-servers">
+              #
+            </a>
+            <span class="anchor-name">
+              API Servers
+            </span>
+          </h2>
+          <hr />
+
+          <p>
+            <a href="https://ipapi.is/">ipapi.is</a> is currently operational in three different geographical locations:
+          </p>
+
+          <ul>
+            <li>
+              <strong>Server in Germany</strong>: <a
+                href="https://de.ipapi.is/?q=104.28.64.25">https://de.ipapi.is/?q=104.28.64.25</a>
+            </li>
+            <li><strong>Server in US East</strong>: <a
+                href="https://us.ipapi.is/?q=104.28.64.25">https://us.ipapi.is/?q=104.28.64.25</a>
+            </li>
+            <li><strong>Server in Singapore (Asia)</strong>: <a
+                href="https://sg.ipapi.is/?q=15.220.195.253">https://sg.ipapi.is/?q=15.220.195.253</a>
+            </li>
+          </ul>
+
+          <p>
+            There is no significant benefit to using these dedicated server endpoints directly. Instead, by utilizing
+            the
+            endpoint <a href="https://api.ipapi.is/">https://api.ipapi.is/</a>, the nearest server (in terms of latency)
+            is
+            automatically selected.
+          </p>
+
+          <h2 id="api-features" class="title is-2 anchor-title">
+            <a class="anchor-link" href="#api-features">
+              #
+            </a>
+            <span class="anchor-name">
+              API Features
+            </span>
+          </h2>
+          <hr />
+          <ul>
+            <li><strong>Ready for Production</strong>: This API is stable and suitable for production use. Currently,
+              <a href="https://ipapi.is/">ipapi.is</a> operates from three different geographical locations (Germany,
+              US East, Singapore) to minimize end-user latency. The API can handle millions of daily requests and
+              is
+              updated at
+              least once a week.
+            </li>
+            <li><strong>Accuracy</strong>: The most reliable IP Address data comes from WHOIS data provided by Regional
+              Internet Registries like RIPE NCC or ARIN. Consequently, <a href="https://ipapi.is/">ipapi.is</a>
+              prioritizes a WHOIS-first approach. IP data from third-party providers is considered less reliable.</li>
+            <li><strong>Extensive Hosting Detection Support</strong>: <a
+                href="https://ipapi.is/hosting-detection.html">Thousands of hosting providers</a> are supported, ranging
+              from Huawei Cloud Service to ServerMania Inc. Determine if an IP address is hosted using the
+              <code>is_datacenter</code> property!
+            </li>
+            <li><strong>Always Updated</strong>: The API database is automatically updated at least weekly.</li>
+            <li><strong>ASN Support</strong>: The API provides autonomous system information for each IP address
+              queried.</li>
+            <li><strong>Company Support</strong>: The API offers organizational information for each IP address looked
+              up.</li>
+            <li><strong>Bulk IP Lookups</strong>: Query up to 100 IP addresses per API call.</li>
+            <li><strong>Offline API Usage (Download)</strong>: Download the complete <a
+                href="https://ipapi.is/">ipapi.is</a> package and host it on your own infrastructure. Visit the <a
+                href="/pricing.html">pricing page</a> for more details.</li>
+          </ul>
+
+          <h3 id="geolocation-database" class="title is-3 anchor-title">
+            <a class="anchor-link" href="#geolocation-database">
+              #
+            </a>
+            <span class="anchor-name">
+              Geolocation Database
+            </span>
+          </h3>
+
+          <p>
+            <a href="https://ipapi.is/">ipapi.is</a> is a geolocation data provider. The <a
+              href="https://ipapi.is/geolocation.html"><strong>Geolocation Database</strong></a> is available for free
+            download and serves as the primary data source for the commercial <a
+              href="https://api.ipapi.is/">ipapi.is</a> API. This database includes geolocation information for a
+            significant portion of the IPv4 address space and many IPv6 networks. The geolocation database is updated
+            several times per week. While the accuracy of the geolocation data is high for country-level information, it
+            is not recommended to rely solely on city-level geolocation accuracy for mission-critical applications.
+          </p>
+
+          <div class="buttons my-3">
+            <a class="button is-success" href="/data/geolocationDatabaseIPv4.csv.zip">
+              <span class="icon">
+                <i class="fa fa-download"></i>
+              </span>
+              <span>IPv4 Geolocation Database</span>
+            </a>
+            <a class="button is-success" href="/data/geolocationDatabaseIPv6.csv.zip">
+              <span class="icon">
+                <i class="fa fa-download"></i>
+              </span>
+              <span>IPv6 Geolocation Database</span>
+            </a>
+          </div>
+
+          <p>The geolocation database is provided as a large CSV file with the following fields:</p>
+
+          <ul>
+            <li><code>ip_version</code> - Indicates either <code>4</code> (IPv4) or <code>6</code> (IPv6), determining
+              the IP type of the network. Example: <code>"4"</code></li>
+            <li><code>start_ip</code> - The first IP address in the network range. Example: <code>"44.31.140.0"</code>
+            </li>
+            <li><code>end_ip</code> - The last IP address in the network range. Example: <code>"44.31.140.255"</code>
+            </li>
+            <li><code>continent</code> - The continent represented as a two-letter code. Example: <code>"NA"</code></li>
+            <li><code>country_code</code> - The <a href="https://en.wikipedia.org/wiki/ISO_3166-1">ISO 3166-1 alpha-2
+                country code</a>, specifying the country-specific geolocation of the IP address. Example:
+              <code>"US"</code>
+            </li>
+            <li><code>country</code> - The full name of the country. Example: <code>"United States"</code></li>
+            <li><code>state</code> - The state or administrative area for the queried IP address. Example:
+              <code>"California"</code>
+            </li>
+            <li><code>city</code> - The city associated with the IP address. Example: <code>"Fremont"</code></li>
+            <li><code>zip</code> - The postal code (zip code) for the IP. Example: <code>"94720"</code></li>
+            <li><code>timezone</code> - The timezone associated with the IP. Example: <code>"America/Los_Angeles"</code>
+            </li>
+            <li><code>latitude</code> - The geographical latitude of the IP address. Example: <code>"37.54827"</code>
+            </li>
+            <li><code>longitude</code> - The geographical longitude of the IP address. Example:
+              <code>"-121.98857"</code>
+            </li>
+            <li><code>accuracy</code> - Indicates the estimated accuracy of the geolocation information, with entries
+              rated from 1 (very high accuracy) to 5 (very low accuracy).
+              <ul>
+                <li><code>accuracy = 1</code> - Very high accuracy, typically reliable at the city level.</li>
+                <li><code>accuracy = 2</code> - High accuracy, generally reliable at the city level.</li>
+                <li><code>accuracy = 3</code> - Medium accuracy, not reliable at the city level.</li>
+                <li><code>accuracy = 4</code> - Low accuracy, usually accurate at the country level.</li>
+                <li><code>accuracy = 5</code> - Very low accuracy, expected to be accurate at the country level.</li>
+              </ul>
+            </li>
+          </ul>
+
+          <div class="my-3">
+            <button class="button toggle-button my-3">
+              <span class="icon">
+                <i class="fa fa-chevron-right"></i>
+              </span>
+              <span class="toggle-text">Show Example of Geolocation Database</span>
+            </button>
+
+            <pre
+              class="code-style toggle-target"><code class="csv language-text">ipVersion,network,continent,country_code,country,state,city,zip,timezone,latitude,longitude,accuracy
+ipv4,204.62.153.0 - 204.62.154.255,NA,US,United States,Ohio,Dayton,45412,America/New_York,39.75895,-84.19161,2
+ipv4,131.78.0.0 - 131.78.255.255,NA,US,United States,Ohio,Columbus,43215,America/New_York,39.96118,-82.99879,4
+ipv4,64.112.107.0 - 64.112.107.255,NA,US,United States,Texas,Crosbyton,79357,America/Chicago,33.66008,-101.23793,2
+ipv4,192.172.223.0 - 192.172.223.255,NA,US,United States,Colorado,Boulder,80544,America/Denver,40.01499,-105.27055,1
+ipv4,192.68.53.0 - 192.68.66.255,NA,CA,Canada,Ontario,Ottawa,K2P,America/Toronto,45.41117,-75.69812,4
+ipv4,173.205.200.0 - 173.205.203.255,NA,US,United States,Indiana,Swayzee,46986,America/Indiana/Indianapolis,40.50837,-85.82554,2
+ipv4,67.219.189.0 - 67.219.191.255,NA,CA,Canada,Ontario,Ottawa,K2P,America/Toronto,45.41117,-75.69812,3
+ipv4,72.18.221.0 - 72.18.221.255,NA,US,United States,Florida,Panama City,32466,America/Chicago,30.15946,-85.65983,1
+ipv4,23.153.216.0 - 23.153.216.255,NA,US,United States,Florida,Miami,33299,America/New_York,25.77427,-80.19366,2</code></pre>
+          </div>
+
+          <h3 id="asn-database" class="title is-3 anchor-title">
+            <a class="anchor-link" href="#asn-database">
+              #
+            </a>
+            <span class="anchor-name">
+              ASN Database
+            </span>
+          </h3>
+
+          <p>For offline ASN data access, the <a href="/asn.html">ASN Database</a> is available for download. This
+            database includes all AS numbers assigned and allocated by IANA, along with their respective metadata. The
+            database is updated several times per week. For active ASNs (those with at least one route/prefix assigned),
+            the database includes detailed metadata. For instance, the information provided for ASN <code>50673</code>
+            would include:</p>
+
+          <pre class="code-style"><code class="JavaScript language-JavaScript">{
+  "asn": 50673,
+  "abuser_score": "0.0029 (Low)",
+  "descr": "SERVERIUS-AS, NL",
+  "country": "nl",
+  "active": true,
+  "org": "Serverius Holding B.V.",
+  "domain": "serverius.net",
+  "abuse": "abuse@serverius.net",
+  "type": "hosting",
+  "created": "2010-09-07",
+  "updated": "2022-11-15",
+  "rir": "RIPE",
+  "whois": "https://api.ipapi.is/?whois=AS50673",
+  "prefixes": [
+    "5.56.133.0/24",
+    "5.178.64.0/21",
+    "5.178.64.0/24",
+    "5.188.12.0/22",
+    "5.188.12.0/24",
+    "5.188.13.0/24",
+    // ...
+  ],
+  "prefixesIPv6": [
+    "2001:67c:b0::/48",
+    "2a00:1ca8::/32",
+    "2a00:1ca8:77::/48",
+    // ...
+  ],
+  "elapsed_ms": 0.59
+}</code></pre>
+
+          <p>The database is in JSON format. The key is the ASN as <code>int</code> and the value is an object with AS
+            meta information such as the one above.</p>
+          <p>
+
+          <div class="my-5">
+            <a class="button is-success" href="/asn.html">Download the ASN Database</a>
+          </div>
+
+          <h4 id="howto-asn-database" class="title is-4 anchor-title">
+            <a class="anchor-link" href="#howto-asn-database">
+              #
+            </a>
+            <span class="anchor-name">
+              How to download & parse the ASN database?
+            </span>
+          </h4>
+
+          <p>Download and unzip the ASN database:</p>
+
+          <pre class="code-style"><code class="bash language-bash">cd /tmp
+curl -O https://ipapi.is/data/ASN-Database-Sample.json</code></pre>
+
+          <p>And parse with NodeJS:</p>
+
+          <pre class="code-style"><code class="JavaScript language-JavaScript">let asnDatabase = require('./ASN-Database-Sample.json');
+for (let asn in asnDatabase) {
+  console.log(asn, asnDatabase[asn]);
+}</code></pre>
+
+          <h3 id="hosting-ip-ranges-database" class="title is-3 anchor-title">
+            <a class="anchor-link" href="#hosting-ip-ranges-database">
+              #
+            </a>
+            <span class="anchor-name">
+              Hosting IP Ranges Database
+            </span>
+          </h3>
+
+          <p>The <strong>Hosting Database</strong> contains all known datacenter / hosting IP ranges of the Internet. A
+            proprietary algorithm was developed
+            to determine if a network belongs to a hosting provider.</p>
+          <p>The file format of the database is tab separated text file (.tsv), where each line of the file contains the
+            <code>company</code>, <code>network</code> and <code>domain</code> of the hosting provider.
+          </p>
+          <p>Example excerpt of the database:</p>
+
+          <pre class="code-style"><code class="text language-text">Linode, LLC 178.79.160.0 - 178.79.167.255 www.linode.com
+OVH Sp. z o. o. 178.32.191.0 - 178.32.191.127 www.ovh.com
+myLoc managed IT AG 46.245.176.0 - 46.245.183.255 www.myloc.de</code></pre>
+
+          <div class="my-5">
+            <a class="button is-success" href="https://ipapi.is/hosting-detection.html">Download the IP to Hosting
+              Database</a>
+          </div>
+
+          <h4 id="howto-datacenter-database" class="title is-4 anchor-title">
+            <a class="anchor-link" href="#howto-datacenter-database">
+              #
+            </a>
+            <span class="anchor-name">
+              How to download & parse the Hosting IP Ranges Database?
+            </span>
+          </h4>
+
+          <p>Download and unzip the Hosting Ranges database:</p>
+
+          <pre class="code-style"><code class="bash language-bash">cd /tmp
+curl -O https://ipapi.is/data/HostingRangesIPv4-Sample.csv</code></pre>
+
+          <p>And parse with nodejs:</p>
+
+          <pre class="code-style"><code class="JavaScript language-JavaScript">const fs = require('fs');
+  
+let hostingRanges = fs.readFileSync('hostingRanges.tsv').toString().split('\n');
+for (let line of hostingRanges) {
+  let [company, network, domain] = line.split('\t');
+  console.log(company, network, domain);
+}</code></pre>
+
+          <h2 id="api-response-format" class="title is-2 anchor-title">
+            <a class="anchor-link" href="#api-response-format">
+              #
+            </a>
+            <span class="anchor-name">
+              API Response Format
+            </span>
+          </h2>
+
+          <hr />
+          <p>The API output format is explained best by walking through an example. Most of the returned API output
+            information is
+            self-explanatory.</p>
+          <p>The API example lookup below is how a typical API response looks like. The IP <code>107.174.138.172</code>
+            was queried with the API
+            call <a href="https://api.ipapi.is?q=107.174.138.172">https://api.ipapi.is?q=107.174.138.172</a>:</p>
+
+          <pre class="code-style"><code class="json language-json">{
+  "ip": "107.174.138.172",
+  "rir": "ARIN",
+  "is_bogon": false,
+  "is_mobile": false,
+  "is_crawler": false,
+  "is_datacenter": true,
+  "is_tor": true,
+  "is_proxy": true,
+  "is_vpn": false,
+  "is_abuser": true,
+  "company": {
+    "name": "HostPapa",
+    "abuser_score": "0.0062 (Low)",
+    "domain": "www.hostpapa.com",
+    "type": "hosting",
+    "network": "107.172.0.0 - 107.175.255.255",
+    "whois": "https://api.ipapi.is/?whois=107.172.0.0"
+  },
+  "datacenter": {
+    "datacenter": "HostPapa",
+    "domain": "www.hostpapa.com",
+    "network": "107.172.0.0 - 107.175.255.255"
+  },
+  "asn": {
+    "asn": 36352,
+    "abuser_score": "0.0071 (Low)",
+    "route": "107.174.138.0/24",
+    "descr": "AS-COLOCROSSING, CA",
+    "country": "ca",
+    "active": true,
+    "org": "ColoCrossing",
+    "domain": "www.colocrossing.com",
+    "abuse": "abuse@colocrossing.com",
+    "type": "hosting",
+    "created": "2005-12-12",
+    "updated": "2013-01-08",
+    "rir": "ARIN",
+    "whois": "https://api.ipapi.is/?whois=AS36352"
+  },
+  "location": {
+    "continent": "NA",
+    "country": "United States",
+    "country_code": "US",
+    "state": "New York",
+    "city": "Buffalo",
+    "latitude": 42.886,
+    "longitude": -78.878,
+    "zip": "14205",
+    "timezone": "America/New_York",
+    "local_time": "2024-02-10T11:51:09-05:00",
+    "local_time_unix": 1707583869,
+    "is_dst": false
+  },
+  "elapsed_ms": 0.66
+}</code></pre>
+
+          <p>In the following sections, the different parts of the API response are explained in-depth.</p>
+
+          <p>In general, the API output can be divided into several distinctive parts:</p>
+          <ul>
+            <li>Top-Level API Output - This provides generic output and threat intelligence information for the queried
+              IP address.</li>
+            <li>The <code>datacenter</code> object - Present only if the queried IP address belongs to a hosting
+              provider, the <code>datacenter</code> object contains meta information about the hosting provider or
+              datacenter.</li>
+            <li>The <code>company</code> object - Most IP addresses are associated with an organization or company. The
+              <code>company</code> object contains meta information about the organization that owns or has
+              administrative control over the queried IP address.
+            </li>
+            <li>The <code>asn</code> object - Most IP addresses are part of an Autonomous System (AS). The
+              <code>asn</code> object provides meta information about the Autonomous System.
+            </li>
+            <li>The <code>location</code> object - Often, it is possible to geolocate IP addresses. The
+              <code>location</code> object includes geographical information for the queried IP address, indicating the
+              part of the world where the IP address is used.
+            </li>
+          </ul>
+
+          <h3 id="top-level-api-output" class="title is-3 anchor-title">
+            <a class="anchor-link" href="#top-level-api-output">
+              #
+            </a>
+            <span class="anchor-name">
+              Top Level API Output
+            </span>
+          </h3>
+
+          <p>The top level API output looks as follows for the IP address <code>107.174.138.172</code>:</p>
+
+          <pre class="code-style"><code class="json language-json">{
+  "ip": "107.174.138.172",
+  "rir": "ARIN",
+  "is_bogon": false,
+  "is_mobile": false,
+  "is_crawler": false,
+  "is_datacenter": true,
+  "is_tor": true,
+  "is_proxy": true,
+  "is_vpn": false,
+  "is_abuser": true,
+}</code></pre>
+
+          <p>The explanation for the top-level API fields is as follows:</p>
+
+          <h4 id="ip" class="title is-4 anchor-title">
+            <a class="anchor-link" href="#ip">
+              #
+            </a>
+            <span class="anchor-name">
+              <code>ip</code> - The API query
+            </span>
+          </h4>
+
+          <p>The field <code>ip</code> has the datatype <code>string</code>.</p>
+          <p>This field represents the IP address that was looked up. In the example above, it was
+            <code>107.174.138.172</code>.
+          </p>
+          <p>If no IP address was specified (Example: <a href="https://api.ipapi.is">https://api.ipapi.is</a>), the
+            client's own IP address is looked up, and the field <code>ip</code> is set to the client's public IP
+            address.</p>
+
+          <h4 id="rir" class="title is-4 anchor-title">
+            <a class="anchor-link" href="#rir">
+              #
+            </a>
+            <span class="anchor-name">
+              <code>rir</code> - The Regional Internet Registry (RIR) for this IP
+            </span>
+          </h4>
+
+          <p>The field <code>rir</code> has the datatype <code>string</code>.</p>
+          <p>It specifies which <a href="https://en.wikipedia.org/wiki/Regional_Internet_registry">Regional Internet
+              Registry (RIR)</a> the IP address belongs to. Here, it belongs to <code>ARIN</code>, which is the RIR
+            responsible for North America. In total, there are five different RIRs for various areas of the world:</p>
+
+          <figure class="image">
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Regional_Internet_Registries_world_map.svg/2880px-Regional_Internet_Registries_world_map.svg.png"
+              width="800px">
+            <figcaption>
+              Figure 1: The five different Regional Internet Registries (<a
+                href="https://commons.wikimedia.org/wiki/File:Regional_Internet_Registries_world_map.svg">Source</a>)
+            </figcaption>
+          </figure>
+
+          <h4 id="is_bogon" class="title is-4 anchor-title">
+            <a class="anchor-link" href="#is_bogon">
+              #
+            </a>
+            <span class="anchor-name">
+              <code>is_bogon</code> - Whether the IP is bogon (non-routable)
+            </span>
+          </h4>
+
+          <p>The field <code>is_bogon</code> has the datatype <code>boolean</code>.</p>
+          <p>It determines if the IP address is bogon. <a href="https://en.wikipedia.org/wiki/Bogon_filtering">Bogon IP
+              Addresses</a> are those not assigned or allocated by IANA or any RIR (Regional Internet Registry). For
+            example, the loopback IP <code>127.0.0.1</code> is a special/bogon IP address. The IP address
+            <code>107.174.138.172</code> is not bogon, hence it is set to <code>false</code> in this case.
+          </p>
+
+          <p>
+            Generally, there is no good reason to query bogon IP addresses, as they are local or special IP addresses
+            that exist in every local network and have no unique significance on the Internet.
+          </p>
+
+          <h4 id="is_mobile" class="title is-4 anchor-title">
+            <a class="anchor-link" href="#is_mobile">
+              #
+            </a>
+            <span class="anchor-name">
+              <code>is_mobile</code> - Whether the IP is mobile (belongs to a mobile ISP)
+            </span>
+          </h4>
+
+          <p>The field <code>is_mobile</code> has the datatype <code>boolean</code>.</p>
+          <p>It determines if the IP address belongs to a mobile Internet Service Provider, such as
+            <code>AT&T Wireless</code> or <code>T-Mobile</code>. Knowing whether an IP address belongs to a mobile ISP
+            is often crucial for security purposes.
+          </p>
+          <p>
+            For example, <a href="https://en.wikipedia.org/wiki/Carrier-grade_NAT">Carrier-grade NATs</a> are commonly
+            used in mobile networks, meaning many distinct clients can share the same public IP address. Therefore, rate
+            limiting or banning mobile IP addresses is not advisable, as it could also block legitimate clients sharing
+            the same mobile public IP address.
+          </p>
+
+          <p>
+            Other reasons for identifying if an IP originates from a mobile ISP include:
+          </p>
+
+          <ul>
+            <li>Certain services being exclusively accessible to mobile clients</li>
+            <li>Anticipating reduced Internet speed often associated with mobile clients</li>
+          </ul>
+
+          <p>The IP address <code>107.174.138.172</code> does not belong to a mobile ISP, hence it is set to
+            <code>false</code> in this instance.
+          </p>
+
+          <p>
+            As of February 2024, the API does not fully detect all mobile IP ranges. The mobile coverage is not good,
+            but the
+            false positive rate is rather low.
+          </p>
+
+          <h4 id="is_crawler" class="title is-4 anchor-title">
+            <a class="anchor-link" href="#is_crawler">
+              #
+            </a>
+            <span class="anchor-name">
+              <code>is_crawler</code> - Whether the IP belongs to a crawler / spider / good bot
+            </span>
+          </h4>
+
+          <p>
+            The field <code>is_crawler</code> is either set to <code>false</code> or, if the IP belongs to a
+            crawler, it is set to a string such as <code>"GoogleBot"</code> or
+            <code>"BingBot"</code>.
+          </p>
+
+          <p>
+            Some Examples:
+          </p>
+
+          <ul>
+            <li><a href="https://api.ipapi.is/?q=199.59.148.0">TwitterBot - 199.59.148.0</a></li>
+            <li><a href="https://api.ipapi.is/?q=66.249.70.224">GoogleBot - 66.249.70.224</a></li>
+            <li><a href="https://api.ipapi.is/?q=40.77.190.180">BingBot - 40.77.190.180</a></li>
+            <li><a href="https://api.ipapi.is/?q=40.76.173.151">DuckduckgoBot - 40.76.173.151</a></li>
+            <li><a href="https://api.ipapi.is/?q=213.180.203.183">YandexBot - 213.180.203.183</a></li>
+          </ul>
+
+          <p>
+            This field can be used to check whether the IP address belongs to a search engine crawler / bot that
+            you might want to
+            allow on your website or app. Currently, the following crawlers / good bots are detected:
+          </p>
+
+          <ul>
+            <li><code>TwitterBot</code></li>
+            <li><code>GoogleBot</code></li>
+            <li><code>BingBot</code></li>
+            <li><code>AhrefsBot</code></li>
+            <li><code>DuckDuckGoBot</code></li>
+            <li><code>FacebookBot</code></li>
+            <li><code>PingdomBot</code></li>
+            <li><code>RssApiBot</code></li>
+            <li><code>StripeWebhook</code></li>
+            <li><code>TelegramBot</code></li>
+            <li><code>UptimeRobot</code></li>
+            <li><code>CommonCrawlBot</code></li>
+            <li><code>EmbedlyBot</code></li>
+            <li><code>SemRushBot</code></li>
+            <li><code>AmazonBot</code></li>
+            <li><code>SemanticScholarBot</code></li>
+            <li><code>SlackBot</code></li>
+            <li><code>Applebot</code></li>
+            <li><code>GoogleBotImage</code></li>
+            <li><code>APIsGoogle</code></li>
+            <li><code>ArchiveBot</code></li>
+            <li><code>ByteSpider</code></li>
+            <li><code>LinkedInBot</code></li>
+            <li><code>ArchiveOrgBot</code></li>
+            <li><code>DiscordBot</code></li>
+            <li><code>MastodonBot</code></li>
+            <li><code>HubSpotBot</code></li>
+            <li><code>YouBot</code></li>
+            <li><code>YandexBot</code></li>
+            <li><code>NextCloudBot</code></li>
+            <li><code>PinterestBot</code></li>
+            <li><code>SlurpBot</code></li>
+            <li><code>MailRuBot</code></li>
+            <li><code>Facebookexternalhit</code></li>
+            <li><code>ZoomBot</code></li>
+            <li><code>BingPreviewBot</code></li>
+            <li><code>WhatsAppBot</code></li>
+            <li><code>AdsBotGoogle</code></li>
+            <li><code>GoogleBotMobile</code></li>
+            <li><code>MediapartnersGoogle</code></li>
+            <li><code>WordPressBot</code></li>
+            <li><code>DuckDuckBot</code></li>
+            <li><code>BaiduSpider</code></li>
+          </ul>
+
+          <h4 id="is_datacenter" class="title is-4 anchor-title">
+            <a class="anchor-link" href="#is_datacenter">
+              #
+            </a>
+            <span class="anchor-name">
+              <code>is_datacenter</code> - Whether the IP belongs to a Hosting Provider
+            </span>
+          </h4>
+
+          <p>
+            The field <code>is_datacenter</code> has the datatype <code>boolean</code>.
+          </p>
+
+          <p>It specifies whether the IP address belongs to a datacenter (hosting provider) or not.
+            In this example, the value is
+            <code>true</code>, since <code>107.174.138.172</code> belongs to the hosting provider
+            <code>ColoCrossing</code>.
+          </p>
+
+          <p>
+            The definition of what constitutes a datacenter (hosting provider) is quite lenient on <a
+              href="/">ipapi.is</a> and includes all of the following categories:
+          </p>
+
+          <ul>
+            <li>Standard hosting providers such as <a href="https://www.hetzner.de/">Hetzner.de</a> or <a
+                href="https://www.leaseweb.com/">Leaseweb.com</a></li>
+            <li>Large cloud providers such as <a href="https://aws.amazon.com/">Amazon AWS</a> or <a
+                href="https://azure.microsoft.com/">Microsoft Azure</a></li>
+            <li>Content Delivery Networks such as <a href="https://www.cloudflare.com/">Cloudflare</a>, <a
+                href="https://www.fastly.com/">Fastly</a> or <a href="https://edg.io/">edg.io</a></li>
+            <li>Anti-DDoS services such as <a href="https://qrator.net/">qrator.net</a> or <a
+                href="https://ddos-guard.net/">ddos-guard.net</a></li>
+            <li>IP leasing organizations such as <a href="https://ipxo.com/">ipxo.com</a> or <a
+                href="https://interlir.com/">interlir.com</a></li>
+            <li>Other SaaS, IaaS, or PaaS organizations such as <a href="https://fly.io/">fly.io</a> or <a
+                href="https://www.heroku.com/">Heroku</a></li>
+          </ul>
+
+          <p>
+            In other words, every organization that allows third parties to quickly and anonymously obtain hosting
+            resources or access to IP addresses is considered a hosting provider.
+          </p>
+
+          <p>
+            If the IP address belongs to a datacenter, then the <a href="/developers.html#datacenter-object">datacenter
+              object</a> will also be present in the API output.
+          </p>
+
+          <p>
+            The datacenter/hosting detection quality of <a href="https://ipapi.is/">ipapi.is</a> is one of its core
+            strengths. If this value is <code>true</code>, you can rely on the fact that the IP address belongs to a
+            hosting provider.
+          </p>
+
+          <p>
+            For a full list of hosting providers, click on the button below.
+          </p>
+
+          <div class="my-5">
+            <a class="button is-success" href="/hosting-providers-table.html">List of hosting providers</a>
+          </div>
+
+          <h4 id="is_tor" class="title is-4 anchor-title">
+            <a class="anchor-link" href="#is_tor">
+              #
+            </a>
+            <span class="anchor-name">
+              <code>is_tor</code> - Whether the IP is a TOR Exit Node
+            </span>
+          </h4>
+
+          <p>The field <code>is_tor</code> has the datatype <code>boolean</code>.</p>
+
+          <p>If the field <code>is_tor</code> is <code>true</code>, the IP address is a TOR exit node. TOR
+            exit node detection is very accurate, so you can rely on the value of <code>is_tor</code>. The API detects
+            most TOR exit nodes reliably.</p>
+
+          <p>
+            If the <code>is_tor</code> field is <code>true</code>, it is recommended to either challenge the client
+            with this IP address with a captcha or block them from accessing critical resources.
+          </p>
+
+          <p>
+            This is because the TOR network is often used by cybercriminals for malicious activities, and if you are
+            running a critical service, you might want to prevent TOR clients from accessing it.
+          </p>
+
+          <h4 id="is_proxy" class="title is-4 anchor-title">
+            <a class="anchor-link" href="#is_proxy">
+              #
+            </a>
+            <span class="anchor-name">
+              <code>is_proxy</code> - Whether the IP is a Proxy Exit Node
+            </span>
+          </h4>
+
+          <p>The field <code>is_proxy</code> has the datatype <code>boolean</code>.</p>
+          <p>The field determines whether the IP address is a proxy. In this example, the IP <a
+              href="https://api.ipapi.is/?q=107.174.138.172">https://api.ipapi.is/?q=107.174.138.172</a>
+            is a proxy. Generally, the flag
+            <code>is_proxy</code> only covers a subset of all proxies on the Internet. In other words, <a
+              href="https://ipapi.is/">ipapi.is</a> cannot reliably detect residential and mobile proxies.
+          </p>
+
+          <p>
+            Proxy and VPN detection that follows an offline-based approach is not very accurate. Why is that the case?
+            The following example explains why there is a limit to the accuracy that can be achieved:
+          </p>
+
+          <div class="notification is-info is-light">
+            <p>
+              <span class="icon">
+                <i class="fa-solid fa-lightbulb"></i>
+              </span>
+              Let's assume a threat actor sets up a proxy server on a cheap hosting instance and starts using the proxy
+              server for nefarious use cases. How can any offline proxy database contain the information immediately
+              that this IP address belongs to a proxy server?
+            </p>
+
+            <p>
+              <strong>The answer is:</strong> <strong>Offline databases cannot know this</strong>. The only reliable way
+              to detect proxies and VPNs is to <a href="https://proxydetect.live/">observe their networking behavior
+                when they are actually used (live)</a>.
+            </p>
+
+            <p>
+              Proxy databases can only be populated over time, after the threat actor has used the proxy server
+              repeatedly on websites or honeypots. Therefore, these proxy databases are often outdated, lag behind, or
+              contain false information.
+            </p>
+          </div>
+
+          <p>
+            Nevertheless, <a href="https://ipapi.is/">ipapi.is</a> strives to be as accurate as possible by using many
+            different sources that publish proxy IP addresses. Example source: <a
+              href="https://github.com/firehol/blocklist-ipsets/blob/master/firehol_anonymous.netset">firehol_anonymous.netset</a>
+            from the <a href="https://firehol.org/">FireHOL</a> project.
+          </p>
+
+          <h4 id="is_vpn" class="title is-4 anchor-title">
+            <a class="anchor-link" href="#is_vpn">
+              #
+            </a>
+            <span class="anchor-name">
+              <code>is_vpn</code> - Whether the IP is a VPN Exit Node
+            </span>
+          </h4>
+
+          <p>
+            The field <code>is_vpn</code> determines whether the IP address is a VPN Exit Node and has datatype
+            <code>boolean</code> or <code>string</code>.
+          </p>
+
+          <p>The <code>is_vpn</code> field can have two different data types, depending on whether the specific VPN
+            service can be detected or not. To give some examples:
+          </p>
+
+          <ul>
+            <li><code>boolean (false)</code> - <code><a
+              href="https://api.ipapi.is?q=67.170.172.12">67.170.172.12</a></code> is not
+              associated with an VPN, therefore the
+              field
+              <code>is_vpn</code> is set
+              to <code>false</code>
+            </li>
+            <li><code>string ("Mullvad")</code> - <code><a
+              href="https://api.ipapi.is?q=146.70.128.244">146.70.128.244</a></code> belongs to
+              the VPN service Mullvad, therefore
+              the field <code>is_vpn</code>
+              is set
+              to the string value <code>"Mullvad"</code></li>
+            <li><code>boolean (true)</code> -The IP <code><a
+              href="https://api.ipapi.is?q=172.240.248.0">172.240.248.0</a></code> is known to
+              be a VPN exit node, but it
+              is not known to which service
+              specifically. Therefore the field <code>is_vpn</code>
+              is set
+              to the generic truthy value <code>true</code></li>
+          </ul>
+
+          <p>The field <code>is_vpn</code> covers a constantly growing subset of all VPNs on the Internet. Due
+            to our
+            <a href="/blog/systematic-vpn-detection.html">systematic approach</a> to finding VPN exit nodes, the VPN
+            coverage of the API is
+            constantly
+            growing and becoming more accurate on a daily basis.
+          </p>
+
+          <div class="my-5">
+            <a class="button is-success" href="/vpn-exit-nodes.html">See VPN Exit Nodes</a>
+          </div>
+
+          <h4 id="is_abuser" class="title is-4 anchor-title">
+            <a class="anchor-link" href="#is_abuser">
+              #
+            </a>
+            <span class="anchor-name">
+              <code>is_abuser</code> - Whether the IP committed abusive actions
+            </span>
+          </h4>
+
+          <p>The field <code>is_abuser</code> has the datatype <code>boolean</code>.</p>
+
+          <p>The field <code>is_abuser</code> is <code>true</code> if the IP address has committed abusive actions, as
+            was the case with <code>107.174.138.172</code>. Various IP blocklists and threat intelligence feeds are used
+            to populate the <code>is_abuser</code> flag.</p>
+
+          <p>
+            Open source and proprietary blocklists are used in the API to populate the <code>is_abuser</code> flag. The
+            flag does not differentiate the type of abusive action; the IP could have been involved in activities like
+            viruses, bots, crawlers, scrapers, or worms.
+          </p>
+
+          <p>
+            If the <code>is_abuser</code> attribute is <code>true</code>, it is advisable to either challenge the client
+            with this IP address with a captcha or block them from accessing critical resources.
+          </p>
+
+          <p>
+            Example data source for abusive IP addresses: <a
+              href="https://github.com/firehol/blocklist-ipsets/blob/master/firehol_abusers_1d.netset">firehol_abusers_1d.netset</a>
+          </p>
+
+          <h4 id="elapsed_ms" class="title is-4 anchor-title">
+            <a class="anchor-link" href="#elapsed_ms">
+              #
+            </a>
+            <span class="anchor-name">
+              <code>elapsed_ms</code> - The internal processing time for the API lookup
+            </span>
+          </h4>
+
+          <p>The field <code>elapsed_ms</code> has the datatype <code>float</code>.</p>
+
+          <p>
+            This field indicates the amount of internal processing time, measured in milliseconds (ms), spent handling
+            the API query. This particular lookup took only <code>0.9ms</code>, which is quite fast.
+          </p>
+
+          <p>
+            On average, IP lookups on <a href="https://ipapi.is/">ipapi.is</a> take about <code>1.2ms</code> of
+            processing time.
+          </p>
+
+          <h3 id="datacenter-object" class="title is-3 anchor-title">
+            <a class="anchor-link" href="#datacenter-object">
+              #
+            </a>
+            <span class="anchor-name">
+              The <code>datacenter</code> object
+            </span>
+          </h3>
+
+          <p>
+            Example API output for the <code>datacenter</code> object:
+          </p>
+
+          <pre class="code-style"><code class="json language-json">"datacenter": {
+  "datacenter": "HostPapa",
+  "domain": "www.hostpapa.com",
+  "network": "107.172.0.0 - 107.175.255.255"
+}</code></pre>
+
+          <p>If the IP address belongs to a datacenter/hosting provider, the API response will include a
+            <code>datacenter</code> object with at least the following attributes:
+          </p>
+          <ul>
+            <li><code>datacenter</code> - <code>string</code> - to which datacenter the IP address belongs. For a full
+              list of datacenters, check the <a href="/hosting-providers-table.html">hosting providers table page</a>.
+              In
+              this case, the datacenter's name is <code>HostPapa</code>.</li>
+            <li><code>domain</code> - <code>string</code> - The domain name of the hosting provider company</li>
+            <li><code>network</code> - <code>string</code> - the network this IP address belongs to (In the above case:
+              <code>107.172.0.0 - 107.175.255.255</code>)
+            </li>
+          </ul>
+          <p>Most IP's don't belong to a hosting provider. In those cases, the <code>datacenter</code> object will not
+            be present in the API output.</p>
+          <p>For a couple of large cloud providers, such as Google Cloud, Amazon AWS, DigitalOcean or Microsoft Azure
+            (and many others), the <code>datacenter</code> object is more detailed.</p>
+          <p><a href="https://aws.amazon.com/">Amazon AWS</a> example:</p>
+
+          <pre class="code-style"><code class="json language-json">{
+  "ip": "3.5.140.2",
+  "datacenter": {
+    "datacenter": "Amazon AWS",
+    "network": "3.5.140.0/22",
+    "region": "ap-northeast-2",
+    "service": "EC2",
+    "network_border_group": "ap-northeast-2"
+  }
+}</code></pre>
+
+          <p><a href="https://www.digitalocean.com/">DigitalOcean</a> example:</p>
+
+          <pre class="code-style"><code class="json language-json">{
+  "ip": "167.99.241.130",
+  "datacenter": {
+    "datacenter": "DigitalOcean",
+    "code": "60341",
+    "city": "Frankfurt",
+    "state": "DE-HE",
+    "country": "DE",
+    "network": "167.99.240.0/20"
+  },
+}</code></pre>
+
+          <p><a href="https://www.linode.com/">Linode</a> example:</p>
+
+          <pre class="code-style"><code class="json language-json">{
+  "ip": "72.14.182.54",
+  "datacenter": {
+    "datacenter": "Linode",
+    "name": "US-TX",
+    "city": "Richardson",
+    "country": "US",
+    "network": "72.14.182.0/24"
+  },
+}</code></pre>
+
+          <h3 id="company-object" class="title is-3 anchor-title">
+            <a class="anchor-link" href="#company-object">
+              #
+            </a>
+            <span class="anchor-name">
+              The <code>company</code> object
+            </span>
+          </h3>
+
+          <p>
+            Example API output for the <code>company</code> object:
+          </p>
+
+          <pre class="code-style"><code class="json language-json">"company": {
+  "name": "HostPapa",
+  "abuser_score": "0.0062 (Low)",
+  "domain": "www.hostpapa.com",
+  "type": "hosting",
+  "network": "107.172.0.0 - 107.175.255.255",
+  "whois": "https://api.ipapi.is/?whois=107.172.0.0"
+},</code></pre>
+
+          <p>
+            Most IP addresses can be associated with an organization or company. The API uses WHOIS
+            information to infer which organization is the administrative owner of a certain IP address.
+          </p>
+
+          <p>
+            The owner of an IP address is stored in the databases
+            of the five
+            Regional
+            Internet
+            Registies (RIR'rs). For
+            example, IP
+            address ownership
+            in <a href="https://www.ripe.net/">RIPE NCC</a> is handled with <a
+              href="https://apps.db.ripe.net/docs/04.RPSL-Object-Types/02-Descriptions-of-Primary-Objects.html#description-of-the-inetnum-object">inetnum
+              (IPv4)</a>
+            and <a
+              href="https://apps.db.ripe.net/docs/04.RPSL-Object-Types/02-Descriptions-of-Primary-Objects.html#description-of-the-inet6num-object">inet6num
+              (IPv6)</a>
+            objects. In <a href="https://www.arin.net/">ARIN</a>, IP address ownership
+            can be inferred from <a href="https://www.arin.net/resources/registry/whois/#network">NetRange </a> objects.
+          </p>
+
+          <p>Since the example IP <code>107.174.138.172</code> falls into the administrative realm of ARIN, the
+            corresponding WHOIS record is obtained with <code>whois -h whois.arin.net 107.174.138.172</code> and yields:
+          </p>
+
+          <div class="my-3">
+            <button class="button toggle-button my-3">
+              <span class="icon">
+                <i class="fa fa-chevron-right"></i>
+              </span>
+              <span class="toggle-text">Show Raw WHOIS Data</span>
+            </button>
+
+            <pre class="code-style toggle-target"><code class="json language-text">NetRange:       107.172.0.0 - 107.175.255.255
+CIDR:           107.172.0.0/14
+NetName:        CC-17
+NetHandle:      NET-107-172-0-0-1
+Parent:         NET107 (NET-107-0-0-0-0)
+NetType:        Direct Allocation
+OriginAS:       AS36352
+Organization:   HostPapa (HOSTP-7)
+RegDate:        2013-12-27
+Updated:        2024-02-02
+Comment:        Geofeed https://geofeeds.oniaas.io/geofeeds.csv
+Ref:            https://rdap.arin.net/registry/ip/107.172.0.0
+
+
+OrgName:        HostPapa
+OrgId:          HOSTP-7
+Address:        115 George St.
+Address:        Suite 511
+City:           Oakville
+StateProv:      ON
+PostalCode:     L6J 0A2
+Country:        CA
+RegDate:        2016-06-06
+Updated:        2024-02-02
+Ref:            https://rdap.arin.net/registry/entity/HOSTP-7
+
+
+OrgTechHandle: NETTE9-ARIN
+OrgTechName:   NETTECH
+OrgTechPhone:  +1-905-315-3455 
+OrgTechEmail:  net-tech-global@hostpapa.com
+OrgTechRef:    https://rdap.arin.net/registry/entity/NETTE9-ARIN
+
+OrgAbuseHandle: NETAB23-ARIN
+OrgAbuseName:   NETABUSE
+OrgAbusePhone:  +1-905-315-3455 
+OrgAbuseEmail:  net-abuse-global@hostpapa.com
+OrgAbuseRef:    https://rdap.arin.net/registry/entity/NETAB23-ARIN
+
+RTechHandle: NETTE11-ARIN
+RTechName:   NETTECH-COLOCROSSING
+RTechPhone:  +1-800-518-9716 
+RTechEmail:  support@colocrossing.com
+RTechRef:    https://rdap.arin.net/registry/entity/NETTE11-ARIN
+
+RAbuseHandle: NETAB27-ARIN
+RAbuseName:   NETABUSE-COLOCROSSING
+RAbusePhone:  +1-800-518-9716 
+RAbuseEmail:  abuse@colocrossing.com
+RAbuseRef:    https://rdap.arin.net/registry/entity/NETAB27-ARIN</code></pre>
+          </div>
+
+          <p>
+            The <code>company</code> object is sourced from <code>inetnum</code> or <code>NetRange</code> WHOIS objects.
+            The
+            <code>OrgName</code> from the WHOIS record above is mapped to the <code>name</code> attribute of the
+            the <code>company</code> object.
+          </p>
+
+          <p>
+            Most API lookups will have an
+            <code>company</code> object with the following attributes:
+          </p>
+          <ul>
+            <li><code>name</code> - <code>string</code> - The name of the organization (company) obtained from the
+              corresponding WHOIS database entry</li>
+            <li><code>abuser_score</code> - <code>string</code> - This field represents the quota of abusive
+              IP addresses of the network belonging to the organization (company). The higher this number is, the more
+              abusive the whole network is.</li>
+            <li><code>domain</code> - <code>string</code> - The domain name of the organization (company)</li>
+            <li><code>type</code> - <code>string</code> - The type for this organization (company), this is either
+              <code>hosting</code>,
+              <code>education</code>, <code>government</code>, <code>banking</code>, <code>business</code> or
+              <code>isp</code>
+            </li>
+            <li><code>network</code> - <code>string</code> - The network for which the organization (company) has
+              ownership</li>
+            <li><code>whois</code> - <code>string</code> - An url to the WHOIS record for the network of this IP
+              address</li>
+          </ul>
+
+          <h3 id="asn-object" class="title is-3 anchor-title">
+            <a class="anchor-link" href="#asn-object">
+              #
+            </a>
+            <span class="anchor-name">
+              The <code>asn</code> object
+            </span>
+          </h3>
+
+          <p>
+            Example API output for the <code>asn</code> object:
+          </p>
+
+          <pre class="code-style"><code class="json language-json">"asn": {
+  "asn": 36352,
+  "abuser_score": "0.0071 (Low)",
+  "route": "107.174.138.0/24",
+  "descr": "AS-COLOCROSSING, CA",
+  "country": "ca",
+  "active": true,
+  "org": "ColoCrossing",
+  "domain": "www.colocrossing.com",
+  "abuse": "abuse@colocrossing.com",
+  "type": "hosting",
+  "created": "2005-12-12",
+  "updated": "2013-01-08",
+  "rir": "ARIN",
+  "whois": "https://api.ipapi.is/?whois=AS36352"
+},
+</code></pre>
+
+          <p>
+            Most IP addresses can be associated with an Autonomous System (AS). Similar to the <code>company</code>
+            object, the
+            core data to populate the
+            <code>asn</code> object originates from WHOIS data. For example, in order to find the corresponding
+            information for ASN 36352, the WHOIS query <code>whois -h whois.arin.net as36352</code> yields:
+          </p>
+
+          <div class="my-3">
+            <button class="button toggle-button my-3">
+              <span class="icon">
+                <i class="fa fa-chevron-right"></i>
+              </span>
+              <span class="toggle-text">Show Raw WHOIS Data</span>
+            </button>
+
+            <pre class="code-style toggle-target"><code class="json language-text">ASNumber:       36352
+ASName:         AS-COLOCROSSING
+ASHandle:       AS36352
+RegDate:        2005-12-12
+Updated:        2024-01-04    
+Ref:            https://rdap.arin.net/registry/autnum/36352
+
+
+OrgName:        HostPapa
+OrgId:          HOSTP-7
+Address:        115 George St.
+Address:        Suite 511
+City:           Oakville
+StateProv:      ON
+PostalCode:     L6J 0A2
+Country:        CA
+RegDate:        2016-06-06
+Updated:        2024-02-02
+Ref:            https://rdap.arin.net/registry/entity/HOSTP-7
+
+
+OrgAbuseHandle: NETAB23-ARIN
+OrgAbuseName:   NETABUSE
+OrgAbusePhone:  +1-905-315-3455 
+OrgAbuseEmail:  net-abuse-global@hostpapa.com
+OrgAbuseRef:    https://rdap.arin.net/registry/entity/NETAB23-ARIN
+
+OrgTechHandle: NETTE9-ARIN
+OrgTechName:   NETTECH
+OrgTechPhone:  +1-905-315-3455 
+OrgTechEmail:  net-tech-global@hostpapa.com
+OrgTechRef:    https://rdap.arin.net/registry/entity/NETTE9-ARIN</code></pre>
+          </div>
+
+          <p>
+            WHOIS data such as the one from above is used to populate the <code>asn</code> object. For example,
+            the <code>OrgName</code> (<em>HostPapa</em>) from the WHOIS record above is mapped to <code>name</code>
+            attribute of the
+            the <code>asn</code> object.
+          </p>
+
+          <p>
+            The <code>asn</code> object provides
+            the following attributes:
+          </p>
+
+          <ul>
+            <li><code>asn</code> - <code>int</code> - The AS number (ASN)</li>
+            <li><code>abuser_score</code> - <code>string</code> - This field represents the quota of abusive
+              IP addresses in all routes of the ASN. The higher this number is, the more abusive the whole ASN is.</li>
+            <li><code>route</code> - <code>string</code> - The IP route (prefix) in CIDR network format</li>
+            <li><code>descr</code> - <code>string</code> - An informational description of the AS</li>
+            <li><code>country</code> - <code>string</code> - The origin country of the AS (administratively)
+            </li>
+            <li><code>active</code> - <code>string</code> - Whether the AS is active (active means that there is at
+              least one route
+              administered by the AS)</li>
+            <li><code>org</code> - <code>string</code> - The organization (Based on WHOIS data) responsible for
+              this AS
+            </li>
+            <li><code>domain</code> - <code>string</code> - The domain of the organization to which this AS belongs</li>
+            <li><code>abuse</code> - <code>string</code> - The email address to which abuse complaints for this
+              organization should be sent (Based on WHOIS data)</li>
+            <li><code>type</code> - <code>string</code> - The type for this ASN, this is either <code>hosting</code>,
+              <code>education</code>, <code>government</code>, <code>banking</code>, <code>business</code> or
+              <code>isp</code>
+            </li>
+            <li><code>created</code> - <code>string</code> - When the ASN was established (Based on WHOIS data)</li>
+            <li><code>updated</code> - <code>string</code> - The last time the ASN was updated (Based on WHOIS data)
+            </li>
+            <li><code>rir</code> - <code>string</code> - To which Regional Internet Registry the ASN belongs
+              administratively</li>
+            <li><code>whois</code> - <code>string</code> - An url to the WHOIS information for this ASN</li>
+          </ul>
+          <p>For inactive autonomous systems, most of the above information is not available.</p>
+
+          <h3 id="location-object" class="title is-3 anchor-title">
+            <a class="anchor-link" href="#location-object">
+              #
+            </a>
+            <span class="anchor-name">
+              The <code>location</code> object
+            </span>
+          </h3>
+
+          <p>
+            Example API output for the <code>location</code> object:
+          </p>
+
+          <pre class="code-style"><code class="json language-json">"location": {
+  "continent": "NA",
+  "country": "United States",
+  "country_code": "US",
+  "state": "New York",
+  "city": "Buffalo",
+  "latitude": 42.886,
+  "longitude": -78.878,
+  "zip": "14205",
+  "timezone": "America/New_York",
+  "local_time": "2024-02-10T13:24:14-05:00",
+  "local_time_unix": 1707589454,
+  "is_dst": false
+},</code></pre>
+
+          <p>The API provides geolocation information for the looked up IP address. The <code>location</code> object
+            includes the following attributes:</p>
+          <ul>
+            <li><code>continent</code> - <code>string</code> - The continent as two letter code such as <code>NA</code>
+              for North America
+            </li>
+            <li><code>country</code> - <code>string</code> - The full name of the country</li>
+            <li><code>country_code</code> - <code>string</code> - The <a
+                href="https://en.wikipedia.org/wiki/ISO_3166-1">ISO 3166-1 alpha-2 country code</a> to which the IP
+              address belongs. This is the country specific geolocation of the IP address.</li>
+            <li><code>state</code> - <code>string</code> - The state / administrative area for the queried IP address
+            </li>
+            <li><code>city</code> - <code>string</code> - The city to which the IP address belongs</li>
+            <li><code>latitude</code> - <code>float</code> - The geographical latitude for the IP address</li>
+            <li><code>longitude</code> - <code>float</code> - The geographical longitude for the IP address</li>
+            <li><code>zip</code> - <code>string</code> - The zip code for this IP</li>
+            <li><code>timezone</code> - <code>string</code> - The timezone for this IP</li>
+            <li><code>local_time</code> - <code>string</code> - The local time for this IP in human readable format</li>
+            <li><code>local_time_unix</code> - <code>int</code> - The local time for this IP as unix timestamp</li>
+            <li><code>is_dst</code> - <code>boolean</code> - Whether daylight saving time (DST) is active in the
+              geographical region
+              of this IP address</li>
+            <li><code>other</code> - <code>array</code> - (Optional) - If there are multiple possible geographical
+              locations, the attribute <code>other</code> is included in the API response. It contains an array of <a
+                href="https://en.wikipedia.org/wiki/ISO_3166-1">ISO 3166-1 alpha-2 country codes</a> which represent the
+              possible other geolocation countries.</li>
+          </ul>
+          <p>A <a href="/geolocation.html">proprietary
+              geolocation database</a> was built from scratch in order to source the
+            <code>location</code> object.
+          </p>
+
+          <h2 id="api-endpoints" class="title is-3 anchor-title">
+            <a class="anchor-link" href="#api-endpoints">
+              #
+            </a>
+            <span class="anchor-name">
+              API Endpoints
+            </span>
+          </h2>
+
+          <hr />
+
+          <p>The IP API currently has two endpoints. One endpoint (GET) handles lookups for single IP addresses, the
+            other endpoint (POST) handles the lookup of up to 100 IP addresses (Batch lookup).</p>
+
+          <h4 id="get-endpoint" class="title is-4 anchor-title">
+            <a class="anchor-link" href="#get-endpoint">
+              #
+            </a>
+            <span class="anchor-name">
+              GET Endpoint - Lookup a single IP Address or ASN
+            </span>
+          </h4>
+
+          <p>This GET endpoint allows to lookup a single IPv4 or IPv6 address by specifying the query parameter
+            <code>q</code>. Example: <code>q=142.250.186.110</code>. You can also lookup <strong>ASN</strong> numbers by
+            specifying the query <code>q=AS209103</code>
+          </p>
+          <ul>
+            <li><strong>Endpoint</strong> - <a href="https://api.ipapi.is">https://api.ipapi.is</a></li>
+            <li><strong>Method</strong> - <code>GET</code></li>
+            <li><strong>Parameter</strong> - <code>q</code> - The IP address or ASN to lookup</li>
+            <li><strong>Example</strong> - <a
+                href="https://api.ipapi.is?q=3.5.140.2">https://api.ipapi.is?q=3.5.140.2</a></li>
+            <li><strong>ASN Example</strong> - <a
+                href="https://api.ipapi.is?q=AS42831">https://api.ipapi.is?q=AS42831</a></li>
+          </ul>
+
+          <h4 id="post-endpoint" class="title is-4 anchor-title">
+            <a class="anchor-link" href="#post-endpoint">
+              #
+            </a>
+            <span class="anchor-name">
+              POST Endpoint - Query up to 100 IP Addresses in one
+              API call
+            </span>
+          </h4>
+
+          <p>You can also make a bulk API lookup with up to 100 IP addresses (Either IPv4 or IPv6) in one single
+            request.</p>
+          <ul>
+            <li><strong>Endpoint</strong> - <a href="https://api.ipapi.is">https://api.ipapi.is</a></li>
+            <li><strong>Method</strong> - <code>POST</code></li>
+            <li><strong>Content-Type</strong> - <code>Content-Type: application/json</code></li>
+            <li><strong>Parameter</strong> - <code>ips</code> - An array of IPv4 and IPv6 addresses to lookup</li>
+          </ul>
+          <p>For example, in order to lookup the IP addresses</p>
+          <ul>
+            <li><code>162.158.0.0</code></li>
+            <li><code>2406:dafe:e0ff:ffff:ffff:ffff:dead:beef</code></li>
+            <li><code>162.88.0.0</code></li>
+            <li><code>20.41.193.225</code></li>
+          </ul>
+          <p>You can use the following POST API request with <code>curl</code>:</p>
+          <pre class="code-style"><code class="bash language-bash">curl --header "Content-Type: application/json" \
+  --request POST \
+  --data '{"ips": ["162.158.0.0", "2406:dafe:e0ff:ffff:ffff:ffff:dead:beef", "162.88.0.0", "20.41.193.225"]}' \
+  https://api.ipapi.is</code></pre>
+
+          <p>This is how you would make the POST request with <code>JavaScript</code> using <code>fetch()</code>:</p>
+          <pre class="code-style"><code class="javascript language-javascript">const IPs = [
+  '162.158.0.0',
+  '2406:dafe:e0ff:ffff:ffff:ffff:dead:beef',
+  '162.88.0.0',
+  '20.41.193.225'
+];
+
+fetch('https://api.ipapi.is', {
+  method: 'POST',
+  headers: {
+    'Accept': 'application/json, text/plain, */*',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({ ips: IPs })
+}).then(res => res.json())
+  .then(res => console.log(res));</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.menu a').forEach((anchor) => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        document.querySelector(this.getAttribute('href')).scrollIntoView({
+          behavior: 'smooth'
+        });
+      });
+    });
+  });
+</script>
+
+  <footer class="section main-footer mt-1 mb-1">
+    <div class="columns">
+      <div class="column is-6-desktop">
+        <h2 class="is-size-3 is-size-3-mobile has-text-weight-bold has-text-white mb-4">ipapi.is is
+          accurate and easy to understand</h2>
+        <p>
+          Sign up for a free account. Our free plan (1,000 free daily
+          requests)
+          will always cover use-cases for most users.
+          In case you need a larger API volume, you can subscribe to a <a href="/pricing.html">billing plan</a>.
+        </p>
+        <div class="columns mt-2">
+          <div class="column">
+            <div class="column is-3">
+              <h3 class="is-size-5 is-size-5-mobile has-text-weight-bold has-text-white mb-1">Company</h3>
+              <p class="bd-footer-link">
+                <a href="/about.html">
+                  About
+                </a>
+              </p>
+              <p class="bd-footer-link">
+                <a href="/blog.html">
+                  Blog
+                </a>
+              </p>
+              <p class="bd-footer-link">
+                <a href="/#frequently-asked-questions">
+                  FAQ
+                </a>
+              </p>
+              <p class="bd-footer-link">
+                <a href="/pricing.html">
+                  Pricing
+                </a>
+              </p>
+              <p class="bd-footer-link">
+                <a href="/changelog.html">
+                  Changelog
+                </a>
+              </p>
+            </div>
+          </div>
+          <div class="column">
+            <div class="column">
+              <h3 class="is-size-5 is-size-5-mobile has-text-weight-bold has-text-white mb-1">Resources</h3>
+              <p class="bd-footer-link">
+                <a href="/developers.html">
+                  Documentation
+                </a>
+              </p>
+              <p class="bd-footer-link">
+                <a href="/vpn-exit-nodes.html">
+                  VPN Exit Nodes
+                </a>
+              </p>
+              <p class="bd-footer-link">
+                <a href="/hosting-providers-table.html">
+                  Hosting Providers
+                </a>
+              </p>
+              <p class="bd-footer-link">
+                <a href="/most-abusive-networks.html">
+                  Most Abusive Networks
+                </a>
+              </p>
+              <p class="bd-footer-link">
+                <a href="/most-abusive-asn.html">
+                  Most Abusive ASNs
+                </a>
+              </p>
+              <p class="bd-footer-link">
+                <a href="https://github.com/ipapi-is/ipapi">
+                  <i class="fa-brands fa-github" style="margin-right: .45rem;"></i>
+                  GitHub
+                </a>
+              </p>
+              <p class="bd-footer-link">
+                <a href="/status.html" class="status-link">
+                  API Status
+                </a>
+              </p>
+            </div>
+          </div>
+          <div class="column">
+            <div class="column">
+              <h3 class="is-size-5 is-size-5-mobile has-text-weight-bold has-text-white mb-1">Databases</h3>
+              <p class="bd-footer-link">
+                <a href="/hosting-detection.html">
+                  IP to Hosting / Cloud
+                </a>
+              </p>
+              <p class="bd-footer-link">
+                <a href="/geolocation.html">
+                  IP to Geolocation
+                </a>
+              </p>
+              <p class="bd-footer-link">
+                <a href="/asn.html">
+                  IP to ASN
+                </a>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="column is-1-desktop"></div>
+      <div class="column is-4-desktop">
+        <div class="has-text-centered">
+          <h2 class="is-size-3 is-size-3-mobile has-text-weight-bold has-text-white mb-4">Sign Up</h2>
+          <p class="mb-5">Get started for free by signing up</p>
+          <div class="buttons">
+            <a class="button is-success is-fullwidth" href="/app/signup">
+              <i class="fa-solid fa-user" style="margin-right: .45rem;"></i> Sign Up
+            </a>
+            <a class="button is-light is-fullwidth" href="/app/">
+              <i class="fa-solid fa-house" style="margin-right: .45rem;"></i> Sign In
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="mt-5">
+      <i class="fa-solid fa-heart" style="color: #e31616; margin-right: .35rem;"></i>
+      <a href="/">ipapi.is</a>
+      - All rights reserved Â© 2022 - 2024 Â·
+      <a href="/terms.html">Terms & Service</a>
+      Â·
+      <a href="/privacy.html">Privacy Policy</a>
+      Â·
+      <a href="/contact.html">Contact</a>
+    </p>
+  </footer>
+
+  <!-- Styles and Scripts that can be loaded later -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="/js/app-page.js?v=1"></script>
+
+  
+</body>
+
+</html>

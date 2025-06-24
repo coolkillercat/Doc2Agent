@@ -1,70 +1,79 @@
-import requests, json
+import requests
+import json
 from urllib.parse import quote
 
-def get_shopping_admin_admin_auth_token():
+def get_shopping_admin_auth_token():
+    ENDPOINT = 'http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:7770'
     response = requests.post(
-        url=f'http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:7780/rest/default/V1/integration/admin/token',
-        headers={
+        url = f'{ENDPOINT}/rest/default/V1/integration/admin/token',
+        headers = {
             'content-type': 'application/json'
         },
-        data=json.dumps({
+        data = json.dumps({
             'username': 'admin',
             'password': 'admin1234'
         })
     )
-    return response.json()
+    return "Bearer " + response.json()
 
-def search_customers(searchCriteria_filterGroups__0__filters__0__field_=None, searchCriteria_filterGroups__0__filters__0__value_=None, searchCriteria_filterGroups__0__filters__0__conditionType_=None, searchCriteria_sortOrders__0__field_=None, searchCriteria_sortOrders__0__direction_=None, searchCriteria_pageSize_=None, searchCriteria_currentPage_=None):
+
+def search_customers(field=None, value=None, condition_type="eq", sort_field=None, 
+                    sort_direction=None, page_size=20, current_page=1):
     """
     Search for customers based on specified criteria.
     
     Args:
-        searchCriteria_filterGroups__0__filters__0__field_: Field to filter by (e.g., 'email')
-        searchCriteria_filterGroups__0__filters__0__value_: Value to filter by (e.g., 'example@example.com')
-        searchCriteria_filterGroups__0__filters__0__conditionType_: Condition type (e.g., 'eq' for equals)
-        searchCriteria_sortOrders__0__field_: Field to sort by (e.g., 'created_at')
-        searchCriteria_sortOrders__0__direction_: Sort direction (e.g., 'ASC')
-        searchCriteria_pageSize_: Number of results per page
-        searchCriteria_currentPage_: Current page number
-        
-    Returns:
-        Response object from the API request
-    """
-    api_url = f"http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:7780/rest/default/V1/customers/search"
+        field (str): The field to filter by (e.g., 'email', 'firstname', 'lastname')
+        value (str): The value to filter for
+        condition_type (str): The condition type for filtering (e.g., 'eq', 'like', 'gt')
+        sort_field (str): Field to sort results by (e.g., 'created_at', 'email')
+        sort_direction (str): Direction to sort ('ASC' or 'DESC')
+        page_size (int): Number of results per page
+        current_page (int): Current page number
     
-    # Build query parameters, removing None values
+    Returns:
+        requests.Response: The API response object
+    
+    Example:
+        >>> search_customers(field='email', value='example@example.com')
+        >>> search_customers(field='firstname', value='John', sort_field='created_at', sort_direction='DESC')
+    """
+    base_url = "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:7770"
+    api_url = f"{base_url}/rest/default/V1/customers/search"
+    
+    # Initialize query parameters
     querystring = {}
-    if searchCriteria_filterGroups__0__filters__0__field_ is not None:
-        querystring['searchCriteria[filterGroups][0][filters][0][field]'] = searchCriteria_filterGroups__0__filters__0__field_
-    if searchCriteria_filterGroups__0__filters__0__value_ is not None:
-        querystring['searchCriteria[filterGroups][0][filters][0][value]'] = searchCriteria_filterGroups__0__filters__0__value_
-    if searchCriteria_filterGroups__0__filters__0__conditionType_ is not None:
-        querystring['searchCriteria[filterGroups][0][filters][0][conditionType]'] = searchCriteria_filterGroups__0__filters__0__conditionType_
-    if searchCriteria_sortOrders__0__field_ is not None:
-        querystring['searchCriteria[sortOrders][0][field]'] = searchCriteria_sortOrders__0__field_
-    if searchCriteria_sortOrders__0__direction_ is not None:
-        querystring['searchCriteria[sortOrders][0][direction]'] = searchCriteria_sortOrders__0__direction_
-    if searchCriteria_pageSize_ is not None:
-        querystring['searchCriteria[pageSize]'] = searchCriteria_pageSize_
-    if searchCriteria_currentPage_ is not None:
-        querystring['searchCriteria[currentPage]'] = searchCriteria_currentPage_
+    
+    # Add filter parameters if field and value are provided
+    if field and value:
+        querystring["searchCriteria[filterGroups][0][filters][0][field]"] = field
+        querystring["searchCriteria[filterGroups][0][filters][0][value]"] = value
+        querystring["searchCriteria[filterGroups][0][filters][0][conditionType]"] = condition_type
+    
+    # Add sorting parameters if provided
+    if sort_field:
+        querystring["searchCriteria[sortOrders][0][field]"] = sort_field
+        querystring["searchCriteria[sortOrders][0][direction]"] = sort_direction or "ASC"
+    
+    # Add pagination parameters
+    querystring["searchCriteria[pageSize]"] = page_size
+    querystring["searchCriteria[currentPage]"] = current_page
     
     headers = {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + get_shopping_admin_admin_auth_token(),
+        'Content-Type': 'application/json', 
+        'Authorization': get_shopping_admin_auth_token()
     }
     
-    response = requests.get(url=api_url, headers=headers, params=querystring, timeout=50, verify=False)
+    response = requests.get(url=api_url, params=querystring, headers=headers, timeout=50, verify=False)
     return response
 
 if __name__ == '__main__':
-    r = search_customers(searchCriteria_filterGroups__0__filters__0__field_='''email''', searchCriteria_filterGroups__0__filters__0__value_='''example@example.com''', searchCriteria_filterGroups__0__filters__0__conditionType_='''eq''', searchCriteria_sortOrders__0__field_='''created_at''', searchCriteria_sortOrders__0__direction_='''ASC''', searchCriteria_pageSize_=20, searchCriteria_currentPage_=1)
+    r = search_customers(field='email', value='emma.lopez@gmail.com', sort_field='created_at', sort_direction='ASC')
     r_json = None
     try:
         r_json = r.json()
     except:
         pass
-    import json
     result_dict = dict()
     result_dict['status_code'] = r.status_code
     result_dict['text'] = r.text

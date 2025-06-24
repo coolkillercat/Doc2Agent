@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Openwhyd API | openwhyd</title>
+<meta name="generator" content="Jekyll v3.9.5" />
+<meta property="og:title" content="Openwhyd API" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="💎 Like Pinterest, but for Music 🎧" />
+<meta property="og:description" content="💎 Like Pinterest, but for Music 🎧" />
+<link rel="canonical" href="https://openwhyd.github.io/openwhyd/API.html" />
+<meta property="og:url" content="https://openwhyd.github.io/openwhyd/API.html" />
+<meta property="og:site_name" content="openwhyd" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Openwhyd API" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"💎 Like Pinterest, but for Music 🎧","headline":"Openwhyd API","url":"https://openwhyd.github.io/openwhyd/API.html"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="stylesheet" href="/openwhyd/assets/css/style.css?v=d57fb42b0ef3dd3cb9d8cce4ec97a0cb91f1aafd">
+    <!-- start custom head snippets, customize with your own _includes/head-custom.html file -->
+
+<!-- Setup Google Analytics -->
+
+
+
+<!-- You can set your favicon here -->
+<!-- link rel="shortcut icon" type="image/x-icon" href="/openwhyd/favicon.ico" -->
+
+<!-- end custom head snippets -->
+
+  </head>
+  <body>
+    <div class="container-lg px-3 my-5 markdown-body">
+      
+      <h1><a href="https://openwhyd.github.io/openwhyd/">openwhyd</a></h1>
+      
+
+      <h1 id="openwhyd-api">Openwhyd API</h1>
+
+<p><a href="https://openwhyd.org">Openwhyd</a> is a free and open-source music curation service that allows users to create playlists of music tracks from various streaming platforms (YouTube, SoundCloud, Vimeo, Deezer…) and to discover the music posted by other users.</p>
+
+<p><a href="https://www.youtube.com/watch?v=aZT8VlTV1YY" title="Openwhyd Demo Video"><img src="/openwhyd/img/openwhyd-demo-thumb.png" alt="Openwhyd Demo Video" /></a></p>
+
+<p>It’s important for us that:</p>
+
+<ul>
+  <li>users can access and download data that they contributed to Openwhyd;</li>
+  <li>users can even use their Openwhyd account from 3rd-party software.</li>
+</ul>
+
+<p>In order to satisfy these scenarios, we provide two APIs:</p>
+
+<ul>
+  <li>the <a href="#openwhyd-data-export-api"><strong>Data Export API</strong></a> can be used to download the list of tracks of any user profile or playlist posted publicly on Openwhyd;</li>
+  <li>the <a href="#openwhyd-user-api"><strong>User API</strong></a> can be used to read and update lists of tracks associated to the authenticated user.</li>
+</ul>
+
+<h2 id="openwhyd-data-export-api">Openwhyd Data Export API</h2>
+
+<p>The goal of the Data Export API is to give free access to data that users publicly posted on Openwhyd.</p>
+
+<p>This API can be used by anyone, without authentication, to download the list of tracks of:</p>
+
+<ul>
+  <li>a user’s list of posts; (e.g. https://openwhyd.org/adrien)</li>
+  <li>a user’s list of playlists (e.g. https://openwhyd.org/adrien/playlists)</li>
+  <li>a playlist; (e.g. https://openwhyd.org/adrien/playlist/61)</li>
+  <li>or “hot tracks”. (e.g. https://openwhyd.org/hot/electro)</li>
+</ul>
+
+<p>The list of tracks can be downloaded in several formats:</p>
+
+<ul>
+  <li><a href="https://fr.wikipedia.org/wiki/JavaScript_Object_Notation">JSON</a>;</li>
+  <li>or as a list of URLs.</li>
+</ul>
+
+<p>Please use these URLs responsibly: add a reasonable delay between requests, in order to not put too much pressure on our server. Thank you!</p>
+
+<h3 id="get-parameters">GET Parameters</h3>
+
+<!-- exported from https://whyd.hackpad.com/Early-API-Download-Whyd-track-listings-in-JSON-format-CTMZ8XxzRuB -->
+
+<p>A list of tracks (or playlists) can be downloaded by appending the following HTTP GET parameters to Openwhyd URLs:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">format</code>: “<code class="language-plaintext highlighter-rouge">json</code>” or “<code class="language-plaintext highlighter-rouge">links</code>”</li>
+  <li><code class="language-plaintext highlighter-rouge">limit</code>: number of posts to return (optional, default=<code class="language-plaintext highlighter-rouge">20</code>)</li>
+  <li><code class="language-plaintext highlighter-rouge">after</code>: identifier of the post (a.k.a. <code class="language-plaintext highlighter-rouge">pId</code>) from which entries must be returned (optional, for pagination)</li>
+  <li><code class="language-plaintext highlighter-rouge">callback</code>: (optional) name of the JavaScript function to which data will be passed as a parameter (for JSONP access from external domains)</li>
+</ul>
+
+<h3 id="examples">Examples</h3>
+
+<p>Examples:</p>
+
+<ul>
+  <li>https://openwhyd.org/adrien?format=json returns the last <code class="language-plaintext highlighter-rouge">20</code> tracks Adrien posted on his Openwhyd profile, in <code class="language-plaintext highlighter-rouge">JSON</code> format.</li>
+  <li>https://openwhyd.org/adrien/playlist/10?format=links&amp;limit=10000 returns the last <code class="language-plaintext highlighter-rouge">10000</code> tracks Adrien posted in his “electronica” playlist, as a list of URLs.</li>
+</ul>
+
+<h3 id="response-format-links">Response format: <code class="language-plaintext highlighter-rouge">links</code></h3>
+
+<p>If the <code class="language-plaintext highlighter-rouge">links</code> format was selected, Openwhyd will return a text document with one URL per posted track.</p>
+
+<p>Example:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>//soundcloud.com/deadoceans/mitski-your-best-american-girl-3#https://api.soundcloud.com/tracks/249475048
+//youtube.com/watch?v=If8ChYjdFdE
+//alexanderbrandon.bandcamp.com/track/sunrise-on-vanaar
+</code></pre></div></div>
+
+<p>These URLs are direct links to the track’s content, on their source platform. (e.g. YouTube, SoundCloud, etc…)</p>
+
+<p>URLs are provided without protocol, but can be safely prefixed with <code class="language-plaintext highlighter-rouge">https:</code>.</p>
+
+<h3 id="response-format-json">Response format: <code class="language-plaintext highlighter-rouge">json</code></h3>
+
+<p>If the <code class="language-plaintext highlighter-rouge">json</code> format was selected, Openwhyd will return a JSON array containing one object per posted track.</p>
+
+<p>Example:</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span>
+  <span class="p">{</span>
+    <span class="na">_id</span><span class="p">:</span> <span class="dl">'</span><span class="s1">5c05b9675b1d901f32b6fe4b</span><span class="dl">'</span><span class="p">,</span>
+    <span class="na">uId</span><span class="p">:</span> <span class="dl">'</span><span class="s1">4d94501d1f78ac091dbc9b4d</span><span class="dl">'</span><span class="p">,</span>
+    <span class="na">uNm</span><span class="p">:</span> <span class="dl">'</span><span class="s1">Adrien Joly</span><span class="dl">'</span><span class="p">,</span>
+    <span class="na">text</span><span class="p">:</span> <span class="dl">''</span><span class="p">,</span>
+    <span class="na">name</span><span class="p">:</span> <span class="dl">'</span><span class="s1">Mitski - Your Best American Girl</span><span class="dl">'</span><span class="p">,</span>
+    <span class="na">eId</span><span class="p">:</span> <span class="dl">'</span><span class="s1">/sc/deadoceans/mitski-your-best-american-girl-3#https://api.soundcloud.com/tracks/249475048</span><span class="dl">'</span><span class="p">,</span>
+    <span class="na">img</span><span class="p">:</span> <span class="dl">'</span><span class="s1">https://i1.sndcdn.com/artworks-000149087394-z2wpob-t500x500.jpg</span><span class="dl">'</span><span class="p">,</span>
+    <span class="na">nbP</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span>
+    <span class="na">nbR</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="na">lov</span><span class="p">:</span> <span class="p">[],</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    <span class="na">_id</span><span class="p">:</span> <span class="dl">'</span><span class="s1">5c0561f65b1d901f32b6fdf4</span><span class="dl">'</span><span class="p">,</span>
+    <span class="na">uId</span><span class="p">:</span> <span class="dl">'</span><span class="s1">4d94501d1f78ac091dbc9b4d</span><span class="dl">'</span><span class="p">,</span>
+    <span class="na">uNm</span><span class="p">:</span> <span class="dl">'</span><span class="s1">Adrien Joly</span><span class="dl">'</span><span class="p">,</span>
+    <span class="na">text</span><span class="p">:</span> <span class="dl">'</span><span class="s1">merci @[Camille B](user:51483cad7e91c862b2ab6dc2) &lt;3</span><span class="dl">'</span><span class="p">,</span>
+    <span class="na">name</span><span class="p">:</span> <span class="dl">'</span><span class="s1">The Posies, Burn &amp; Shine</span><span class="dl">'</span><span class="p">,</span>
+    <span class="na">eId</span><span class="p">:</span> <span class="dl">'</span><span class="s1">/yt/If8ChYjdFdE</span><span class="dl">'</span><span class="p">,</span>
+    <span class="na">ctx</span><span class="p">:</span> <span class="dl">'</span><span class="s1">bk</span><span class="dl">'</span><span class="p">,</span>
+    <span class="na">img</span><span class="p">:</span> <span class="dl">'</span><span class="s1">https://i.ytimg.com/vi/If8ChYjdFdE/default.jpg</span><span class="dl">'</span><span class="p">,</span>
+    <span class="na">src</span><span class="p">:</span> <span class="p">{</span>
+      <span class="na">id</span><span class="p">:</span> <span class="dl">'</span><span class="s1">https://www.youtube.com/watch?v=If8ChYjdFdE</span><span class="dl">'</span><span class="p">,</span>
+      <span class="na">name</span><span class="p">:</span> <span class="dl">'</span><span class="s1">The Posies, Burn &amp;amp; Shine - YouTube</span><span class="dl">'</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="na">nbP</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+    <span class="na">lov</span><span class="p">:</span> <span class="p">[],</span>
+  <span class="p">},</span>
+<span class="p">];</span>
+</code></pre></div></div>
+
+<p>The <code class="language-plaintext highlighter-rouge">eId</code> property contains the unique identifier of the track/video on its source platform:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">/yt/xxx</code> is a YouTube identifier that can be translated to <code class="language-plaintext highlighter-rouge">https://youtube.com/watch?v=xxx</code></li>
+  <li><code class="language-plaintext highlighter-rouge">/sc/xxx#http://yyy</code> is the SoundCloud URI of a track, followed by the URL of its audio stream</li>
+  <li><code class="language-plaintext highlighter-rouge">/vi/xxx</code> is a Vimeo identifier</li>
+</ul>
+
+<p>You will find a full list of supported source platforms with their identifier prefix in the <a href="#formats-and-appendix">Formats</a> section of this document.</p>
+
+<h2 id="openwhyd-user-api">Openwhyd User API</h2>
+
+<p>The goal of the User API is to allow users to interact with their Openwhyd account from a 3rd-party software.</p>
+
+<p>It can be used to read and update lists of tracks associated to the authenticated user.</p>
+
+<p>In order to allow this, a session must be initiated on Openwhyd’s API, by providing the user’s email and password. When a session is initiated properly, a cookie will be returned. This cookie will be required for the following API requests. If you want to know more about the authentication flow, read <a href="/openwhyd/legacy-login-flow.html">legacy-login-flow.md</a>.</p>
+
+<blockquote>
+  <p>Note: an API client for Node.js was written to handle the session-based authentication. It can be installed using <a href="https://www.npmjs.com/package/openwhyd-api-client"><code class="language-plaintext highlighter-rouge">npm install openwhyd-api-client</code></a>.</p>
+</blockquote>
+
+<p>In this section, we will document all the API endpoints supported by Openwhyd.</p>
+
+<p>Table of contents:</p>
+
+<ul>
+  <li><a href="#user-session--logging">User session / logging</a></li>
+  <li><a href="#search">Search</a></li>
+  <li><a href="#subscriptions">Subscriptions</a></li>
+  <li><a href="#tracks">Tracks</a></li>
+  <li><a href="#playlists">Playlists</a></li>
+  <li><a href="#upload">Upload</a></li>
+  <li><a href="#formats-and-appendix">Formats and appendix</a></li>
+</ul>
+
+<h3 id="user-session--logging">User session / logging</h3>
+
+<h4 id="logout">LOGOUT</h4>
+
+<p><code class="language-plaintext highlighter-rouge">GET /logout</code> (formerly: <code class="language-plaintext highlighter-rouge">/login?action=logout</code>)</p>
+
+<p>Clears openwhyd cookie (HTTP headers) and session (database)</p>
+
+<p>Parameters: (GET or POST)</p>
+
+<ul>
+  <li>action=logout</li>
+  <li>ajax: (boolean) response will be sent in JSON instead of rendering the form in HTML</li>
+</ul>
+
+<p>Returns:</p>
+
+<ul>
+  <li>HTML login page or form data in JSON (depends of the ajax parameter)</li>
+</ul>
+
+<h4 id="forgot-password">FORGOT PASSWORD</h4>
+
+<p><code class="language-plaintext highlighter-rouge">GET /login?action=forgot&amp;email</code></p>
+
+<p>Sends a password reset URL to the user by email.</p>
+
+<p>Parameters: (GET or POST)</p>
+
+<ul>
+  <li>action=forgot</li>
+  <li>ajax: (boolean) response will be sent in JSON instead of rendering the form in HTML</li>
+  <li>email: email address (or username) of the user account</li>
+</ul>
+
+<p>Response: (HTML form or JSON, depends of the ajax parameter)</p>
+
+<ul>
+  <li>ok: (optional) “We just sent you an email to reset your password, wait for it!”</li>
+  <li>error: (optional) “Are you sure? We don’t recognize your email address!”</li>
+</ul>
+
+<h4 id="login-with-email">LOGIN WITH EMAIL</h4>
+
+<p><code class="language-plaintext highlighter-rouge">html : (GET /login?action=login&amp;email&amp;md5)</code></p>
+
+<p>Initializes the user session and corresponding cookie, using provided credentials.</p>
+
+<p>Can update the user’s Facebook access token in the database, if provided.</p>
+
+<p>Parameters: (GET or POST)</p>
+
+<ul>
+  <li><strong>action</strong>=login</li>
+  <li><strong>ajax</strong>: (boolean) response will be sent in JSON instead of rendering the form in HTML</li>
+  <li><strong>email</strong>: email address (or username) of the user account</li>
+  <li><strong>md5</strong>: md5-hashed password</li>
+  <li><strong>fbUid</strong>: (optional) Facebook id of the user</li>
+  <li><strong>fbTok</strong>: (optional) Access token returned by using Facebook Connect button</li>
+  <li><strong>includeUser</strong>: (boolean, optional) adds <code class="language-plaintext highlighter-rouge">user</code> object to the ajax response, with following additional fields: <code class="language-plaintext highlighter-rouge">nbLikes</code>, <code class="language-plaintext highlighter-rouge">nbPosts</code>, <code class="language-plaintext highlighter-rouge">nbSubscribers</code> and <code class="language-plaintext highlighter-rouge">nbSubscriptions</code></li>
+</ul>
+
+<p>Response: (HTML form or JSON, depends of the ajax parameter)</p>
+
+<ul>
+  <li><strong>error</strong>: (string, optional) e.g. “Are you sure? We don’t recognize your email address!”</li>
+  <li><strong>wrongPassword</strong>: (optional) set to 1 if the password does not match</li>
+  <li><strong>redirect</strong> (optional): URL to redirect the user to, if login succeeded</li>
+  <li><strong>user</strong>: (object, if <code class="language-plaintext highlighter-rouge">includeUser</code> is set to true): complete db object about the logged in user, containing following additional fields: <code class="language-plaintext highlighter-rouge">nbLikes</code>, <code class="language-plaintext highlighter-rouge">nbPosts</code>, <code class="language-plaintext highlighter-rouge">nbSubscribers</code> and <code class="language-plaintext highlighter-rouge">nbSubscriptions</code></li>
+</ul>
+
+<h4 id="login-with-facebook">LOGIN WITH FACEBOOK</h4>
+
+<p>Initializes the user session and corresponding cookie (via Login API), using provided FB authorization.</p>
+
+<p>Updates the user’s Facebook access token in the database.</p>
+
+<p><code class="language-plaintext highlighter-rouge">html : (GET /facebookLogin?action=login&amp;fbUid&amp;fbAccessToken)</code></p>
+
+<p>Parameters: (GET or POST)</p>
+
+<ul>
+  <li><strong>fbUid</strong>: Facebook id of the user</li>
+  <li><strong>fbAccessToken</strong>: Access token returned by using Facebook Connect button</li>
+  <li><strong>includeUser</strong>: (boolean, optional) adds <code class="language-plaintext highlighter-rouge">user</code> object to the response, with following additional fields: <code class="language-plaintext highlighter-rouge">nbLikes</code>, <code class="language-plaintext highlighter-rouge">nbPosts</code>, <code class="language-plaintext highlighter-rouge">nbSubscribers</code> and <code class="language-plaintext highlighter-rouge">nbSubscriptions</code></li>
+</ul>
+
+<p>Cookies: (initialized by facebook SDK, one of these must be set in the headers of the HTTP request)</p>
+
+<ul>
+  <li>fbs_* (Facebook’s legacy cookie)</li>
+  <li>fbsr_* (Facebook’s secure cookie)</li>
+</ul>
+
+<p>Response: (JSON)</p>
+
+<ul>
+  <li><strong>error</strong>: (string, optional) error message, if any</li>
+  <li><strong>redirect</strong>: (string, optional) url to redirect to, if login succeeded</li>
+  <li><strong>fbUser</strong>: (object, optional) contains Facebook user data {id, name, email}, if this Facebook user is not connected to a Openwhyd account</li>
+  <li><strong>user</strong>: (object, if <code class="language-plaintext highlighter-rouge">includeUser</code> is set to true): complete db object about the logged in user, containing following additional fields: <code class="language-plaintext highlighter-rouge">nbLikes</code>, <code class="language-plaintext highlighter-rouge">nbPosts</code>, <code class="language-plaintext highlighter-rouge">nbSubscribers</code> and <code class="language-plaintext highlighter-rouge">nbSubscriptions</code></li>
+</ul>
+
+<h4 id="connect-facebook-account-to-openwhyd-account">CONNECT FACEBOOK ACCOUNT TO OPENWHYD ACCOUNT</h4>
+
+<p>Enables:</p>
+
+<ul>
+  <li>Possibility to log in to Openwhyd using Facebook connect</li>
+</ul>
+
+<p>This endpoint is called when a Openwhyd user (that is already logged in) clicks on a Facebook Connect button, and this Facebook account is not yet connected to another Openwhyd account.</p>
+
+<p><code class="language-plaintext highlighter-rouge">html : (GET /facebookLogin/action=link&amp;fbUid&amp;fbAccessToken)</code></p>
+
+<p>Parameters: (GET or POST)</p>
+
+<ul>
+  <li>fbUid: Facebook id of the user</li>
+  <li>fbAccessToken: Access token returned by using Facebook Connect button</li>
+</ul>
+
+<p>Cookies: (initialized by facebook SDK, one of these must be set in the headers of the HTTP request)</p>
+
+<ul>
+  <li>fbs_* (Facebook’s legacy cookie)</li>
+  <li>fbsr_* (Facebook’s secure cookie)</li>
+</ul>
+
+<p>Response: (None)</p>
+
+<h4 id="register--sign-up-a-new-user">Register / sign up a new user</h4>
+
+<p>This endpoint is called from a sign up form.</p>
+
+<p>If sign up succeeds, the user is logged in similarly to the /login endpoint: a session is set up in DB, and a cookie is returned in the HTTP header of the response.</p>
+
+<p><code class="language-plaintext highlighter-rouge">POST /register...</code></p>
+
+<p>Parameters:</p>
+
+<ul>
+  <li><strong>name</strong>: (string) full name of the user (accepts spaces)</li>
+  <li><strong>email</strong>: (string) email of the user (for notifications and login)</li>
+  <li><strong>password</strong>: (string) password (to be used for logging in)</li>
+  <li><strong>redirect</strong>: (string, optional) URL to be redirected to, if sign up succeeds</li>
+  <li><strong>ajax</strong>: (string ,optional) set to “true” if response is to be given in JSON format, instead of redirects</li>
+  <li><strong>fbUid</strong>: (string, optional) Facebook user id (if using FB connect)</li>
+  <li><strong>fbTok</strong>: (string, optional) Facebook access token (if using FB connect)</li>
+  <li><strong><s>fbRequest</s></strong><s>: (string, deprecated) Facebook request id. Used when the visitor was invited through a Facebook request, so that the request could be cleared after the visitor successfully signed up.</s></li>
+  <li><strong><s>inviteCode</s></strong><s>: (string, deprecated) code given by another user who invited the current visitor to signup. can be the user id of that user. this code was used for validation, when openwhyd was still in closed beta.</s></li>
+  <li><strong>iBy</strong>: (string, optional) id of the user who invited the visitor to sign up to Openwhyd. the invited visitor will be automatically subscribed to the inviter, and the inviter will be notified upon his friend’s sign up.</li>
+  <li><strong>iPg:</strong> (string, optional) URL of the page from which the sign up was initiated (for analytics)</li>
+  <li><strong>iRf</strong>: (string, optional) referrer of the sign up page (origin of the visitor, for analytics)</li>
+  <li><strong><s>iPo</s></strong><s>: (string, deprecated) id of the post from which the visitor was invited =&gt; was used to redirect to that post upon successful sign up.</s></li>
+</ul>
+
+<p>Response: (JSON, <em>if ajax parameter was set to true</em>)</p>
+
+<ul>
+  <li><strong>error</strong>: (string, optional) error message, if any</li>
+  <li><strong>uId</strong>: (string, optional) id of the new user, if sign up succeeded</li>
+  <li><strong>redirect</strong>: (string, optional) URL to redirect to, if sign up succeeded</li>
+</ul>
+
+<h4 id="get-user-data">Get user data</h4>
+
+<p>GET /api/user</p>
+
+<p>Parameters:</p>
+
+<ul>
+  <li><strong>id:</strong> (string, optional) id of the user to get info about. logged in user, if not provided.</li>
+  <li><strong>isSubscr</strong>: (boolean, optional) if set to true, the <code class="language-plaintext highlighter-rouge">isSubscribing</code> attribute will be returned</li>
+  <li><strong>countPosts</strong> (boolean, optional) if set to true and <code class="language-plaintext highlighter-rouge">id</code> is provided, the <code class="language-plaintext highlighter-rouge">nbPosts</code> attribute will be returned</li>
+  <li><strong>countLikes</strong> (boolean, optional) if set to true and <code class="language-plaintext highlighter-rouge">id</code> is provided, the <code class="language-plaintext highlighter-rouge">nbLikes</code> attribute will be returned</li>
+  <li><strong>includeSubscr</strong>: (boolean, optional) if set to true, <code class="language-plaintext highlighter-rouge">nbSubscribers</code> and <code class="language-plaintext highlighter-rouge">nbSubscriptions</code> will be returned</li>
+</ul>
+
+<p>Response: (JSON)</p>
+
+<ul>
+  <li>_id: user id</li>
+  <li>name: full name of the user</li>
+  <li>handle: username used to create a custom openwhyd.org/username profile URL</li>
+  <li>email: (string)</li>
+  <li>bio: (string)</li>
+  <li>loc: (string) free text describing the declared location of the user</li>
+  <li>img: URL of the avatar</li>
+  <li>cvrImg: URL of the cover image (banner of the user profile)</li>
+  <li>isSubscribing: (if <code class="language-plaintext highlighter-rouge">isSubscr</code> set to true) true if the logged in user has subscribed to this user</li>
+  <li>nbSubscribers: (if <code class="language-plaintext highlighter-rouge">includeSubscr</code> set to true) number of subscribers of this user</li>
+  <li>nbPosts: (if <code class="language-plaintext highlighter-rouge">countPosts</code> set to true and <code class="language-plaintext highlighter-rouge">id</code> provided) number of tracks posted by this user</li>
+  <li>nbLikes: (if <code class="language-plaintext highlighter-rouge">countLikes</code> set to true and <code class="language-plaintext highlighter-rouge">id</code> provided) number of tracks liked by this user</li>
+  <li>nbSubscriptions: (if <code class="language-plaintext highlighter-rouge">includeSubscr</code> set to true) number of subscriptions of this user</li>
+  <li><strong>lastArtists</strong>: (if <code class="language-plaintext highlighter-rouge">includeTags</code> set to true) an array of artist names, extracted from the user’s last posts</li>
+  <li>fbId: id of the facebook user connected to this account</li>
+  <li>fbTok: last session token received from connecting to facebook (used for fb requests)</li>
+  <li><strong>twId</strong>: Twitter handle connected to this openwhyd account</li>
+  <li><strong>twTok</strong>: last session token received from connecting to Twitter</li>
+  <li><strong>twSec</strong>: last session secret received from connecting to Twitter</li>
+  <li>
+    <p>lastFm: (object)</p>
+
+    <ul>
+      <li>name: username of the user’s connected last.fm account</li>
+      <li>sk: session key provided by last.fm (used for last.fm api requests)</li>
+    </ul>
+  </li>
+  <li>
+    <p>lnk: (object) links to the following websites / social networks of the user (for openwhyd profile):</p>
+
+    <ul>
+      <li>fb: facebook profile</li>
+      <li>igrm: instagram handle</li>
+      <li>sc: soundcloud handle</li>
+      <li>tw: twitter handle</li>
+      <li>yt: youtube handle</li>
+      <li>home: home page</li>
+    </ul>
+  </li>
+  <li>
+    <p>~onb: (object) onboarding data~</p>
+
+    <ul>
+      <li>~tags: (array) list of genre tags (e.g. “Rock”) that the user selected~</li>
+    </ul>
+  </li>
+  <li>
+    <p>pl: (array) list of user’s playlist</p>
+
+    <ul>
+      <li>id: number of the playlist (counting from 0 to …)</li>
+      <li>name: (string)</li>
+      <li>url: (string)</li>
+      <li>nbTracks: (int)</li>
+    </ul>
+  </li>
+</ul>
+
+<p>*frequency is one of these values:</p>
+
+<ul>
+  <li>-1: never</li>
+  <li>0: immediate (don’t wait for next digest)</li>
+  <li>1: in a daily digest</li>
+  <li>7: in a weekly digest</li>
+</ul>
+
+<h4 id="set-user-data">Set user data</h4>
+
+<p>POST /api/user</p>
+
+<p>Updates one or more fields of the logged in user.</p>
+
+<p>Allowed Parameters (one or many can be passed):</p>
+
+<ul>
+  <li><strong>name:</strong> (string) full user name, to be displayed publicly on Openwhyd</li>
+  <li><strong>img</strong>: (string) user’s avatar, must be the url of a file that was just uploaded to openwhyd (<strong>cf upload API</strong>)</li>
+  <li><strong>cvrImg:</strong> (string) user’s profile banner, must be the url of a file that was just uploaded to openwhyd (<strong>cf upload API</strong>)</li>
+  <li><strong>pwd:</strong> (string) new password (plain, no md5), <code class="language-plaintext highlighter-rouge">oldPwd</code> must also be set</li>
+  <li><strong>oldPwd</strong>: (string) old password (plain, no md5), to be provided if intending to change password using <code class="language-plaintext highlighter-rouge">pwd</code></li>
+  <li><strong>handle</strong>: (string) user’s handle / username / profile custom URL – will be validated against a list of reserved words</li>
+  <li><strong>email</strong>: (string) user’s email address (for openwhyd use only, not displayed publicly)</li>
+  <li><strong>fbId</strong>: (integer) user’s Facebook user id, after a successful Facebook connect / auth. <strong>fbTok</strong> must be provided too.</li>
+  <li><strong>fbTok</strong>: (string, mandatory if <strong>fbId</strong> was set) user’s Facebook auth token, after a successful Facebook connect / auth.</li>
+  <li><strong>twId</strong>: (string) Twitter handle connected to this openwhyd account (set to empty string to disconnect)</li>
+  <li><strong>twTok</strong>: (string) last session token received from connecting to Twitter (to send with <strong>twId</strong>)</li>
+  <li><strong>twSec</strong>: (string) last session secret received from connecting to Twitter (to send with <strong>twId</strong>)</li>
+  <li><strong>bio</strong>: (string) user’s biography / description, to be displayed publicly on Openwhyd</li>
+  <li><strong>loc</strong>: (string) user’s location. freeform, no format restrictions apply.</li>
+  <li><strong>lnk_home</strong>: (string) url of user’s homepage, to be displayed as is on his profile</li>
+  <li><strong>lnk_fb</strong>: (string) url of user’s facebook profile, to be displayed as an icon on his profile</li>
+  <li><strong>lnk_tw</strong>: (string) url of user’s twitter profile, to be displayed as an icon on his profile</li>
+  <li><strong>lnk_sc</strong>: (string) url of user’s soundcloud profile, to be displayed as an icon on his profile</li>
+  <li><strong>lnk_yt</strong>: (string) url of user’s youtube profile, to be displayed as an icon on his profile</li>
+  <li><strong>lnk_igrm</strong>: (string) url of user’s instagram profile, to be displayed as an icon on his profile</li>
+</ul>
+
+<p>Response: (JSON)</p>
+
+<ul>
+  <li><strong>error</strong>: (optional, string) error message</li>
+  <li>(or updated user data)</li>
+</ul>
+
+<h3 id="search">Search</h3>
+
+<h4 id="search-tracks-posted-by-other-users">SEARCH TRACKS POSTED BY OTHER USERS</h4>
+
+<p>Returns a list of 5 tracks posted by other users, matching the given full-text search query.</p>
+
+<p>This endpoint is used on the “add track” dialog, to incentivize re-posting from other users.</p>
+
+<p><code class="language-plaintext highlighter-rouge">html : (GET /search?context=addTrack&amp;q=coco)</code></p>
+
+<p>Parameters:</p>
+
+<ul>
+  <li><strong>context=addTrack</strong></li>
+  <li><strong>q</strong>: (string) full-text search query</li>
+</ul>
+
+<p>Response:</p>
+
+<ul>
+  <li>a JSON array of Post objects: [{id, eId, url, img, name, uId, uNm, score}]</li>
+</ul>
+
+<h4 id="search-tracks-posted-by-me--other-users">SEARCH TRACKS POSTED BY ME + OTHER USERS</h4>
+
+<p>Returns a list of tracks posted the logged in user, and by other users, matching the given full-text search query.</p>
+
+<p>This endpoint is used on the experimental openwhyd.org/mobile page, as a compromise between looking up one’s own tracks and re-adding from others.</p>
+
+<p><code class="language-plaintext highlighter-rouge">html : (GET /search?context=quick&amp;q=coco)</code></p>
+
+<p>Parameters:</p>
+
+<ul>
+  <li><strong>context=quick</strong></li>
+  <li><strong>q</strong>: (string) full-text search query</li>
+</ul>
+
+<p>Response: (JSON hierarchy)</p>
+
+<ul>
+  <li><strong>q</strong>: (string) search query</li>
+</ul>
+
+<h4 id="combined-search-page-posts--users--playlists">Combined search page: posts + users + playlists</h4>
+
+<p>Returns a list of matching:</p>
+
+<ul>
+  <li>
+    <p>tracks posted by (in the following order):</p>
+
+    <ul>
+      <li>the logged in user</li>
+      <li>followed users</li>
+      <li>other users</li>
+    </ul>
+  </li>
+  <li>users</li>
+  <li>playlists</li>
+</ul>
+
+<p>This endpoint is used for the openwhyd.org/search page.</p>
+
+<p><code class="language-plaintext highlighter-rouge">html : (GET /search?q=coco)</code></p>
+
+<p>Parameters:</p>
+
+<ul>
+  <li><strong>q</strong>: (string) full-text search query</li>
+  <li><strong>format</strong>: (string, optional) returns JSON data if set to “json”, or HTML otherwise</li>
+</ul>
+
+<p>Response: (JSON)</p>
+
+<ul>
+  <li><strong>q</strong>: (string) search query</li>
+</ul>
+
+<h3 id="subscriptions">Subscriptions</h3>
+
+<h4 id="list-subscribers-of-a-user">List subscribers of a user</h4>
+
+<p><code class="language-plaintext highlighter-rouge">GET /api/follow/fetchFollowers/&lt;id&gt;</code></p>
+
+<p>Parameters:</p>
+
+<ul>
+  <li><strong>id</strong>: (string) id of the user</li>
+  <li><strong>skip</strong>: (integer, optional) number of subscribers to skip (for paging)</li>
+  <li><strong>limit</strong>: (integer, optional) number of subscribers to return (by default: 50)</li>
+  <li><strong>isSubscr</strong>: (boolean, optional) will fetch and return a <code class="language-plaintext highlighter-rouge">isSubscribing</code> field for resulting users that are followed by the logged in user</li>
+</ul>
+
+<p>Response: JSON array of objects with the following fields:</p>
+
+<ul>
+  <li><strong>uId</strong>: id of the subscriber</li>
+  <li><strong>uNm</strong>: name of the subscriber</li>
+  <li><strong>isSubscribing</strong>: (boolean, if the <code class="language-plaintext highlighter-rouge">isSubscr</code> parameter is set to true) set to true if the subscriber is also followed by the logged in user</li>
+</ul>
+
+<h4 id="list-subscriptions-of-a-user">List subscriptions of a user</h4>
+
+<p><code class="language-plaintext highlighter-rouge">GET /api/follow/fetchFollowing/&lt;id&gt;</code></p>
+
+<p>Parameters:</p>
+
+<ul>
+  <li><strong>id</strong>: (string) id of the user</li>
+  <li><strong>skip</strong>: (integer, optional) number of subscribed users to skip (for paging)</li>
+  <li><strong>limit</strong>: (integer, optional) number of subscribed users to return (by default: 50)</li>
+  <li><strong>isSubscr</strong>: (boolean, optional) will fetch and return a <code class="language-plaintext highlighter-rouge">isSubscribing</code> field for resulting users that are followed by the logged in user</li>
+</ul>
+
+<p>Response: JSON array of objects with the following fields:</p>
+
+<ul>
+  <li><strong>tId</strong>: id of the subscribed user</li>
+  <li><strong>tNm</strong>: name of the subscribed user</li>
+  <li><strong>isSubscribing</strong>: (boolean, if the <code class="language-plaintext highlighter-rouge">isSubscr</code> parameter is set to true) set to true if the subscriber is also followed by the logged in user</li>
+</ul>
+
+<h4 id="get-subscription-status-of-a-user">Get subscription status of a user</h4>
+
+<p>Subscribes or unsubscribes to a user. (must be logged in)</p>
+
+<p><code class="language-plaintext highlighter-rouge">GET /api/follow?action=get&amp;tId</code></p>
+
+<p>Parameters:</p>
+
+<ul>
+  <li><strong>action=”get”</strong></li>
+  <li><strong>tId</strong>: (string) id of the user to get status on</li>
+</ul>
+
+<p>Response: (two cases)</p>
+
+<ul>
+  <li>an empty JSON object if the logged in user has not subscribed to that user</li>
+  <li>or a non-empty JSON object otherwise</li>
+</ul>
+
+<h4 id="unsubscribe-to-a-user">(Un)subscribe to a user</h4>
+
+<p>Subscribes or unsubscribes to a user. (must be logged in)</p>
+
+<p><code class="language-plaintext highlighter-rouge">GET /api/follow?action&amp;tId</code></p>
+
+<p>Parameters:</p>
+
+<ul>
+  <li><strong>action</strong>: (string) “insert” (to subscribe) or “delete” (to unsubscribe)</li>
+  <li><strong>tId</strong>: (string) id of the user to (un)subscribe</li>
+</ul>
+
+<p>Response:</p>
+
+<ul>
+  <li>(a JSON object with an optional <strong>_id</strong> field =&gt; to be ignored)</li>
+</ul>
+
+<h3 id="tracks">TRACKS</h3>
+
+<h4 id="post-track--edit-a-post">POST TRACK / Edit a Post</h4>
+
+<p><code class="language-plaintext highlighter-rouge">GET /api/post?action=insert&amp;...</code></p>
+
+<p><em>Parameters:</em></p>
+
+<ul>
+  <li><strong>action</strong> : (“insert” to insert or edit a track)</li>
+  <li><strong>_id</strong> : (string, optional) id of the post to edit (if not provided, a new track is added)</li>
+  <li><strong>pId</strong> : (string, optional) id of the post to re-add (if not provided, no existing post is referred to)</li>
+  <li><strong>eId</strong> : (string) openwhyd id of the track embed (ex : “/yt/XdJVWSqb4Ck”, see “<em>syntax of eid identifiers</em>”, below)</li>
+  <li><strong>name</strong> : (string) artist and title of the track</li>
+  <li><strong>text</strong> : (string, optional) comment of the track</li>
+  <li><strong>img :</strong> (string, optional) url of the image representing the track</li>
+  <li>
+    <p><strong>pl:</strong> (object, optional), fields:</p>
+
+    <ul>
+      <li><strong>id:</strong> (int) number (starting at 0) of the user’s playlist in which this track is posted. if set to <strong>“create”</strong>, a new playlist is created.</li>
+      <li><strong>name:</strong> (string) name of the user’s playlist in which this track is posted</li>
+    </ul>
+  </li>
+  <li>
+    <p><strong>src</strong> : (object, optional) describes where this track was found. fields:</p>
+
+    <ul>
+      <li>**id: **(string) url of the website/page where the track was found</li>
+      <li>**name: **(string) name of the website/page where the track was found</li>
+    </ul>
+  </li>
+</ul>
+
+<p>Result: (JSON)</p>
+
+<ul>
+  <li><strong>track object</strong></li>
+</ul>
+
+<p>Examples:</p>
+
+<ul>
+  <li>**/api/post/action=insert&amp;pId=52f4ebe53fe09fa854000043 : **Repost a track</li>
+  <li>**/api/post/action=insert&amp;text=your%20comment&amp;eId=/yt/XdJVWSqb4Ck&amp;name=Jack%Johnson%20-%20-Lullaby : **Add a track</li>
+</ul>
+
+<h4 id="delete-post">Delete post</h4>
+
+<p><code class="language-plaintext highlighter-rouge">GET /api/post?action=delete&amp;...</code></p>
+
+<p><em>Parameters:</em></p>
+
+<ul>
+  <li><strong>action</strong>=”delete”</li>
+  <li><strong>_id</strong> : (string) id of the post to delete</li>
+</ul>
+
+<p>Return:</p>
+
+<ul>
+  <li><strong>track object</strong></li>
+</ul>
+
+<h4 id="like--unlike-a-post">Like / unlike a post</h4>
+
+<p><code class="language-plaintext highlighter-rouge">GET /api/post?action=toggleLovePost&amp;...</code></p>
+
+<p><em>Parameters:</em></p>
+
+<ul>
+  <li><strong>action</strong>=”toggleLovePost”</li>
+  <li><strong>pId</strong> : (string) id of the post to like / unlike</li>
+</ul>
+
+<p>Return:</p>
+
+<ul>
+  <li><strong>loved</strong>: (boolean) set to true if the post is now liked (or false, otherwise)</li>
+  <li><strong>lovers</strong>: (int) number of user who likes this post</li>
+  <li><strong>post</strong>: (object, optional) post object</li>
+</ul>
+
+<h4 id="likes-tracks-by-user">Likes Tracks by User</h4>
+
+<p><a href="http://openwhyd.org/adrien/likes?format=json">GET /[uId]/likes?format=json</a></p>
+
+<p>Parameters:</p>
+
+<ul>
+  <li><strong>after</strong>: (string, optional) id of the last post of the previous page (for pagination)</li>
+  <li><strong>before</strong>: (string, optional) id of the first post currently</li>
+</ul>
+
+<h4 id="fetch-list-of-users-who-liked-a-post">Fetch list of users who liked a post</h4>
+
+<p><code class="language-plaintext highlighter-rouge">GET /api/post?action=lovers&amp;...</code></p>
+
+<p><em>Parameters:</em></p>
+
+<ul>
+  <li><strong>action</strong>=”lovers”</li>
+  <li><strong>pId</strong> : (string) id of the post</li>
+</ul>
+
+<p>Return: (JSON)</p>
+
+<h4 id="fetch-list-of-users-who-re-added-a-post">Fetch list of users who re-added a post</h4>
+
+<p><code class="language-plaintext highlighter-rouge">GET /api/post?action=reposts&amp;...</code></p>
+
+<p><em>Parameters:</em></p>
+
+<ul>
+  <li><strong>action</strong>=”reposts”</li>
+  <li><strong>pId</strong> : (string) id of the post</li>
+</ul>
+
+<p>Return: (JSON)</p>
+
+<h4 id="log-a-play">Log a play</h4>
+
+<p>To be called whenever a track effectively started or failed playing, for analytics and diagnosis.</p>
+
+<p><code class="language-plaintext highlighter-rouge">GET /api/post?action= incrPlayCounter&amp;...</code></p>
+
+<p><em>Parameters:</em></p>
+
+<ul>
+  <li><strong>action</strong>=”<code class="language-plaintext highlighter-rouge">incrPlayCounter</code>”</li>
+  <li><strong>pId</strong> : (string) id of the post played</li>
+  <li><strong>logData</strong>: (object, optional), as described in <a href="https://whyd.hackpad.com/Track-performance-log-AF7pRadBNrU">this spec</a></li>
+</ul>
+
+<h4 id="scrobble-a-play-to-lastfm">Scrobble a play to Last.fm</h4>
+
+<p>To be called whenever a track ends playing, for users who connected their last.fm account.</p>
+
+<p><code class="language-plaintext highlighter-rouge">GET /api/post?action= scrobble&amp;...</code></p>
+
+<p><em>Parameters:</em></p>
+
+<ul>
+  <li><strong>action</strong>=”<code class="language-plaintext highlighter-rouge">scrobble</code>”</li>
+  <li><strong>pId</strong> : (string) id of the post played</li>
+  <li><strong>timestamp</strong>: (long) timestamp of when the track started playing (required by last.fm)</li>
+  <li><strong>trackDuration</strong>: (long, optional) duration of the track, in seconds</li>
+</ul>
+
+<p>Return: (JSON)</p>
+
+<ul>
+  <li><strong>error</strong>: (string, optional) error message, if any</li>
+  <li>…or last.fm’s response object</li>
+</ul>
+
+<h4 id="add-a-comment-to-a-post">Add a comment to a post</h4>
+
+<p><code class="language-plaintext highlighter-rouge">GET /api/post?action=addComment&amp;...</code></p>
+
+<p><em>Parameters:</em></p>
+
+<ul>
+  <li><strong>action</strong>=”<code class="language-plaintext highlighter-rouge">addComment</code>”</li>
+  <li><strong>pId</strong> : (string) id of the post to comment</li>
+  <li><strong>text</strong>: (string) text of the comment (may include mentions, cf “syntax of a mention”, below)</li>
+</ul>
+
+<p>Return: (JSON)</p>
+
+<ul>
+  <li><strong>error</strong>: (string, optional) error message, if any</li>
+  <li>or the comment object</li>
+</ul>
+
+<h4 id="delete-a-comment-from-a-post">Delete a comment from a post</h4>
+
+<p><code class="language-plaintext highlighter-rouge">GET /api/post?action=deleteComment&amp;...</code></p>
+
+<p><em>Parameters:</em></p>
+
+<ul>
+  <li><strong>action</strong>=”<code class="language-plaintext highlighter-rouge">deleteComment</code>”</li>
+  <li><strong>_id</strong> : (string) id of the comment to be deleted</li>
+</ul>
+
+<p>Return: (JSON)</p>
+
+<ul>
+  <li><strong>error</strong>: (string, optional) error message, if any</li>
+</ul>
+
+<h4 id="list-tracks-posted-by-user">LIST TRACKS POSTED BY USER</h4>
+
+<p><code class="language-plaintext highlighter-rouge">GET /:uHandle/[playlist/:playlistId]</code>
+<code class="language-plaintext highlighter-rouge">GET /u/:uId/[playlist/:playlistId]</code></p>
+
+<p><em>Parameters:</em></p>
+
+<ul>
+  <li><strong>format</strong>: “json” or “html” (default)</li>
+  <li><strong>callback</strong>: (string, optional) name of the function name to use for JSONP</li>
+  <li><strong>limit</strong>: (int, optional) number of posts to return</li>
+  <li><strong>after</strong>: (string, optional) id of the last post of the previous page (for pagination)</li>
+  <li><strong>before</strong>: (string, optional) id of the first post currently displayed =&gt; will return fresher posts (used to refresh the list of tracks, e.g. when a track was just added)</li>
+</ul>
+
+<p>Return:</p>
+
+<ul>
+  <li><strong>list of track objects</strong></li>
+</ul>
+
+<p>Examples:</p>
+
+<ul>
+  <li><a href="http://openwhyd.org/adrien?format=json">/adrien?format=json</a> : returns the last 20 tracks I posted in JSON format</li>
+  <li><a href="http://openwhyd.org/u/4d94501d1f78ac091dbc9b4d/playlist/10?format=json">/u/4d94501d1f78ac091dbc9b4d/playlist/10?format=json</a> : returns the last 20 tracks I posted in JSON format (using user id instead of handle/nickname)</li>
+  <li><a href="http://openwhyd.org/adrien/playlist/10?format=json&amp;limit=10000">/adrien/playlist/10?format=json&amp;limit=10000</a> : returns the last 10000 tracks I posted in my “electronica” playlist</li>
+</ul>
+
+<h4 id="incoming-stream-homepage">INCOMING STREAM (HOMEPAGE)</h4>
+
+<p><code class="language-plaintext highlighter-rouge">GET /[stream]</code></p>
+
+<p><em>Parameters:</em></p>
+
+<ul>
+  <li><strong>format</strong>: “json” or “html” (default)</li>
+  <li><strong>limit</strong>: (int, optional) number of posts to return</li>
+  <li><strong>after</strong>: (string, optional) id of the last post of the previous page (for pagination)</li>
+  <li><strong>before</strong>: (string, optional) id of the first post currently displayed =&gt; will return fresher posts (used to refresh the list of tracks, e.g. when a track was just added)</li>
+</ul>
+
+<p>Return:</p>
+
+<ul>
+  <li><strong>list of track objects</strong></li>
+</ul>
+
+<h4 id="hot-tracks">HOT TRACKS</h4>
+
+<p><code class="language-plaintext highlighter-rouge">GET /hot</code></p>
+
+<p><em>Parameters:</em></p>
+
+<ul>
+  <li><strong>format</strong>: “json” or “html” (default)</li>
+  <li><strong>limit</strong>: (int, optional) number of tracks to return</li>
+  <li><strong>skip</strong>: (int, optional) number of hot tracks to skip (for pagination)</li>
+</ul>
+
+<p>Return:</p>
+
+<p>Notes:</p>
+
+<ul>
+  <li>when reposting for the hot tracks page, don’t forget to add a <code class="language-plaintext highlighter-rouge">ctx:"hot"</code> value to the post object, so that this repost will not influence the hot tracks (to prevent too much virality)</li>
+</ul>
+
+<h4 id="detailed-track-info">Detailed track info</h4>
+
+<p><code class="language-plaintext highlighter-rouge">GET /c/[postId]?format=json</code></p>
+
+<p><em>Parameters:</em></p>
+
+<ul>
+  <li><strong>format</strong>: “json” or “html” (default)</li>
+</ul>
+
+<p>Return:</p>
+
+<h4 id="share-a-post-to-openwhyd-users-notification">Share a post to Openwhyd users (notification)</h4>
+
+<p><code class="language-plaintext highlighter-rouge">POST /api/post/&lt;pId&gt;/sendToUsers</code></p>
+
+<p>User must be logged in =&gt; openwhyd session cookie must be included.</p>
+
+<p><em>Parameters:</em></p>
+
+<ul>
+  <li><strong>pId:</strong> (string, in the URL path) id of the post to share</li>
+  <li><strong>uidList:</strong> (array of strings) list of IDs of users to share this track with</li>
+</ul>
+
+<p>Return (JSON):</p>
+
+<ul>
+  <li><strong>ok:</strong> set positive if the request succeeded</li>
+  <li><strong>error:</strong> string or JSON object containing a description of the error</li>
+</ul>
+
+<h3 id="playlists">Playlists</h3>
+
+<h4 id="get-playlist-data">Get playlist data</h4>
+
+<p><code class="language-plaintext highlighter-rouge">GET /api/playlist/&lt;id&gt;</code></p>
+
+<p><code class="language-plaintext highlighter-rouge">GET /api/playlist?id=&lt;id1&gt;&amp;id=&lt;id2&gt;</code></p>
+
+<p><em>Parameters:</em></p>
+
+<ul>
+  <li><strong>id</strong>: complete playlist identifier (format = <code class="language-plaintext highlighter-rouge">&lt;uid&gt;_&lt;playlist_number&gt;</code>)</li>
+</ul>
+
+<p>Returns: a JSON array of playlists containing the following fields:</p>
+
+<ul>
+  <li><strong>id</strong>: complete playlist identifier (format = <code class="language-plaintext highlighter-rouge">&lt;uid&gt;_&lt;playlist_number&gt;</code>)</li>
+  <li><strong>plId</strong>: playlist number (relative to the owning user, according to format given above)</li>
+  <li><strong>uId</strong>: identifier of the user who made that playlist</li>
+  <li><strong>uNm</strong>: name of the user who made that playlist</li>
+  <li><strong>nbTracks</strong>: number of tracks in that playlist</li>
+</ul>
+
+<h4 id="create-a-playlist">Create a playlist</h4>
+
+<p><code class="language-plaintext highlighter-rouge">POST /api/playlist</code></p>
+
+<p>Creates a playlist for the logged in user.</p>
+
+<p>NB: it’s also possible to create a playlist while posting a track, by providing <code class="language-plaintext highlighter-rouge">(create)</code> as the value of the <code class="language-plaintext highlighter-rouge">id</code> field of the <code class="language-plaintext highlighter-rouge">pl</code> parameter.</p>
+
+<p><em>Parameters:</em></p>
+
+<ul>
+  <li><strong>action</strong>: “create”</li>
+  <li><strong>name</strong>: (string) name of the playlist</li>
+</ul>
+
+<p>Returns: (JSON)</p>
+
+<ul>
+  <li><strong>id</strong>: the id of the newly created playlist (0 being the id of the user’s first playlist)</li>
+  <li><strong>name</strong>: the name of the newly created playlist (as provided in the call)</li>
+</ul>
+
+<h4 id="rename-a-playlist">Rename a playlist</h4>
+
+<p><code class="language-plaintext highlighter-rouge">POST /api/playlist</code></p>
+
+<p>The user who created the provided playlist must be logged in (based on cookie) before using this endpoint</p>
+
+<p><em>Parameters:</em></p>
+
+<ul>
+  <li><strong>action</strong>: “rename”</li>
+  <li><strong>id</strong>: (int) number of the playlist (0 being the id of the user’s first playlist)</li>
+  <li><strong>name</strong>: (string) new name for this playlist</li>
+</ul>
+
+<p>Returns: (JSON)</p>
+
+<ul>
+  <li><strong>id</strong>: the id of updated playlist (as provided in the call)</li>
+  <li><strong>name</strong>: the new name of the playlist (also as provided in the call)</li>
+</ul>
+
+<h4 id="delete-a-playlist">Delete a playlist</h4>
+
+<p><code class="language-plaintext highlighter-rouge">POST /api/playlist</code></p>
+
+<p>Deletes a playlist and moves all the contained tracks in to the user’s default profile stream. (tracks will not be part of a playlist anymore)</p>
+
+<p>The user who created the provided playlist must be logged in (based on cookie) before using this endpoint</p>
+
+<p><em>Parameters:</em></p>
+
+<ul>
+  <li><strong>action</strong>: “delete”</li>
+  <li><strong>id</strong>: (int) number of the playlist (0 being the id of the user’s first playlist)</li>
+</ul>
+
+<p>Returns: (int) the number of the deleted playlist (as provided in the call)</p>
+
+<h4 id="set-track-order-of-a-playlist">Set track order of a playlist</h4>
+
+<p><code class="language-plaintext highlighter-rouge">POST /api/playlist</code></p>
+
+<p>This call will set the <code class="language-plaintext highlighter-rouge">order</code> field of each post contained in the provided playlist from 1 to n, so that the are displayed in the desired order.</p>
+
+<p>The user who created the provided playlist must be logged in (based on cookie) before using this endpoint.</p>
+
+<p><em>Parameters:</em></p>
+
+<ul>
+  <li><strong>action</strong>: “setOrder”</li>
+  <li><strong>id</strong>: (int) number of the playlist (0 being the id of the user’s first playlist)</li>
+  <li><strong>order</strong>: (array) ordered list of post id</li>
+</ul>
+
+<p>Returns: (JSON)</p>
+
+<ul>
+  <li><strong>error</strong>: (string, optional) contains an error message, if any… or:</li>
+  <li><strong>ok</strong>: (int) set to 1 if command was successful</li>
+</ul>
+
+<h4 id="update-the-image-of-a-playlist">Update the image of a playlist</h4>
+
+<p><code class="language-plaintext highlighter-rouge">POST /api/playlist</code></p>
+
+<p>To be called after the image was uploaded to Openwhyd. Upon success, this uploaded image file will be moved to Openwhyd’s playlist images directory.</p>
+
+<p>The user who created the provided playlist must be logged in (based on cookie) before using this endpoint</p>
+
+<p><em>Parameters:</em></p>
+
+<ul>
+  <li><strong>action</strong>: “update”</li>
+  <li><strong>id</strong>: (int) number of the playlist (0 being the id of the user’s first playlist)</li>
+  <li><strong>img</strong>: (string) path of the uploaded image, in Openwhyd upload directory.</li>
+</ul>
+
+<p>Returns: (JSON)</p>
+
+<ul>
+  <li><strong>error</strong>: (string, optional) contains an error message, if any… or:</li>
+  <li><strong>id</strong>: the id of updated playlist (as provided in the call)</li>
+  <li><strong>name</strong>: the name of the updated playlist</li>
+</ul>
+
+<h4 id="share-a-playlist-to-openwhyd-users-notification">Share a playlist to Openwhyd users (notification)</h4>
+
+<p><code class="language-plaintext highlighter-rouge">POST /api/playlist</code></p>
+
+<p>User must be logged in =&gt; openwhyd session cookie must be included.</p>
+
+<p><em>Parameters:</em></p>
+
+<ul>
+  <li><strong>action:</strong> (string) sendToUsers</li>
+  <li><strong>plId:</strong> (string, in the URL path) id of the playlist to share, format: <code class="language-plaintext highlighter-rouge">&lt;uid&gt;_&lt;playlist-number&gt;</code></li>
+  <li><strong>uidList:</strong> (array of strings) list of IDs of users to share this playlist with</li>
+</ul>
+
+<p>Return (JSON):</p>
+
+<ul>
+  <li><strong>ok:</strong> set positive if the request succeeded</li>
+  <li><strong>error:</strong> string or JSON object containing a description of the error</li>
+</ul>
+
+<h3 id="upload">Upload</h3>
+
+<h4 id="upload-a-file-to-openwhyds-file-server">Upload a file to Openwhyd’s file server</h4>
+
+<p>Uploading a file is necessary before changing any image associated (directly or not) to user-generated data (ex: user avatar, user profile banner, playlist cover, etc…). User must be logged in (based on attached cookie).</p>
+
+<p><code class="language-plaintext highlighter-rouge">POST /upload</code></p>
+
+<p>Example of use:</p>
+
+<ul>
+  <li><a href="https://github.com/whyd/whyd/blob/master/public/js/dndUpload.js"></a>https://github.com/whyd/whyd/blob/master/public/js/dndUpload.js</li>
+  <li><a href="https://github.com/whyd/whyd/blob/master/public/js/WhydImgUpload.js"></a>https://github.com/whyd/whyd/blob/master/public/js/WhydImgUpload.js</li>
+</ul>
+
+<p>Parameters:</p>
+
+<ul>
+  <li><strong>file</strong>: (standard HTML-compliant file upload field)</li>
+  <li><strong>thumbDims</strong>: (string, optional) comma-separated list of dimensions to which the provided image must be resized (e.g. for creating thumbs). Format of a dimension: <code class="language-plaintext highlighter-rouge">[width]x[height]</code> (both width and height are optional)</li>
+</ul>
+
+<p>Triggers the following standard events:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">onprogress(event)</code>: provides <code class="language-plaintext highlighter-rouge">event.loaded</code> and <code class="language-plaintext highlighter-rouge">event.total</code> properties</li>
+  <li><code class="language-plaintext highlighter-rouge">onload(event)</code>: triggered when upload is finished</li>
+</ul>
+
+<p>Response: (JSON)</p>
+
+<h4 id="delete-an-uploaded-file">Delete an uploaded file</h4>
+
+<p><code class="language-plaintext highlighter-rouge">POST /upload</code></p>
+
+<p>Parameters:</p>
+
+<ul>
+  <li><strong>action=delete</strong></li>
+  <li><strong>id</strong>: (string) identifier / filename of the uploaded file to delete from Openwhyd’s server</li>
+</ul>
+
+<h3 id="formats-and-appendix">Formats and Appendix</h3>
+
+<h4 id="syntax-of-eid-identifiers">Syntax of “eId” identifiers</h4>
+
+<p>The “eId” field contains the unique identifier of the track/video on its hosting source. (e.g. youtube/soundcloud/vimeo):</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">/yt/xxx</code> is a YouTube identifier (i.e. it translates to <code class="language-plaintext highlighter-rouge">https://youtube.com/watch?v=xxx</code>)</li>
+  <li><code class="language-plaintext highlighter-rouge">/sc/xxx#http://yyy</code> is the SoundCloud URI of a track, followed by the URL of its audio stream</li>
+  <li><code class="language-plaintext highlighter-rouge">/bc/xxx#http://yyy</code> is the BandCamp identifier of a track, followed by the URL of its audio stream</li>
+  <li><code class="language-plaintext highlighter-rouge">/vi/xxx</code> is a Vimeo track identifier</li>
+  <li><code class="language-plaintext highlighter-rouge">/dz/xxx</code> is a Deezer track identifier</li>
+  <li><code class="language-plaintext highlighter-rouge">/dm/xxx</code> is a Dailymotion video identifier</li>
+  <li><code class="language-plaintext highlighter-rouge">/fi/http...</code> is the URL of a MP3 / audio file</li>
+</ul>
+
+<h4 id="syntax-of-a-mention-in-comment-text">Syntax of a mention (in comment text)</h4>
+
+<p>sample comment: <code class="language-plaintext highlighter-rouge">blah blah **@[Camille B](user:51483cad7e91c862b2ab6dc2)** blah blah...</code></p>
+
+<p>syntax:</p>
+
+<ul>
+  <li>arobase</li>
+  <li>user’s name, in brackets</li>
+  <li><code class="language-plaintext highlighter-rouge">user:[uId]</code>, in parenthesis</li>
+</ul>
+
+<h4 id="urls-for-fetching-images">URLs for fetching images</h4>
+
+<p>Images can be fetched for any Openwhyd resource (tracks, user, playlists…) from a unified URL scheme, provided the id of this ressource.</p>
+
+<p>The controller will either redirect to the external ressource (e.g. facebook avatars, hosted by facebook) or return the image directly. In the first case, HTTP GET parameters are passed through to the redirect URL.</p>
+
+<p>URL templates:</p>
+
+<ul>
+  <li>**/img/user/<id>**: returns a user's avatar</id></li>
+  <li>**/img/userCover/<id>**: returns a user's profile cover image (banner) or a transparent pixel</id></li>
+  <li>**/img/post/<id>**: returns a track's thumbnail image</id></li>
+  <li>**/img/playlist/<id>**: returns a playlist's image</id></li>
+</ul>
+
+<p>Specific notes about the playlist template:</p>
+
+<ul>
+  <li>a playlist id has the following syntax: **<user>\_<playlist number="">**</playlist></user></li>
+</ul>
+
+
+      
+      <div class="footer border-top border-gray-light mt-5 pt-3 text-right text-gray">
+        This site is open source. <a href="https://github.com/openwhyd/openwhyd/edit/main/docs/API.md">Improve this page</a>.
+      </div>
+      
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/anchor-js/4.1.0/anchor.min.js" integrity="sha256-lZaRhKri35AyJSypXXs4o6OPFTbTmUoltBbDCbdzegg=" crossorigin="anonymous"></script>
+    <script>anchors.add();</script>
+  </body>
+</html>

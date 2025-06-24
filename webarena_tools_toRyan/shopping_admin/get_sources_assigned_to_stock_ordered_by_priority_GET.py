@@ -1,41 +1,43 @@
-import requests, json
-from urllib.parse import quote
+import requests
+import json
 
-def get_shopping_admin_admin_auth_token():
+def get_shopping_admin_auth_token():
+    ENDPOINT = 'http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:7770'
     response = requests.post(
-        url=f'http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:7780/rest/default/V1/integration/admin/token',
-        headers={
+        url = f'{ENDPOINT}/rest/default/V1/integration/admin/token',
+        headers = {
             'content-type': 'application/json'
         },
-        data=json.dumps({
+        data = json.dumps({
             'username': 'admin',
             'password': 'admin1234'
         })
     )
-    return response.json()
+    return "Bearer " + response.json()
+
 
 def get_sources_assigned_to_stock_ordered_by_priority(stockId=None):
     """
-    Get sources assigned to stock ordered by priority.
+    Get Sources assigned to Stock ordered by priority.
+    
+    If Stock with given id doesn't exist then return an empty array.
     
     Args:
-        stockId: The ID of the stock to get sources for.
-        
+        stockId (int): The ID of the stock to get sources for.
+            Example: 1
+    
     Returns:
-        Response object from the API request.
+        requests.Response: The API response containing sources assigned to the stock.
+    
+    Raises:
+        AssertionError: If stockId is not provided.
     """
     assert stockId is not None, 'Missing required parameter: stockId'
     
-    api_url = f"http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:7780/rest/default/V1/inventory/get-sources-assigned-to-stock-ordered-by-priority/{stockId}"
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + get_shopping_admin_admin_auth_token(),
-    }
+    api_url = f"http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:7770/rest/default/V1/inventory/get-sources-assigned-to-stock-ordered-by-priority/{stockId}"
+    headers = {'Content-Type': 'application/json', 'Authorization': get_shopping_admin_auth_token()}
     
     response = requests.get(url=api_url, headers=headers, timeout=50, verify=False)
-    if response.status_code != 200:
-        response2 = requests.get(url=api_url, timeout=50) # in case API can't handle redundant params
-        response = response2
     return response
 
 if __name__ == '__main__':

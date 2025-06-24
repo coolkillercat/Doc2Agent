@@ -7,7 +7,6 @@ import os
 import json
 from collections import defaultdict
 
-
 def add_to_dict(d: defaultdict, prev_path: str, object, api_doc: str):
     """
     Encode a json tree into a dictionary with root to leaf path. Sets have max length of 10.
@@ -27,7 +26,7 @@ def add_to_dict(d: defaultdict, prev_path: str, object, api_doc: str):
     else:
         if object:
             if len(d[prev_path]) < 10:
-                d[prev_path].add((api_doc, object))
+                d[prev_path].add((prev_path, object))
 
 
 def build_dict(d, object, api_doc):
@@ -118,7 +117,7 @@ def build_description_dicts(apidocs_dir):
 
 def build_response_dict(apidocs_dir):
     """
-    Build a dictionary of API responses from saved response files.
+    Build a dictionary of API responses from shared metadata file.
     
     Args:
         apidocs_dir: Directory containing API docs
@@ -126,19 +125,59 @@ def build_response_dict(apidocs_dir):
     Returns:
         response_dict: Dictionary mapping response paths to sets of examples
     """
-    folders = os.listdir(apidocs_dir)
     response_dict = defaultdict(set)
     
-    for folder in folders:
-        files = os.listdir(os.path.join(apidocs_dir, folder))
-        files = [x for x in files if x.endswith("_response.json")]
+    # Look for the shared metadata file
+    metadata_file = os.path.join(os.path.dirname(apidocs_dir), 'tool_validation_refinement_metadata.json')
+    if not os.path.exists(metadata_file):
+        # Fallback to looking in current directory
+        metadata_file = 'tool_validation_refinement_metadata.json'
+        if not os.path.exists(metadata_file):
+            print("Warning: No shared metadata file found, response dictionary will be empty")
+            return response_dict
+    
+    try:
+        with open(metadata_file, 'r', encoding='utf-8') as f:
+            metadata = json.load(f)
         
-        for file_name in files:
-            file_path = os.path.join(apidocs_dir, folder, file_name)
-            response = json.load(open(file_path))
-            
-            if response['status_code'] == 200:
-                response_json = response['json']
-                build_dict(response_dict, response_json, folder)
+        # Extract successful responses from metadata
+        for tool_data in metadata.get('tools', []):
+            if (tool_data.get('status') == 'information' and 
+                tool_data.get('response')):
                 
+                try:
+                    # First parse the response string as JSON
+                    response_str = tool_data.get('response')
+                    if not response_str:
+                        continue
+                        
+                    # Parse the response string to get the response object
+                    response_obj = json.loads(response_str)
+                    
+                    # Only extract the JSON part of the response
+                    if isinstance(response_obj, dict) and 'json' in response_obj:
+                        response_json = response_obj['json']
+                    else:
+                        # Skip if response doesn't have json field
+                        continue
+                    
+                    # Skip if response_json is None or empty
+                    if response_json is None:
+                        continue
+                    
+                    # Use function_name as the identifier instead of folder name
+                    function_name = tool_data.get('function_name', 'unknown')
+                    
+                    # Build dictionary from ONLY the JSON response data with function_name as root
+                    add_to_dict(response_dict, f'[{function_name}]', response_json, function_name)
+                    
+                except (json.JSONDecodeError, ValueError, TypeError) as e:
+                    print(f"Warning: Could not parse response JSON for {tool_data.get('path', 'unknown')}: {e}")
+                    continue
+                    
+    except Exception as e:
+        print(f"Error loading shared metadata file: {e}")
+        return response_dict
+    
+    print(f"Built response dictionary with {len(response_dict)} response paths from shared metadata")
     return response_dict 

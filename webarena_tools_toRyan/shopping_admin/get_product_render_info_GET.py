@@ -1,76 +1,109 @@
-import requests, json
+import requests
+import json
 from urllib.parse import quote
 
-def get_shopping_admin_admin_auth_token():
+def get_shopping_admin_auth_token():
+    ENDPOINT = 'http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:7770'
     response = requests.post(
-        url=f'http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:7780/rest/default/V1/integration/admin/token',
-        headers={
+        url = f'{ENDPOINT}/rest/default/V1/integration/admin/token',
+        headers = {
             'content-type': 'application/json'
         },
-        data=json.dumps({
+        data = json.dumps({
             'username': 'admin',
             'password': 'admin1234'
         })
     )
-    return response.json()
+    return "Bearer " + response.json()
 
-def get_product_render_info(storeId=None, currencyCode=None, searchCriteria_filterGroups__0__filters__0__field_=None, searchCriteria_filterGroups__0__filters__0__value_=None, searchCriteria_filterGroups__0__filters__0__conditionType_=None, searchCriteria_sortOrders__0__field_=None, searchCriteria_sortOrders__0__direction_=None, searchCriteria_pageSize_=None, searchCriteria_currentPage_=None):
+
+def get_product_render_info(storeId=None, currencyCode=None, 
+                           searchCriteria_filterGroups_0_filters_0_field=None, 
+                           searchCriteria_filterGroups_0_filters_0_value=None, 
+                           searchCriteria_filterGroups_0_filters_0_conditionType=None, 
+                           searchCriteria_sortOrders_0_field=None, 
+                           searchCriteria_sortOrders_0_direction=None, 
+                           searchCriteria_pageSize=None, 
+                           searchCriteria_currentPage=None):
     """
-    Get product render information based on search criteria.
+    Get product render information from the API.
     
     Args:
         storeId (int): The store ID (required)
         currencyCode (str): The currency code (required)
-        searchCriteria_filterGroups__0__filters__0__field_ (str): Filter field
-        searchCriteria_filterGroups__0__filters__0__value_ (str): Filter value
-        searchCriteria_filterGroups__0__filters__0__conditionType_ (str): Filter condition type
-        searchCriteria_sortOrders__0__field_ (str): Sort field
-        searchCriteria_sortOrders__0__direction_ (str): Sort direction
-        searchCriteria_pageSize_ (int): Page size
-        searchCriteria_currentPage_ (int): Current page
-        
+        searchCriteria_filterGroups_0_filters_0_field (str): Field to filter by
+        searchCriteria_filterGroups_0_filters_0_value (str): Value to filter by
+        searchCriteria_filterGroups_0_filters_0_conditionType (str): Condition type for filtering
+        searchCriteria_sortOrders_0_field (str): Field to sort by
+        searchCriteria_sortOrders_0_direction (str): Sort direction (ASC or DESC)
+        searchCriteria_pageSize (int): Number of items per page
+        searchCriteria_currentPage (int): Current page number
+    
     Returns:
-        Response object from the API call
+        requests.Response: The API response
+    
+    Example:
+        >>> get_product_render_info(storeId=1, currencyCode='USD', 
+        ...                         searchCriteria_filterGroups_0_filters_0_field='price',
+        ...                         searchCriteria_filterGroups_0_filters_0_value='100',
+        ...                         searchCriteria_filterGroups_0_filters_0_conditionType='eq',
+        ...                         searchCriteria_sortOrders_0_field='name',
+        ...                         searchCriteria_sortOrders_0_direction='ASC',
+        ...                         searchCriteria_pageSize=20,
+        ...                         searchCriteria_currentPage=1)
     """
-    api_url = f"http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:7780/rest/default/V1/products-render-info"
+    base_url = "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:7770"
+    api_url = f"{base_url}/rest/default/V1/products-render-info"
     
     assert storeId is not None, 'Missing required parameter: storeId'
     assert currencyCode is not None, 'Missing required parameter: currencyCode'
     
     querystring = {
-        'storeId': storeId, 
-        'currencyCode': currencyCode,
-        'searchCriteria[filterGroups][0][filters][0][field]': searchCriteria_filterGroups__0__filters__0__field_,
-        'searchCriteria[filterGroups][0][filters][0][value]': searchCriteria_filterGroups__0__filters__0__value_,
-        'searchCriteria[filterGroups][0][filters][0][conditionType]': searchCriteria_filterGroups__0__filters__0__conditionType_,
-        'searchCriteria[sortOrders][0][field]': searchCriteria_sortOrders__0__field_,
-        'searchCriteria[sortOrders][0][direction]': searchCriteria_sortOrders__0__direction_,
-        'searchCriteria[pageSize]': searchCriteria_pageSize_,
-        'searchCriteria[currentPage]': searchCriteria_currentPage_
+        'storeId': storeId,
+        'currencyCode': currencyCode
     }
     
-    # Remove None values
-    querystring = {k: v for k, v in querystring.items() if v is not None}
+    # Add search criteria parameters
+    if searchCriteria_filterGroups_0_filters_0_field is not None:
+        querystring['searchCriteria[filterGroups][0][filters][0][field]'] = searchCriteria_filterGroups_0_filters_0_field
+    if searchCriteria_filterGroups_0_filters_0_value is not None:
+        querystring['searchCriteria[filterGroups][0][filters][0][value]'] = searchCriteria_filterGroups_0_filters_0_value
+    if searchCriteria_filterGroups_0_filters_0_conditionType is not None:
+        querystring['searchCriteria[filterGroups][0][filters][0][conditionType]'] = searchCriteria_filterGroups_0_filters_0_conditionType
+    if searchCriteria_sortOrders_0_field is not None:
+        querystring['searchCriteria[sortOrders][0][field]'] = searchCriteria_sortOrders_0_field
+    if searchCriteria_sortOrders_0_direction is not None:
+        querystring['searchCriteria[sortOrders][0][direction]'] = searchCriteria_sortOrders_0_direction
+    if searchCriteria_pageSize is not None:
+        querystring['searchCriteria[pageSize]'] = searchCriteria_pageSize
+    if searchCriteria_currentPage is not None:
+        querystring['searchCriteria[currentPage]'] = searchCriteria_currentPage
     
     headers = {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + get_shopping_admin_admin_auth_token(),
+        'Content-Type': 'application/json',
+        'Authorization': get_shopping_admin_auth_token()
     }
     
-    response = requests.get(url=api_url, headers=headers, params=querystring, timeout=50, verify=False)
-    if response.status_code != 200:
-        response2 = requests.get(url=api_url, timeout=50) # in case API can't handle redundant params
-        response = response2
+    response = requests.get(url=api_url, params=querystring, headers=headers, timeout=50, verify=False)
     return response
 
 if __name__ == '__main__':
-    r = get_product_render_info(storeId=1, currencyCode='USD', searchCriteria_filterGroups__0__filters__0__field_='name', searchCriteria_filterGroups__0__filters__0__value_='laptop', searchCriteria_filterGroups__0__filters__0__conditionType_='eq', searchCriteria_sortOrders__0__field_='price', searchCriteria_sortOrders__0__direction_='asc', searchCriteria_pageSize_=10, searchCriteria_currentPage_=1)
+    r = get_product_render_info(
+        storeId=1, 
+        currencyCode='USD', 
+        searchCriteria_filterGroups_0_filters_0_field='price',
+        searchCriteria_filterGroups_0_filters_0_value='100',
+        searchCriteria_filterGroups_0_filters_0_conditionType='eq',
+        searchCriteria_sortOrders_0_field='name',
+        searchCriteria_sortOrders_0_direction='ASC',
+        searchCriteria_pageSize=20,
+        searchCriteria_currentPage=1
+    )
     r_json = None
     try:
         r_json = r.json()
     except:
         pass
-    import json
     result_dict = dict()
     result_dict['status_code'] = r.status_code
     result_dict['text'] = r.text

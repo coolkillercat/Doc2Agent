@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>milestones API Documentation</title>
+</head>
+<body>
+<hr />
+<p>stage: Plan
+group: Project Management
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments</p>
+<hr />
+<h1>Project milestones API</h1>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> GitLab.com, Self-managed, GitLab Dedicated</p>
+<p>Use project <a href="../user/project/milestones/index.md">milestones</a> with the REST API.
+There's a separate <a href="group_milestones.md">group milestones API</a> page.</p>
+<h2>List project milestones</h2>
+<p>Returns a list of project milestones.</p>
+<p><code>plaintext
+GET /projects/:id/milestones
+GET /projects/:id/milestones?iids[]=42
+GET /projects/:id/milestones?iids[]=42&amp;iids[]=43
+GET /projects/:id/milestones?state=active
+GET /projects/:id/milestones?state=closed
+GET /projects/:id/milestones?title=1.0
+GET /projects/:id/milestones?search=version
+GET /projects/:id/milestones?updated_before=2013-10-02T09%3A24%3A18Z
+GET /projects/:id/milestones?updated_after=2013-10-02T09%3A24%3A18Z</code></p>
+<p>Parameters:</p>
+<p>| Attribute                         | Type   | Required | Description |
+| ----------------------------      | ------ | -------- | ----------- |
+| <code>id</code>                              | integer or string | yes | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user |
+| <code>iids[]</code>                          | integer array | no | Return only the milestones having the given <code>iid</code>. Ignored if <code>include_ancestors</code> is <code>true</code>.  |
+| <code>state</code>                           | string | no | Return only <code>active</code> or <code>closed</code> milestones |
+| <code>title</code>                           | string | no | Return only the milestones having the given <code>title</code> |
+| <code>search</code>                          | string | no | Return only milestones with a title or description matching the provided string |
+| <code>include_parent_milestones</code>       | boolean | no | <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/433298">Deprecated</a> in GitLab 16.7. Use <code>include_ancestors</code> instead. |
+| <code>include_ancestors</code>               | boolean | no | Include milestones from all parent groups. |
+| <code>updated_before</code>                  | datetime | no | Return only milestones updated before the given datetime. Expected in ISO 8601 format (<code>2019-03-15T08:00:00Z</code>). Introduced in GitLab 15.10 |
+| <code>updated_after</code>                   | datetime | no | Return only milestones updated after the given datetime. Expected in ISO 8601 format (<code>2019-03-15T08:00:00Z</code>). Introduced in GitLab 15.10 |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/5/milestones"</code></p>
+<p>Example Response:</p>
+<p><code>json
+[
+  {
+    "id": 12,
+    "iid": 3,
+    "project_id": 16,
+    "title": "10.0",
+    "description": "Version",
+    "due_date": "2013-11-29",
+    "start_date": "2013-11-10",
+    "state": "active",
+    "updated_at": "2013-10-02T09:24:18Z",
+    "created_at": "2013-10-02T09:24:18Z",
+    "expired": false
+  }
+]</code></p>
+<h2>Get single milestone</h2>
+<p>Gets a single project milestone.</p>
+<p><code>plaintext
+GET /projects/:id/milestones/:milestone_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute      | Type           | Required | Description                                                                                                     |
+|----------------|----------------|----------|-----------------------------------------------------------------------------------------------------------------|
+| <code>id</code>           | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user |
+| <code>milestone_id</code> | integer        | yes      | The ID of the project's milestone                                                                               |</p>
+<h2>Create new milestone</h2>
+<p>Creates a new project milestone.</p>
+<p><code>plaintext
+POST /projects/:id/milestones</code></p>
+<p>Parameters:</p>
+<p>| Attribute     | Type           | Required | Description                                                                                                     |
+|---------------|----------------|----------|-----------------------------------------------------------------------------------------------------------------|
+| <code>id</code>          | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user |
+| <code>title</code>       | string         | yes      | The title of a milestone                                                                                        |
+| <code>description</code> | string         | no       | The description of the milestone                                                                                |
+| <code>due_date</code>    | string         | no       | The due date of the milestone (<code>YYYY-MM-DD</code>)                                                                    |
+| <code>start_date</code>  | string         | no       | The start date of the milestone (<code>YYYY-MM-DD</code>)                                                                  |</p>
+<h2>Edit milestone</h2>
+<p>Updates an existing project milestone.</p>
+<p><code>plaintext
+PUT /projects/:id/milestones/:milestone_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute      | Type           | Required | Description                                                                                                     |
+|----------------|----------------|----------|-----------------------------------------------------------------------------------------------------------------|
+| <code>id</code>           | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user |
+| <code>milestone_id</code> | integer        | yes      | The ID of the project's milestone                                                                               |
+| <code>title</code>        | string         | no       | The title of a milestone                                                                                        |
+| <code>description</code>  | string         | no       | The description of the milestone                                                                                |
+| <code>due_date</code>     | string         | no       | The due date of the milestone (<code>YYYY-MM-DD</code>)                                                                    |
+| <code>start_date</code>   | string         | no       | The start date of the milestone (<code>YYYY-MM-DD</code>)                                                                  |
+| <code>state_event</code>  | string         | no       | The state event of the milestone (close or activate)                                                            |</p>
+<h2>Delete project milestone</h2>
+<blockquote>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/issues/343889">Changed</a> the minimum user role from Developer to Reporter in GitLab 15.0.</li>
+</ul>
+</blockquote>
+<p>Only for users with at least the Reporter role in the project.</p>
+<p><code>plaintext
+DELETE /projects/:id/milestones/:milestone_id</code></p>
+<p>Parameters:</p>
+<p>| Attribute      | Type           | Required | Description                                                                                                     |
+|----------------|----------------|----------|-----------------------------------------------------------------------------------------------------------------|
+| <code>id</code>           | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user |
+| <code>milestone_id</code> | integer        | yes      | The ID of the project's milestone                                                                               |</p>
+<h2>Get all issues assigned to a single milestone</h2>
+<p>Gets all issues assigned to a single project milestone.</p>
+<p><code>plaintext
+GET /projects/:id/milestones/:milestone_id/issues</code></p>
+<p>Parameters:</p>
+<p>| Attribute      | Type           | Required | Description                                                                                                     |
+|----------------|----------------|----------|-----------------------------------------------------------------------------------------------------------------|
+| <code>id</code>           | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user |
+| <code>milestone_id</code> | integer        | yes      | The ID of the project's milestone                                                                               |</p>
+<h2>Get all merge requests assigned to a single milestone</h2>
+<p>Gets all merge requests assigned to a single project milestone.</p>
+<p><code>plaintext
+GET /projects/:id/milestones/:milestone_id/merge_requests</code></p>
+<p>Parameters:</p>
+<p>| Attribute      | Type           | Required | Description                                                                                                     |
+|----------------|----------------|----------|-----------------------------------------------------------------------------------------------------------------|
+| <code>id</code>           | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user |
+| <code>milestone_id</code> | integer        | yes      | The ID of the project's milestone                                                                               |</p>
+<h2>Promote project milestone to a group milestone</h2>
+<blockquote>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/issues/343889">Changed</a> the minimum user role from Developer to Reporter in GitLab 15.0.</li>
+</ul>
+</blockquote>
+<p>Only for users with at least the Reporter role in the group.</p>
+<p><code>plaintext
+POST /projects/:id/milestones/:milestone_id/promote</code></p>
+<p>Parameters:</p>
+<p>| Attribute      | Type           | Required | Description                                                                                                     |
+|----------------|----------------|----------|-----------------------------------------------------------------------------------------------------------------|
+| <code>id</code>           | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user |
+| <code>milestone_id</code> | integer        | yes      | The ID of the project's milestone                                                                               |</p>
+<h2>Get all burndown chart events for a single milestone</h2>
+<p>DETAILS:
+<strong>Tier:</strong> Premium, Ultimate
+<strong>Offering:</strong> GitLab.com, Self-managed, GitLab Dedicated</p>
+<p>Gets all burndown chart events for a single milestone.</p>
+<p><code>plaintext
+GET /projects/:id/milestones/:milestone_id/burndown_events</code></p>
+<p>Parameters:</p>
+<p>| Attribute      | Type           | Required | Description                                                                                                     |
+|----------------|----------------|----------|-----------------------------------------------------------------------------------------------------------------|
+| <code>id</code>           | integer or string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a> owned by the authenticated user |
+| <code>milestone_id</code> | integer        | yes      | The ID of the project's milestone                                                                               |</p>
+</body>
+</html>

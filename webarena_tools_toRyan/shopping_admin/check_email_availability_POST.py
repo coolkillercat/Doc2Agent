@@ -1,43 +1,51 @@
-import requests, json
+import requests
+import json
 from urllib.parse import quote
 
-def get_shopping_admin_admin_auth_token():
+def get_shopping_admin_auth_token():
+    ENDPOINT = 'http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:7770'
     response = requests.post(
-        url=f'http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:7780/rest/default/V1/integration/admin/token',
-        headers={
+        url = f'{ENDPOINT}/rest/default/V1/integration/admin/token',
+        headers = {
             'content-type': 'application/json'
         },
-        data=json.dumps({
+        data = json.dumps({
             'username': 'admin',
             'password': 'admin1234'
         })
     )
-    return response.json()
+    return "Bearer " + response.json()
 
-def check_email_availability(customer_email="test@example.com"):
+
+def check_email_availability(customerEmail, websiteId=None):
     """
-    Check if an email address is available for registration.
+    Check if given email is associated with a customer account in given website.
     
     Args:
-        customer_email (str): The email address to check for availability
+        customerEmail (str): The email address to check availability for.
+        websiteId (int, optional): The website ID to check against. If not set, will use the current websiteId.
         
     Returns:
-        requests.Response: The API response object
+        requests.Response: The API response object.
+        
+    Example:
+        >>> check_email_availability(customerEmail="example@example.com", websiteId=1)
+        <Response [200]>
     """
-    api_url = f"http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:7780/rest/default/V1/customers/isEmailAvailable"
-    payload = {
-        "customerEmail": customer_email
-    }
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + get_shopping_admin_admin_auth_token(),
-    }
+    base_url = "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:7770"
+    api_url = f"{base_url}/rest/default/V1/customers/isEmailAvailable"
     
-    response = requests.post(url=api_url, headers=headers, json=payload, timeout=50, verify=False)
+    payload = {'customerEmail': customerEmail}
+    if websiteId is not None:
+        payload['websiteId'] = websiteId
+        
+    headers = {'Content-Type': 'application/json', 'Authorization': get_shopping_admin_auth_token()}
+    
+    response = requests.post(url=api_url, json=payload, headers=headers, timeout=50, verify=False)
     return response
 
 if __name__ == '__main__':
-    r = check_email_availability()
+    r = check_email_availability(customerEmail="example@example.com", websiteId=1)
     r_json = None
     try:
         r_json = r.json()

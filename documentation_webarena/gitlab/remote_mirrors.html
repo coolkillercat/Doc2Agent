@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>remote_mirrors API Documentation</title>
+</head>
+<body>
+<hr />
+<p>stage: Create
+group: Source Code
+info: "To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments"</p>
+<hr />
+<h1>Project remote mirrors API</h1>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> GitLab.com, Self-managed, GitLab Dedicated</p>
+<p><a href="../user/project/repository/mirror/push.md">Push mirrors</a>
+defined on a project's repository settings are called "remote mirrors". You
+can query and modify the state of these mirrors with the remote mirror API.</p>
+<p>For security reasons, the <code>url</code> attribute in the API response is always scrubbed of username
+and password information.</p>
+<p>NOTE:
+<a href="../user/project/repository/mirror/pull.md">Pull mirrors</a> use
+<a href="projects.md#configure-pull-mirroring-for-a-project">a different API endpoint</a> to
+display and update them.</p>
+<h2>List a project's remote mirrors</h2>
+<p>Returns an array of remote mirrors and their statuses:</p>
+<p><code>plaintext
+GET /projects/:id/remote_mirrors</code></p>
+<p>Example request:</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/42/remote_mirrors"</code></p>
+<p>Example response:</p>
+<p><code>json
+[
+  {
+    "enabled": true,
+    "id": 101486,
+    "auth_method": "ssh_public_key",
+    "last_error": null,
+    "last_successful_update_at": "2020-01-06T17:32:02.823Z",
+    "last_update_at": "2020-01-06T17:32:02.823Z",
+    "last_update_started_at": "2020-01-06T17:31:55.864Z",
+    "only_protected_branches": true,
+    "keep_divergent_refs": true,
+    "update_status": "finished",
+    "url": "https://*****:*****@gitlab.com/gitlab-org/security/gitlab.git"
+  }
+]</code></p>
+<h2>Get a single project's remote mirror</h2>
+<p>Returns a remote mirror and its statuses:</p>
+<p><code>plaintext
+GET /projects/:id/remote_mirrors/:mirror_id</code></p>
+<p>Example request:</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/42/remote_mirrors/101486"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "enabled": true,
+  "id": 101486,
+  "last_error": null,
+  "last_successful_update_at": "2020-01-06T17:32:02.823Z",
+  "last_update_at": "2020-01-06T17:32:02.823Z",
+  "last_update_started_at": "2020-01-06T17:31:55.864Z",
+  "only_protected_branches": true,
+  "keep_divergent_refs": true,
+  "update_status": "finished",
+  "url": "https://*****:*****@gitlab.com/gitlab-org/security/gitlab.git"
+}</code></p>
+<h2>Create a pull mirror</h2>
+<p>Learn how to <a href="projects.md#configure-pull-mirroring-for-a-project">configure a pull mirror</a> using the Projects API.</p>
+<h2>Create a push mirror</h2>
+<blockquote>
+<ul>
+<li>Field <code>mirror_branch_regex</code> <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/381667">introduced</a> in GitLab 15.8 <a href="../administration/feature_flags.md">with a flag</a> named <code>mirror_only_branches_match_regex</code>. Disabled by default.</li>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/issues/381667">Enabled by default</a> in GitLab 16.0.</li>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/issues/410354">Generally available</a> in GitLab 16.2. Feature flag <code>mirror_only_branches_match_regex</code> removed.</li>
+<li>Field <code>auth_method</code> <a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/75155">introduced</a> in GitLab 16.10.</li>
+</ul>
+</blockquote>
+<p>Push mirroring is disabled by default. To enable it, include the optional parameter
+<code>enabled</code> when you create the mirror:</p>
+<p><code>plaintext
+POST /projects/:id/remote_mirrors</code></p>
+<p>| Attribute                 | Type    | Required   | Description                                         |
+| :----------               | :-----  | :--------- | :------------                                       |
+| <code>url</code>                     | String  | yes        | The target URL to which the repository is mirrored. |
+| <code>enabled</code>                 | Boolean | no         | Determines if the mirror is enabled.                |
+| <code>keep_divergent_refs</code>     | Boolean | no         | Determines if divergent refs are skipped.           |
+| <code>only_protected_branches</code> | Boolean | no         | Determines if only protected branches are mirrored. |
+| <code>mirror_branch_regex</code>     | String  | no         | Contains a regular expression. Only branches with names matching the regex are mirrored. Requires <code>only_protected_branches</code> to be disabled. Premium and Ultimate only. |
+| <code>auth_method</code>             | String  | no         | Determines the mirror authentication method (<code>ssh_public_key</code> or <code>password</code>). |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --request POST --data "url=https://username:token@example.com/gitlab/example.git" \
+     --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/42/remote_mirrors"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+    "enabled": false,
+    "id": 101486,
+    "auth_method": "password",
+    "last_error": null,
+    "last_successful_update_at": null,
+    "last_update_at": null,
+    "last_update_started_at": null,
+    "only_protected_branches": false,
+    "keep_divergent_refs": false,
+    "update_status": "none",
+    "url": "https://*****:*****@example.com/gitlab/example.git"
+}</code></p>
+<h2>Update a remote mirror's attributes</h2>
+<blockquote>
+<ul>
+<li>Field <code>auth_method</code> <a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/75155">introduced</a> in GitLab 16.10.</li>
+</ul>
+</blockquote>
+<p>Toggle a remote mirror on or off, or change which types of branches are
+mirrored:</p>
+<p><code>plaintext
+PUT /projects/:id/remote_mirrors/:mirror_id</code></p>
+<p>| Attribute                 | Type    | Required   | Description                                         |
+| :----------               | :-----  | :--------- | :------------                                       |
+| <code>mirror_id</code>               | Integer | yes        | The remote mirror ID.                               |
+| <code>enabled</code>                 | Boolean | no         | Determines if the mirror is enabled.                |
+| <code>keep_divergent_refs</code>     | Boolean | no         | Determines if divergent refs are skipped.           |
+| <code>only_protected_branches</code> | Boolean | no         | Determines if only protected branches are mirrored. |
+| <code>mirror_branch_regex</code>     | String  | no         |  Determines if only the branch whose name matches the regex is mirrored. It does not work with <code>only_protected_branches</code> enabled. Premium and Ultimate only. |
+| <code>auth_method</code>             | String  | no         | Determines the mirror authentication method (<code>ssh_public_key</code> or <code>password</code>). |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --request PUT --data "enabled=false" --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/42/remote_mirrors/101486"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+    "enabled": false,
+    "id": 101486,
+    "auth_method": "password",
+    "last_error": null,
+    "last_successful_update_at": "2020-01-06T17:32:02.823Z",
+    "last_update_at": "2020-01-06T17:32:02.823Z",
+    "last_update_started_at": "2020-01-06T17:31:55.864Z",
+    "only_protected_branches": true,
+    "keep_divergent_refs": true,
+    "update_status": "finished",
+    "url": "https://*****:*****@gitlab.com/gitlab-org/security/gitlab.git"
+}</code></p>
+<h2>Force push mirror update</h2>
+<blockquote>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/issues/388907">Introduced</a> in GitLab 16.11.</li>
+</ul>
+</blockquote>
+<p><a href="../user/project/repository/mirror/index.md#force-an-update">Force an update</a> to a push mirror.</p>
+<p><code>plaintext
+POST /projects/:id/remote_mirrors/:mirror_id/sync</code></p>
+<p>Supported attributes:</p>
+<p>| Attribute   | Type              | Required | Description                                                                          |
+|-------------|-------------------|----------|--------------------------------------------------------------------------------------|
+| <code>id</code>        | integer or string | Yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the project</a>. |
+| <code>mirror_id</code> | Integer           | Yes      | The remote mirror ID.                                                                |</p>
+<p>If successful, returns <a href="rest/index.md#status-codes"><code>204</code></a>.</p>
+<p>Example request:</p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/42/remote_mirrors/101486/sync"</code></p>
+<p>Example response:</p>
+<p>An empty response with a HTTP response code 204.</p>
+<h2>Delete a remote mirror</h2>
+<p>Delete a remote mirror.</p>
+<p><code>plaintext
+DELETE /projects/:id/remote_mirrors/:mirror_id</code></p>
+<p>| Attribute   | Type    | Required   | Description       |
+| :---------- | :-----  | :--------- |:------------------|
+| <code>mirror_id</code> | Integer | yes        | Remote mirror ID. |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --request DELETE --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/projects/42/remote_mirrors/101486"</code></p>
+</body>
+</html>

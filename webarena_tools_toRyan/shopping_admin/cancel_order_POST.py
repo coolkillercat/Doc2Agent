@@ -1,51 +1,55 @@
-import requests, json
-from urllib.parse import quote
+import requests
+import json
 
-def get_shopping_admin_admin_auth_token():
+def get_shopping_admin_auth_token():
+    ENDPOINT = 'http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:7770'
     response = requests.post(
-        url=f'http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:7780/rest/default/V1/integration/admin/token',
-        headers={
+        url = f'{ENDPOINT}/rest/default/V1/integration/admin/token',
+        headers = {
             'content-type': 'application/json'
         },
-        data=json.dumps({
+        data = json.dumps({
             'username': 'admin',
             'password': 'admin1234'
         })
     )
-    return response.json()
+    return "Bearer " + response.json()
 
-def cancel_order(id=None):
+
+def cancel_order(id):
     """
-    Cancel an order by its ID.
+    Cancels a specified order.
     
     Args:
-        id (int): The ID of the order to cancel.
+        id (int): The order ID to cancel. This parameter is required.
         
     Returns:
         requests.Response: The response from the API.
         
-    Raises:
-        AssertionError: If the required parameter 'id' is not provided.
+    Example:
+        >>> response = cancel_order(id=40)
+        >>> print(response.status_code)
+        200
+        >>> print(response.json())
+        True
     """
-    assert id is not None, 'Missing required parameter: id'
+    if id is None:
+        raise ValueError('Missing required parameter: id')
     
-    api_url = f"http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:7780/rest/default/V1/orders/{id}/cancel"
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + get_shopping_admin_admin_auth_token(),
-    }
+    base_url = 'http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:7770'
+    api_url = f"{base_url}/rest/default/V1/orders/{id}/cancel"
+    headers = {'Content-Type': 'application/json', 'Authorization': get_shopping_admin_auth_token()}
     
     response = requests.post(url=api_url, headers=headers, timeout=50, verify=False)
     return response
 
 if __name__ == '__main__':
-    r = cancel_order(id=12345)
+    r = cancel_order(id=40)
     r_json = None
     try:
         r_json = r.json()
     except:
         pass
-    import json
     result_dict = dict()
     result_dict['status_code'] = r.status_code
     result_dict['text'] = r.text

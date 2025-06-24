@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>DropMail.me API</title>
+	  <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+	  <link rel="icon alternate" href="/favicon.ico"/>
+	  <link rel="canonical" href="https://dropmail.me/api/"/>
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="Create a temporary email programmatically via our easy API. For 10 minutes or more. Unlimited mailbox size. Attachments allowed." />
+    <link href="../static/lib/bootstrap-4.6.0/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="../static/lib/highlightjs-11.4.0/github.min.css" rel="stylesheet" />
+    <script>var module = {};</script>
+    <script type="text/javascript" src="/static/lib/js/jquery-3.5.1.min.js"></script>
+    <script type="text/javascript" src="/static/lib/js/knockout-3.5.1.min.js" defer></script>
+    <script type="text/javascript" src="/static/lib/bootstrap-4.6.0/js/bootstrap.bundle.min.js" defer></script>
+    <script src="/static/lib/highlightjs-11.4.0/highlightjs.min.js" defer></script>
+    <script src="/static/lib/highlightjs-11.4.0/graphql.js" defer></script>
+    <style>
+      h2 {margin-top: 2rem;}
+      h3 {padding-left: 1rem;}
+      h4 {padding-left: 1.4rem;}
+      .run {margin-bottom: .75rem; margin-top: .75rem}
+      .demo-url {overflow: auto; word-wrap: anywhere;}
+      code.hljs {padding: 0px !important;}
+      #navbar-col {position: sticky; top: 0px; height: 100%;}
+      #navbar {max-height: calc(100vh); overflow-y: auto;}
+      body {position: relative;}
+    </style>
+    <script>
+      $(function() {
+        "use strict";
+
+        function ApiViewModel() {
+          var vm = this;
+          /* var netloc = "https://dropmail.me"; */
+          var wl = window.location,
+              netloc = wl.protocol + "//" + wl.host,
+              netlocWS = (wl.protocol == 'https:' ? 'wss:' : 'ws:') + "//" + wl.host,
+              baseUrl =  "/api/graphql/";
+          var now = new Date();
+          var mask = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+          function pad(n) {
+            return (n < 10) ? '0' + n : n.toString();
+          }
+          var token = 'web-test-' + now.getFullYear() + pad(now.getMonth() + 1) + pad(now.getDate());
+          for (var i = 5; i > 0; --i)
+            token += mask[Math.floor(Math.random() * mask.length)];
+          this.token = ko.observable(token)
+          this.sessionId = ko.observable(null);
+          this.mailAddress = ko.observable(false);
+
+          var randomDomain = {id: null, name: "â¦Randomâ¦"};
+          this.domains = ko.observable([randomDomain]);
+          this.selectedDomain = ko.observable(randomDomain);
+
+          function URL(observable) {
+            var params = Object.assign({}, observable());
+            if (params.hasOwnProperty("variables")) {
+              params.variables = JSON.stringify(params.variables);
+            }
+            return baseUrl + vm.token() + "?" + $.param(params);
+          }
+          function fullURL(observable) {
+            return netloc + URL(observable);
+          }
+
+          function DemoBlock(id, query, handleRun, isSubscription) {
+            var block = this;
+            this.id = id + '-block';
+            this.name = id.replace("-", " ")
+            this.query = query;
+            this.runnable = ko.observable(true);
+            this.result = ko.observable();
+            this.url = ko.computed(function() {
+              return fullURL(block.query)
+            })
+            this.ready = ko.computed(function() {
+              return block.query().hasOwnProperty("query")
+            })
+            var httpGET = ko.computed(function() {
+              return ['GET ' + URL(block.query) + ' HTTP/1.1',
+                      'Host: ' + wl.host,
+                      'Accept: application/json\r\n'].join('\r\n')
+            })
+            var httpPOST = ko.computed(function() {
+              var json = JSON.stringify(block.query());
+              return ['POST ' + baseUrl + vm.token() + ' HTTP/1.1',
+                      'Host: ' + wl.host,
+                      'Content-Type: application/json',
+                      'Content-Length: ' + json.length,
+                      'Accept: application/json\r\n',
+                      json].join('\r\n');
+            })
+            var httpPOSTMultipart = ko.computed(function() {
+              var json = JSON.stringify(block.query());
+              return ['POST ' + baseUrl + vm.token() + ' HTTP/1.1',
+                      'Host: ' + wl.host,
+                      'Content-Type: application/json',
+                      'Content-Length: ' + json.length,
+                      'Accept: multipart/mixed\r\n',
+                      json].join('\r\n');
+            })
+            var curl = ko.computed(function() {
+              return 'curl ' + netloc + baseUrl + vm.token() + " -H 'Content-Type: application/json' \\\r\n -d '" +
+                     JSON.stringify(block.query()) + "'";
+            })
+            var gqlPY = ko.computed(function() {
+              var q = block.query();
+              var params = q.variables ? ',\r\n            variable_values=' + JSON.stringify(q.variables) : '';
+              return ['# See https://gql.readthedocs.io/en/latest/index.html',
+                      'from gql import Client, gql',
+                      'from gql.transport.aiohttp import AIOHTTPTransport',
+                      '',
+                      'token = "' + vm.token() + '"',
+                      'transport = AIOHTTPTransport(url="' + netloc + baseUrl + '" + token)',
+                      'client = Client(transport=transport, fetch_schema_from_transport=True)',
+                      'query = gql("' + q.query + '"' + params + ')',
+                      'result = client.execute(query)',
+                      'print(result)'].join('\r\n')
+            })
+            var gqlPyWS = ko.computed(function() {
+              var q = block.query();
+              var params = q.variables ? ',\r\n            variable_values=' + JSON.stringify(q.variables) : '';
+              return ['# See https://gql.readthedocs.io/en/latest/transports/websockets.html',
+                      'from gql import Client, gql',
+                      'from gql.transport.websockets import WebsocketsTransport',
+                      '',
+                      'token = "' + vm.token() + '"',
+                      'transport = WebsocketsTransport(url="' + netlocWS + baseUrl + '" + token + "/websocket")',
+                      'client = Client(transport=transport, fetch_schema_from_transport=True)',
+                      'query = gql("' + q.query + '"' + params + ')',
+                      'result = client.execute(query)',
+                      'print(result)'].join('\r\n')
+            })
+            var gqlPyWSSubscription = ko.computed(function() {
+              var q = block.query();
+              var params = q.variables ? ',\r\n            variable_values=' + JSON.stringify(q.variables) : '';
+              return ['# See https://gql.readthedocs.io/en/latest/transports/websockets.html',
+                      '# See https://gql.readthedocs.io/en/latest/usage/subscriptions.html',
+                      'from gql import Client, gql',
+                      'from gql.transport.websockets import WebsocketsTransport',
+                      '',
+                      'token = "' + vm.token() + '"',
+                      'transport = WebsocketsTransport(url="' + netlocWS + baseUrl + '" + token + "/websocket")',
+                      'client = Client(transport=transport, fetch_schema_from_transport=True)',
+                      'query = gql("' + q.query + '"' + params + ')',
+                      'for mail in client.subscribe(query):',
+                      '    print(result)'].join('\r\n')
+            })
+            var gqlRequestJS = ko.computed(function() {
+              var paramsArg = '',
+                  paramsDef= '';
+              var q = block.query();
+              if (q.variables) {
+                paramsDef = '\r\n  const variables = ' + JSON.stringify(q.variables)
+                paramsArg = ', variables'
+              }
+              return ["// See https://github.com/prisma-labs/graphql-request",
+                      "import { request, gql } from 'graphql-request'",
+                      "",
+                      "async function main() {",
+                      "  const token = '" + vm.token() + "'",
+                      "  const endpoint = '" + netloc + baseUrl + "' + token",
+                      "",
+                      "  const query = gql`",
+                      "    " + q.query,
+                      "  `" + paramsDef,
+                      "",
+                      "  const data = await request(endpoint, query" + paramsArg + ")",
+                      "  console.log(JSON.stringify(data, undefined, 2))",
+                      "}",
+                      "main().catch((error) => console.error(error))"
+              ].join('\r\n')
+            })
+            var gqlGraphqlWsJS = ko.computed(function() {
+              var q = block.query();
+              return [
+                "import { createClient } from 'graphql-ws';",
+                "const token = '" + vm.token() + "'",
+                "const client = createClient({url: '" + netlocWS + baseUrl + "' + token});",
+                "(async () => {",
+                "  const subscription = client.iterate({",
+                "    query: '"+ q.query +"',",
+                "    variables: " + JSON.stringify(q.variables),
+                "  });",
+                "  for await (const event of subscription) {",
+                "    console.log(event);",
+                "  }",
+                "})();"
+              ].join('\r\n')
+            })
+            if (!isSubscription) {
+              this.snippets = [
+                {idHead: id + '-get-head', idTarget: id + '-get-target', name: "HTTP GET", lang: 'http', text: httpGET},
+                {idHead: id + '-post-head', idTarget: id + '-post-target', name: "HTTP POST", lang: 'http', text: httpPOST},
+                {idHead: id + '-curl-head', idTarget: id + '-curl-target', name: "cURL", lang: 'bash', text: curl},
+                {idHead: id + '-gql-request-js-head', idTarget: id + '-gql-request-js-target', name: "NodeJS 'graphql-request'", lang: 'javascript', text: gqlRequestJS},
+                {idHead: id + '-gql-py-head', idTarget: id + '-gql-py-target', name: "Python 'gql'", lang: 'python', text: gqlPY},
+                {idHead: id + '-gql-py-ws-head', idTarget: id + '-gql-py-ws-target', name: "Python 'gql' over WebSocket", lang: 'python', text: gqlPyWS},
+              ]
+            } else {
+              this.snippets = [
+                {idHead: id + '-get-head', idTarget: id + '-get-target', name: "HTTP GET", lang: 'http', text: httpGET},
+                {idHead: id + '-post-head', idTarget: id + '-post-target', name: "HTTP POST", lang: 'http', text: httpPOST},
+                {idHead: id + '-post-multipart-head', idTarget: id + '-post-multipart-target', name: "HTTP POST multipart/mixed", lang: 'http', text: httpPOSTMultipart},
+                {idHead: id + '-gql-graphql-ws-js-head', idTarget: id + '-gql-graphql-ws-request-js-target', name: "NodeJS 'graphql_ws'", lang: 'javascript', text: gqlGraphqlWsJS},
+                {idHead: id + '-gql-py-ws-sub-head', idTarget: id + '-gql-py-ws-sub-target', name: "Python 'gql' subscription over WebSocket", lang: 'python', text: gqlPyWSSubscription},
+              ]
+            }
+            this.run = function(e) {
+              block.runnable(false);
+              $.getJSON(block.url())
+               .done(function(resp) {
+                 block.result(resp)
+                 if (handleRun) {
+                   handleRun(resp)
+                 }
+                 highlightThis();
+               })
+               .fail(function(err) {
+                 alert("error");
+               })
+               .always(function() {
+                 block.runnable(true);
+               })
+            }
+            function highlightThis() {
+              var root = document.getElementById(block.id).parentElement;
+              root.querySelectorAll('pre > code').forEach((e) => {
+                hljs.highlightElement(e);
+              })
+            }
+            var snippetTracker = ko.computed(function() {
+              return block.snippets.map(function(s) {
+                return s.text()
+              }) + vm.token()
+            }).extend({ rateLimit: 300 });
+            snippetTracker.subscribe(highlightThis)
+          }
+
+
+          this.listDomains = new DemoBlock(
+            "list-domains",
+            ko.observable({
+              query: "query {domains {id, name, introducedAt, availableVia}}"
+            }),
+            function(result) {
+              var allDomains =
+                [randomDomain].concat(
+                  result.data.domains.map(function(domain) {
+                    return {id: domain.id, name: domain.name + " (id=" + domain.id + ")"}
+                }));
+              vm.domains(allDomains)
+          });
+
+          this.introduceSession = new DemoBlock(
+            "introduce-session",
+            ko.observable({
+              query: "mutation {introduceSession {id, expiresAt, addresses {address}}}"
+            }),
+            function (result) {
+              vm.sessionId(result.data.introduceSession.id);
+              vm.mailAddress(result.data.introduceSession.addresses[0].address);
+          });
+          this.querySessions = new DemoBlock(
+            "query-sessions",
+            ko.observable({
+              query: "query {sessions {id, expiresAt, mails {rawSize, fromAddr, toAddr, downloadUrl, text, headerSubject}}}"
+          }));
+          this.introduceAddress = new DemoBlock(
+            "introduce-address",
+            ko.computed(function() {
+              if (!vm.sessionId()) return {};
+              var selectedDomain = vm.selectedDomain();
+              var query = "mutation ($input: IntroduceAddressInput!) {introduceAddress(input: $input) {address, restoreKey}}";
+              if (selectedDomain.id) {
+                return {
+                  query: query,
+                  variables: {input: {sessionId: vm.sessionId(), domainId: selectedDomain.id}}
+                }
+              } else {
+                return {
+                  query: query,
+                  variables: {input: {sessionId: vm.sessionId()}}
+                }
+              }
+          }));
+          this.querySession = new DemoBlock(
+            "query-session",
+            ko.computed(function() {
+              if (!vm.sessionId()) return {};
+              return {
+                query: "query ($id: ID!) {session(id:$id) { " +
+                       "addresses {address}, " +
+                       "mails{rawSize, fromAddr, toAddr, downloadUrl, text, headerSubject}} }",
+                variables: {id: vm.sessionId()}
+              };
+          }));
+          this.subscribeSession = new DemoBlock(
+            "subscribe-session",
+            ko.computed(function() {
+              if (!vm.sessionId()) return {};
+              return {
+                query: "subscription ($id: ID!) {sessionMailReceived(id:$id) { " +
+                       "rawSize, fromAddr, toAddr, downloadUrl, text, headerSubject} }",
+                variables: {id: vm.sessionId()}
+              };
+            }),
+            null,
+            true
+          );
+          function QueryEdit() {
+            var self = this;
+            var defaultQ = {
+              query: ["query mailWithHtml($sanitizerConfig: HtmlSanitizerConfig) {",
+                      "  sessions {",
+                      "    mails {",
+                      "      fromAddr",
+                      "      headerSubject",
+                      "      text",
+                      "      sanitizedHtml(sanitizerConfig: $sanitizerConfig)",
+                      "    }",
+                      "  }",
+                      "}"].join("\r\n"),
+              variables: JSON.stringify(
+                {
+                  sanitizerConfig: {
+                    imgData: "keep",
+                    imgCid: "proxy",
+                    imgHttp: "keep"
+                  }
+                },
+                null,
+                2
+              )
+            };
+            this.select = ko.computed(function() {
+              return [vm.listDomains, vm.introduceSession, vm.querySessions, vm.introduceAddress, vm.querySession].filter(
+                function(block) {
+                  return block.ready()
+                }
+              )
+            });
+            this.selected = ko.observable();
+            this.query = ko.observable(defaultQ.query).extend({rateLimit: 1000, method: "notifyWhenChangesStop"})
+            this.variables = ko.observable(defaultQ.variables).extend({rateLimit: 1000, method: "notifyWhenChangesStop"});
+            this.error = ko.observable();
+
+            this.selected.subscribe(function(v) {
+              if (v && v.query() && (v.query().query != defaultQ.query)) {
+                var q = v.query();
+                self.query(q.query);
+                self.variables(q.variables ? JSON.stringify(q.variables, null, 2) : '');
+              }
+            })
+          }
+          this.queryEdit = new QueryEdit();
+          this.queryEditor = new DemoBlock(
+            "query-editor",
+            ko.computed(function() {
+              var vars = vm.queryEdit.variables().trim();
+              var queryObj = {query: vm.queryEdit.query().replace(/\s+/g, " ").trim()};
+              if (vars) {
+                try {
+                  queryObj.variables = JSON.parse(vars);
+                  vm.queryEdit.error(null);
+                } catch (e) {
+                  vm.queryEdit.error("Incorrect variables syntax")
+                }
+              };
+              return queryObj
+            })
+          );
+          /* Helper */
+          this.json = function(a) {
+            return JSON.stringify(a(), null, 2);
+          }
+        };
+        var viewModel = new ApiViewModel();
+        ko.applyBindings(viewModel);
+        hljs.registerLanguage("graphql", window.hljsDefineGraphQL);
+        hljs.highlightAll();
+        //$('.collapse').collapse()
+      })
+    </script>
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QH3LNFV6EF"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-QH3LNFV6EF', {
+        'linker': {
+          'domains': ['dropmail.me', 'fuckrkn.dropmail.info']
+        }
+      });
+    </script>
+    <!-- End Google Analytics -->
+  </head>
+  <body data-spy="scroll" data-offset="50" data-target="#navbar">
+    <div class="container-fluid">
+    <div class="row">
+      <div id="navbar-col" class="col-lg-3 d-none d-lg-block">
+        <nav id="navbar" class="navbar navbar-light bg-light">
+          <a class="navbar-brand" href="#">
+            <img src="/static/img/icon-80x80.png" width="30" height="30"
+              class="d-inline-block align-top" alt="Logo">
+            DropMail.me API
+          </a>
+          <nav class="nav flex-column">
+            <a class="nav-link" href="#object-model">Object model</a>
+            <a class="nav-link" href="#workflow">Workflow</a>
+            <nav class="nav nav-pills flex-column">
+              <a class="nav-link ml-3 my-1" href="#create-session-single-random-address">
+                Creating a Session with single random Address
+              </a>
+              <a class="nav-link ml-3 my-1" href="#fetch-incoming-mail">
+                Fetching the incoming mail
+              </a>
+              <a class="nav-link ml-3 my-1" href="#custom-address">
+                Custom addresses
+              </a>
+            </nav>
+            <a class="nav-link" href="#live-demo">Try it from your browser!</a>
+            <nav class="nav nav-pills flex-column">
+              <a class="nav-link ml-3 my-1" href="#list-domains">List domains</a>
+              <a class="nav-link ml-3 my-1" href="#introduce-session">Introduce session</a>
+              <a class="nav-link ml-3 my-1" href="#list-all-sessions">List all sessions</a>
+              <a class="nav-link ml-3 my-1" href="#add-another-address">
+                Add one more address to the session
+              </a>
+              <a class="nav-link ml-3 my-1" href="#query-specific-session">
+                Query a specific session
+              </a>
+              <a class="nav-link ml-3 my-1" href="#subscribe-to-session-mail">
+                Subscribe to new session mail
+              </a>
+              <a class="nav-link ml-3 my-1" href="#query-editor">Try your own query</a>
+            </nav>
+            <a class="nav-link" href="#code-examples">Code examples</a>
+            <nav class="nav nav-pills flex-column">
+              <a class="nav-link ml-3 my-1" href="#curl-new-session-with-random-address">
+                Creating a new session with random email address
+              </a>
+              <a class="nav-link ml-3 my-1" href="#curl-fetching-received-mail">
+                Fetching received emails
+              </a>
+            </nav>
+          </nav>
+        </nav>
+      </div>
+      <main class="col col-lg-9 py-md-3 pr-md-5" data-offset="0">
+      <h1 id="top"><a href="/">DropMail.me</a> Experimental API</h1>
+      <p><b>It's in a "public beta" state! Backwards-incompatible changes are still possible!</b></p>
+      <p>HTTP Endpoint: <code>https://dropmail.me/api/graphql/${AUTH_TOKEN}</code>.</p>
+      <p>WebSocket Endpoint: <code>wss://dropmail.me/api/graphql/${AUTH_TOKEN}/websocket</code>.</p>
+      <p>API uses <a href="https://graphql.org/">GraphQL format</a>. GraphQL schema: <a href="/api/schema.graphql">schema.graphql</a>.</p>
+      <p>You can use any unique string of 8 characters or more as <code>${AUTH_TOKEN}</code> right now, but we will introduce authentication mechanisms later.</p>
+      <p><b>HTTP</b> endpoint expects standard GraphQL parameters: <code>query</code>, <code>variables</code>, <code>operationName</code> and <code>extensions</code>. Only <code>query</code> is mandatory.</p>
+      <p>Both <code>GET</code> and <code>POST</code> methods could be used.
+        For <code>GET</code> method just add urlencoded parameters to the url as query string: <code>/api/graphql/MY_TOKEN?query=â¦&variables=â¦</code> ("variables" should be a JSON object).
+        <code>POST</code> accepts <code>application/json</code> and <code>application/x-www-form-urlencoded</code> Content-Types. If no "<code>Content-Type</code>" header provided, we expect the body to be in JSON. See <a href="https://github.com/graphql/graphql-over-http/blob/main/spec/GraphQLOverHTTP.md">detailed specification</a>.</p>
+      <p>Response can be returned with <code>Content-Type: application/json</code> (default) or as streamed <code>multipart/mixed</code> (when <code>Accept: multipart/mixed</code> HTTP request header is set). The <code>multipart/mixed</code> only makes sense to use for subscriptions. See <a href="https://github.com/graphql/graphql-over-http/blob/main/rfcs/IncrementalDelivery.md">detailed specification</a>.</p>
+      <p><b>WebSocket</b> endpoint supports both <a href="https://github.com/enisdenjo/graphql-ws/blob/master/PROTOCOL.md">graphql-ws</a> and <a href="https://github.com/apollographql/subscriptions-transport-ws/blob/master/PROTOCOL.md">Apollo</a> protocols (negotiated via "<code>Sec-WebSocket-Protocol</code>" header). Please consult your GraphQL client library for details.</p>
+      <p class="lead text-center"><a href="#live-demo" class="btn btn-primary btn-lg btn-block">Try it now from your browser!</a></p>
+    <h2 id="object-model">Object model</h2>
+    <dl>
+      <dt>Domain</dt>
+      <dd>Domain name, like <code>@dropmail.me</code> or <code>@10mail.org</code> for which you can crate email <b>Address</b>es. Some domains are only available via API, see <code>Domain.availableVia</code>.</dd>
+
+      <dt>Session</dt>
+      <dd>Is a server-side storage unit. It stores <b>Address</b>es and incoming <b>Email</b>s. It has limited lifetime - when session expires all its <b>Address</b>es and <b>Mail</b>s are removed from the server. You can create multiple <b>Session</b>s and attach multiple <b>Address</b>es to each <b>Session</b>. By default session's lifetime is 10min and extended each time you access it (by making any query that reads or writes some data to it).</dd>
+
+      <dt>Address</dt>
+      <dd>Email address, like <code>user@dropmail.me</code>, <code>wasd@10mail.org</code>. You can only choose <b>Domain</b> of the address, but "login" part (the one that comes before <code>@</code>) is assigned by the server automatically and is always unique and belongs to you only. It's always attached to one of the <b>Session</b>s and it is able to receive mail as long as the Session it's attached to is not expired. If you think you may need to use this address in the future, you should save its <code>restoreKey</code> and use it later with <code>restoreAddress</code> operation.</dd>
+
+      <dt>Mail</dt>
+      <dd>Incoming email that arrived to one of the <b>Address</b>es and is stored inside the <b>Session</b>. When Session expires, email is removed from our server completely and forever. You can request different parts of the email (like it's plain <code>text</code>, <code>headerSubject</code>, <code>attachments</code> etc) or get whole <code>raw</code> MIME mail or <code>downloadUrl</code> to download the raw mail by HTTP.</dd>
+
+      <dt>Attachment</dt>
+      <dd>It's only defined when received <b>Mail</b> has any attachments and we were able to parse it. They can be accessed via <code>Mail.attachments</code> field.</dd>
+    </dl>
+
+    <h2 id="workflow">Workflow</h2>
+    <h3 id="create-session-single-random-address">Creating a Session with single random Address</h3>
+    <p>To create a new sessions, use <code>introduceSession</code> mutation.</p>
+    <p>Here we create a new <b>Session</b> with new random <b>Address</b> and asking the server to return session's id, expiration time and new <b>Address</b>es email address</p>
+    <pre><code class="language-graphql">
+mutation {
+    introduceSession {
+        id,
+        expiresAt,
+        addresses {
+          address
+        }
+    }
+}
+    </code></pre>
+    <p>the output of this query would look like this:</p>
+    <pre><code class="language-json">
+{
+  "data": {
+    "introduceSession": {
+      "id": "U2Vzc2lvbjqcMxamadJC_aLiPz_XL0lK",
+      "expiresAt": "2021-02-18T04:20:00+00:00",
+      "addresses": [
+        {
+          "address": "example@10mail.org"
+        }
+      ]
+    }
+  }
+}
+    </code></pre>
+    <p>From now on, you can send mail to <i>example@10mail.org</i> and server would store it inside the Session with ID <i>"U2Vzc2lvbjqcMxamadJC_aLiPz_XL0lK"</i>.</p>
+    <p><code>"expiresAt": "2021-02-18T04:20:00+00:00"</code> means that this session would self-destruct at this moment (it's always in the future time), unless something happens with it (some query reads from it, or new email received). Each time session is accessed, its <code>expiresAt</code> is extended. So, in theory, it may stay alive forever.</p>
+
+    <h3 id="fetch-incoming-mail">Fetching the incoming mail</h3>
+    <p>To check for the incoming mail, you have two options</p>
+    <ul>
+      <li>Periodical polling - periodically (eg, once every 10 second) inspect the contents of the Session using <code>session(id)</code> or <code>sessions</code> query (easier, less efficient)</li>
+      <li>Subscriptions - to use <code>sessionMailReceived</code> subscription (advanced, more efficient)</li>
+    </ul>
+    <h4>Periodical polling (basic)</h4>
+    <p>Here we are requesting all (up to 100) mails for a specific session.</p>
+    <pre><code class="language-graphql">
+query {
+    session(id: "U2Vzc2lvbjqcMxamadJC_aLiPz_XL0lK") {
+        mails{
+            rawSize,
+            fromAddr,
+            toAddr,
+            downloadUrl,
+            text,
+            headerSubject
+        }
+    }
+}
+    </code></pre>
+    <p>This query would return an empty array when there are no mails:</p>
+    <pre><code class="language-json">
+{
+  "data": {
+    "session": {
+      "mails": []
+    }
+  }
+}
+    </code></pre>
+    <p>And would return a <b>Mail</b> object for each received email, when there are some:</p>
+    <pre><code class="language-json">
+{
+  "data": {
+    "session": {
+      "mails": [
+        {
+          "toAddr": "example@10mail.org",
+          "text": "Hello\r\n",
+          "rawSize": 812,
+          "html": null,
+          "headerSubject": "Hello",
+          "fromAddr": "test@example.com",
+          "downloadUrl": "https://dropmail.me/download/mail/gql:1:9c3316a6-69d2-42fd-a2e2-3f3fd72f494a/vb18co6tn6b4pv10hgr7lhaljcnrhvk5",
+        }
+      ]
+    }
+  }
+}
+    </code></pre>
+    <p>If session has already expired, <code>null</code> will be returned instead.</p>
+    <pre><code class="language-json">
+{
+  "data": {
+    "session": null
+  },
+  "errors": [
+    {
+      "path": ["session"],
+      "message": "session_not_found",
+      "extensions": {
+        "code": "resolver_error"
+      }
+    }
+  ]
+}
+    </code></pre>
+    <p id="mails-after-id">When you plan to receive multiple emails with the same session, it's recommended to use <code>mailsAfterId(mailId: ID)</code> field. When no <code>mailId</code> provided, it returns the same results as <code>mails</code>. But when some existing <code>mailId</code> is specified, it would only return mails, received after this <code>mailId</code>.</p>
+    <p>So, when you start the session, first you query <code>mailsAfterId</code> without <code>mailId</code> (or just <code>mails</code>), asking it to return <code>Mail.id</code> as well. When you recieve your first mail, you'll call <code>mailsAfterId</code> with received mail's <code>id</code> as a parameter, so, only new - unread mail will be returned.</p>
+
+    <h4>Subscriptions (advanced)</h4>
+    <p>The benefit of subscriptions is that you don't have to keep sending requests periodically to see if there is a new mail, but the server notifies you immediately when there is a new mail. To use subscriptions you need to rely on more advanced techniques. There are 3 alternatives:</p>
+    <ul>
+      <li>Subscription via HTTP long-polling</li>
+      <li>Subscription via HTTP multipart/mixed streaming</li>
+      <li>Subscription via WebSocket</li>
+    </ul>
+    All three methods need to call the same GraphQL command:
+    <pre><code class="language-graphql">
+subscription {
+    sessionMailReceived(id: "U2Vzc2lvbjqcMxamadJC_aLiPz_XL0lK") {
+        rawSize,
+        fromAddr,
+        toAddr,
+        downloadUrl,
+        text,
+        headerSubject
+    }
+}
+    </code></pre>
+    <p>To use this command with long-polling method you run it the same way as with any other command, however the server will not reply immediately, but will block until mail is received (up to 3 minutes). It can only return one mail at a time with this method and it always returns the first received mail by default. To get the next one, you need to add <code>mailsAfterId</code> parameter (works the same way as <a href="#mails-after-id">Query.mailsAfterId</a>).</p>
+    <p>To use it with multipart/mixed streaming, you need to add <code>Accept: multipart/mixed</code> HTTP request header. In that case the received emails will be streamed as <a href="https://datatracker.ietf.org/doc/html/rfc1521#section-7.2.2">multipart/mixed</a> document that contains <code>application/json</code> bodies per-email. It means you would need a MIME parser to extract the data.</p>
+    <p>To use it with WebSocket (recommended) you need to use a <a href="https://graphql.org/code/">GraphQL client library</a> that supports WebSocket transport. Please consult your library's documentation for details.</p>
+
+    <h3 id="custom-address">Custom addresses</h3>
+    <p>You can create a new session without <b>Address</b> or with one initial <b>Address</b> (that has random or specific <b>Domain</b>). And you can always add more <b>Address</b>es (with random or specific <b>Domain</b>) to the <b>Session</b> later.</p>
+    <p>You can't choose the login/username part of the address! It's always unique and generated by the server.</p>
+    <p>Anyway, first you would need to read the list of all the available domains and their IDs (IDs never change, so you can cache them locally; we add new ones from time to time):</p>
+    <pre><code class="language-graphql">
+query {
+    domains {
+        id,
+        name,
+        avaiableVia
+    }
+}
+    </code></pre>
+    <p>Result:</p>
+    <pre><code class="language-json">
+{
+  "data": {
+    "domains": [
+      {
+        "name": "dropmail.me",
+        "id": "RG9tYWluOjE=",
+        "availableVia": ["API", "TELEGRAM", "WEB"]
+      },
+      {
+        "name": "10mail.org",
+        "id": "RG9tYWluOjI=",
+        "availableVia": ["API", "TELEGRAM", "WEB"]
+      },
+      <..>
+    ]
+  }
+}
+    </code></pre>
+    <p>Then you may create a new session with specific domain:</p>
+    <pre><code class="language-graphql">
+mutation {
+    introduceSession(input: {withAddress: true,
+                             domainId: "RG9tYWluOjE="}) {
+        id,
+        addresses {
+          address
+        }
+    }
+}
+    </code></pre>
+    <p>Or create an empty session and add more addresses later:</p>
+    <pre><code class="language-graphql">
+mutation {
+    introduceSession(input: {withAddress: false}) {
+        id
+    }
+}
+
+mutation {
+    introduceAddress(input: {sessionId: "U2Vzc2lvbjqcMxamadJC_aLiPz_XL0lK"}) {
+        address,
+        restoreKey
+    }
+}
+
+mutation {
+    introduceAddress(input: {sessionId: "U2Vzc2lvbjqcMxamadJC_aLiPz_XL0lK",
+                             domainId: "RG9tYWluOjE="}) {
+        address,
+        restoreKey
+    }
+}
+    </code></pre>
+
+    <h2 id="live-demo">Try it from your browser!</h2>
+    <p>Here you can try to query our API right from your browser.</p>
+    <p><label>Token (7 or more characters): <input type="text" data-bind="textInput: token"/></label></p>
+
+    <h3 id="list-domains">List domains</h3>
+    <div>
+      <pre><code class="language-json" data-bind="text: json(listDomains.query)"></code></pre>
+      <p class="demo-url">
+        <a href="#" target="_blank"
+          data-bind="attr: {'href': listDomains.url}, text: listDomains.url">todo</a>
+      </p>
+      <div class="accordion" data-bind="foreach: listDomains.snippets, attr: {'id': listDomains.id}">
+        <div class="card">
+          <div class="card-header" data-bind="attr: {'id': idHead}">
+            <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" aria-expanded="false"
+              data-bind="attr: {'data-target': '#' + idTarget, 'aria-controls': idTarget}, text: name">
+            </button>
+          </div>
+          <div class="collapse"
+            data-bind="attr: {'id': idTarget, 'aria-labaledby': idHead, 'data-parent': '#' + $parent.listDomains.id}">
+            <div class="card-body">
+              <pre><code data-bind="text: text, attr: {'class': 'language-' + lang}"></code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="btn btn-primary run" data-bind="click: listDomains.run">Run</button>
+      <pre><code class="language-json" data-bind="text: json(listDomains.result)"></code></pre>
+    </div>
+
+    <h3 id="introduce-session">Introduce session</h3>
+    <p>This request would return a new email address as <code>data.introduceSession.addresses[0].address</code>, you can try to send emails to it!</p>
+    <div>
+      <pre><code class="language-json" data-bind="text: json(introduceSession.query)"></code></pre>
+      <p class="demo-url">
+        <a href="#" target="_blank"
+          data-bind="attr: {'href': introduceSession.url}, text: introduceSession.url">todo</a>
+      </p>
+      <div class="accordion" data-bind="foreach: introduceSession.snippets, attr: {'id': introduceSession.id}">
+        <div class="card">
+          <div class="card-header" data-bind="attr: {'id': idHead}">
+            <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" aria-expanded="false"
+              data-bind="attr: {'data-target': '#' + idTarget, 'aria-controls': idTarget}, text: name">
+            </button>
+          </div>
+          <div class="collapse"
+            data-bind="attr: {'id': idTarget, 'aria-labaledby': idHead, 'data-parent': '#' + $parent.introduceSession.id}">
+            <div class="card-body">
+              <pre><code data-bind="text: text, attr: {'class': 'language-' + lang}"></code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="btn btn-primary run" data-bind="click: introduceSession.run">Run</button>
+      <pre><code class="language-json" data-bind="text: json(introduceSession.result)"></code></pre>
+    </div>
+    <div class="alert alert-success" role="alert" data-bind="visible: mailAddress">
+      Great! Now try to <a href="" data-bind="attr: {'href': 'mailto:' + mailAddress()}">send email</a> to <b class="user-select-all" data-bind="text: mailAddress"></b>!
+    </div>
+    <p>What is your <b><label for="session-id">Session ID</label></b>? (<code>data.introduceSession.id</code>):
+      <input id="session-id" type="text" placeholder="U2Vzc2lvbjrrQW5Nâ¦" class="form-control" data-bind="textInput: sessionId"/>
+    </p>
+
+    <h3 id="list-all-sessions">List all sessions</h3>
+    <p>You can see all your non-expired sessions, even when you forgot to save the Session ID.</p>
+    <div>
+      <pre><code class="language-json" data-bind="text: json(querySessions.query)"></code></pre>
+      <p class="demo-url">
+        <a href="#" target="_blank"
+          data-bind="attr: {'href': querySessions.url}, text: querySessions.url">todo</a>
+      </p>
+      <div class="accordion" data-bind="foreach: querySessions.snippets, attr: {'id': querySessions.id}">
+        <div class="card">
+          <div class="card-header" data-bind="attr: {'id': idHead}">
+            <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" aria-expanded="false"
+              data-bind="attr: {'data-target': '#' + idTarget, 'aria-controls': idTarget}, text: name">
+            </button>
+          </div>
+          <div class="collapse"
+            data-bind="attr: {'id': idTarget, 'aria-labaledby': idHead, 'data-parent': '#' + $parent.querySessions.id}">
+            <div class="card-body">
+              <pre><code data-bind="text: text, attr: {'class': 'language-' + lang}"></code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="btn btn-primary run" data-bind="click: querySessions.run">Run</button>
+      <pre><code class="language-json" data-bind="text: json(querySessions.result)"></code></pre>
+    </div>
+
+    <h3 id="add-another-address">Add one more address to the session</h3>
+    <p>You can have multiple addresses attached to the session.</p>
+    <div data-bind="if: introduceAddress.ready">
+      <p>
+        <label>
+          You can choose a specific domain
+          <select data-bind="options: domains,
+            optionsText: 'name',
+            value: selectedDomain,
+            valueAllowUnset: false"></select>
+        </label> Make sure you <a href="#list-domains">run <code>query {domains}</code></a> before, so you know the correct <code>Domain.id</code>.
+      </p>
+      <pre><code class="language-json" data-bind="text: json(introduceAddress.query)"></code></pre>
+      <p class="demo-url">
+        <a href="#" target="_blank"
+          data-bind="attr: {'href': introduceAddress.url}, text: introduceAddress.url">todo</a>
+      </p>
+      <div class="accordion" data-bind="foreach: introduceAddress.snippets, attr: {'id': introduceAddress.id}">
+        <div class="card">
+          <div class="card-header" data-bind="attr: {'id': idHead}">
+            <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" aria-expanded="false"
+              data-bind="attr: {'data-target': '#' + idTarget, 'aria-controls': idTarget}, text: name">
+            </button>
+          </div>
+          <div class="collapse"
+            data-bind="attr: {'id': idTarget, 'aria-labaledby': idHead, 'data-parent': '#' + $parent.introduceAddress.id}">
+            <div class="card-body">
+              <pre><code data-bind="text: text, attr: {'class': 'language-' + lang}"></code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="btn btn-primary run" data-bind="click: introduceAddress.run">Run</button>
+      <pre><code class="language-json" data-bind="text: json(introduceAddress.result)"></code></pre>
+    </div>
+    <div data-bind="visible: !introduceAddress.ready()"  class="alert alert-warning">
+      <a href="#session-id">Session ID</a> missing!
+    </div>
+
+    <h3 id="query-specific-session">Query a specific session</h3>
+    <p>Call this API periodically to fetch incoming mail.</p>
+    <div data-bind="if: querySession.ready">
+      <pre><code class="language-json" data-bind="text: json(querySession.query)"></code></pre>
+      <p class="demo-url">
+        <a href="#" target="_blank"
+          data-bind="attr: {'href': querySession.url}, text: querySession.url">todo</a>
+      </p>
+      <div class="accordion" data-bind="foreach: querySession.snippets, attr: {'id': querySession.id}">
+        <div class="card">
+          <div class="card-header" data-bind="attr: {'id': idHead}">
+            <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" aria-expanded="false"
+              data-bind="attr: {'data-target': '#' + idTarget, 'aria-controls': idTarget}, text: name">
+            </button>
+          </div>
+          <div class="collapse"
+            data-bind="attr: {'id': idTarget, 'aria-labaledby': idHead, 'data-parent': '#' + $parent.querySession.id}">
+            <div class="card-body">
+              <pre><code data-bind="text: text, attr: {'class': 'language-' + lang}"></code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="btn btn-primary run" data-bind="click: querySession.run">Run</button>
+      <pre><code class="language-json" data-bind="text: json(querySession.result)"></code></pre>
+    </div>
+    <div data-bind="visible: !querySession.ready()"  class="alert alert-warning">
+      <a href="#session-id">Session ID</a> missing!
+    </div>
+
+    <h3 id="subscribe-to-session-mail">Subscribe to new session mail</h3>
+    <p>Use subscriptions to let server notify you about new mail.</p>
+    <div data-bind="if: subscribeSession.ready">
+      <pre><code class="language-json" data-bind="text: json(subscribeSession.query)"></code></pre>
+      <p class="demo-url">
+        <a href="#" target="_blank"
+          data-bind="attr: {'href': subscribeSession.url}, text: subscribeSession.url">todo</a>
+      </p>
+      <div class="accordion" data-bind="foreach: subscribeSession.snippets, attr: {'id': subscribeSession.id}">
+        <div class="card">
+          <div class="card-header" data-bind="attr: {'id': idHead}">
+            <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" aria-expanded="false"
+              data-bind="attr: {'data-target': '#' + idTarget, 'aria-controls': idTarget}, text: name">
+            </button>
+          </div>
+          <div class="collapse"
+            data-bind="attr: {'id': idTarget, 'aria-labaledby': idHead, 'data-parent': '#' + $parent.subscribeSession.id}">
+            <div class="card-body">
+              <pre><code data-bind="text: text, attr: {'class': 'language-' + lang}"></code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="btn btn-primary run" data-bind="click: subscribeSession.run, enable: subscribeSession.runnable">Run</button> (it will block until there is a mail at <b class="user-select-all" data-bind="text: mailAddress"></b>).
+      <pre><code class="language-json" data-bind="text: json(subscribeSession.result)"></code></pre>
+    </div>
+    <div data-bind="visible: !subscribeSession.ready()"  class="alert alert-warning">
+      <a href="#session-id">Session ID</a> missing!
+    </div>
+
+    <h3 id="query-editor">Try your own query</h3>
+    <p>
+      Here you can edit your own query and run it.
+      <label for="query-edit-select">Or edit one of example queries:</label>
+      <select id="query-edit-select" data-bind="options: queryEdit.select,
+        optionsText: 'name',
+        value: queryEdit.selected,
+        valueAllowUnset: true,
+        optionsCaption: 'Choose exampleâ¦'"></select>
+    </p>
+    <div>
+      <form>
+        <div class="form-group">
+          <label for="query-edit-query">GraphQL query</label>
+          <textarea id="query-edit-query" class="form-control" rows="10" data-bind="textInput: queryEdit.query" required></textarea>
+        </div>
+        <div class="form-group">
+          <label for="query-edit-variables">Variables (JSON)</label>
+          <textarea id="query-edit-variables" class="form-control" rows="7" data-bind="textInput: queryEdit.variables"></textarea>
+        </div>
+        <div class="alert alert-warning" data-bind="text: queryEdit.error, visible: queryEdit.error"></div>
+        <div class="form-group">
+        </div>
+      </form>
+      <p class="demo-url">
+        <a href="#" target="_blank" data-bind="attr: {'href': queryEditor.url}, text: queryEditor.url">todo</a>
+      </p>
+      <div class="accordion" data-bind="foreach: queryEditor.snippets, attr: {'id': queryEditor.id}">
+        <div class="card">
+          <div class="card-header" data-bind="attr: {'id': idHead}">
+            <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" aria-expanded="false"
+              data-bind="attr: {'data-target': '#' + idTarget, 'aria-controls': idTarget}, text: name">
+            </button>
+          </div>
+          <div class="collapse"
+            data-bind="attr: {'id': idTarget, 'aria-labaledby': idHead, 'data-parent': '#' + $parent.queryEditor.id}">
+            <div class="card-body">
+              <pre><code data-bind="text: text, attr: {'class': 'language-' + lang}"></code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="btn btn-primary run" data-bind="click: queryEditor.run">Run</button>
+      <pre><code class="language-json" data-bind="text: json(queryEditor.result)"></code></pre>
+    </div>
+
+    <h2 id="code-examples">Code examples</h2>
+    <p>Here we are using CURL command line utility to query the API.</p>
+    <h3 id="curl-new-session-with-random-address">Creating a new session with random email address</h3>
+    <pre><code class="language-bash">
+$ curl --silent -H "Content-Type: application/x-www-form-urlencoded" https://dropmail.me/api/graphql/MY_TOKEN -d 'query=mutation {introduceSession {id, expiresAt, addresses{id, address}}}' | jq
+{
+  "data": {
+    "introduceSession": {
+      "id": "U2Vzc2lvbjqcMxamadJC_aLiPz_XL0lK",
+      "expiresAt": "2021-02-18T01:40:02+00:00",
+      "addresses": [
+        {
+          "id": "QWRkcmVzczqcMxamadJC_aLiPz_XL0lKOmRyb2ZAMTBtYWlsLm9yZw",
+          "address": "example@10mail.org"
+        }
+      ]
+    }
+  }
+}
+    </code></pre>
+    <p>Now "example@10mail.org" is active and it can receive emails.</p>
+    <h3 id="curl-fetching-received-mail">Fetching received emails</h3>
+    <p>Right now there is no way for server to notify you when the new email have arrived, so,
+      you have to do periodic HTTP-polling. We are working on providing alternative ways (long-polling / websockets / web-hooks).</p>
+    <pre><code class="language-bash">
+$ curl --silent https://dropmail.me/api/graphql/MY_TOKEN -d 'query=query ($id: ID!) {session(id:$id) {id, expiresAt, mails{id, rawSize, raw, fromAddr, toAddr, receivedAt, downloadUrl, toAddrOrig, decodeStatus, text, headerFrom, headerSubject, html}, addresses{id, address, restoreKey} }}&amp;variables={"id": "U2Vzc2lvbjqcMxamadJC_aLiPz_XL0lK"}' | jq
+{
+  "data": {
+    "session": {
+      "mails": [
+        {
+          "toAddrOrig": "example@10mail.org",
+          "toAddr": "example@10mail.org",
+          "text": "Hello\r\n",
+          "receivedAt": "2021-02-18T01:30:17+00:00",
+          "rawSize": 812,
+          "raw": "MIME-Version: 1.0\r\nMessage-ID: &lt;test@mail.example.com&gt;\r\nSubject: Hello\r\nFrom: Hello &lt;test@example.com&gt;\r\nTo: aonfmqcpw@example.com\r\nContent-Type: text/plain; charset=US-ASCII\r\n\r\nHello\r\n",
+          "id": "TWFpbDqcMxamadJC/aLiPz/XL0lKOnZiMThjbzZ0bjZiNHB2MTBoZ3I3bGhhbGpjbnJodms1",
+          "html": null,
+          "headerSubject": "Hello",
+          "headerFrom": "Hello &lt;test@example.com&gt;",
+          "fromAddr": "test@example.com",
+          "downloadUrl": "https://dropmail.me/download/mail/gql:1:9c3316a6-69d2-42fd-a2e2-3f3fd72f494a/vb18co6tn6b4pv10hgr7lhaljcnrhvk5",
+          "decodeStatus": "OK"
+        }
+      ],
+      "id": "U2Vzc2lvbjqcMxamadJC_aLiPz_XL0lK",
+      "expiresAt": "2021-02-18T01:41:50+00:00",
+      "addresses": [
+        {
+          "restoreKey": "0c88ea831f8f71bf3885f2b5bddd6c371",
+          "id": "QWRkcmVzczqcMxamadJC_aLiPz_XL0lKOmRyb2ZAMTBtYWlsLm9yZw",
+          "address": "example@10mail.org"
+        }
+      ]
+    }
+  }
+}
+    </code></pre>
+    <p>Same, but more compact:</p>
+    <pre><code class="language-bash">
+$ curl --silent https://dropmail.me/api/graphql/MY_TOKEN -d 'query=query ($id: ID!) {session(id:$id) {mails{rawSize, fromAddr, toAddr, downloadUrl, text, headerSubject}} }&amp;variables={"id": "U2Vzc2lvbjqcMxamadJC_aLiPz_XL0lK"}' | jq
+{
+  "data": {
+    "session": {
+      "mails": [
+        {
+          "toAddr": "example@10mail.org",
+          "text": "Hello\r\n",
+          "rawSize": 812,
+          "html": null,
+          "headerSubject": "Hello",
+          "fromAddr": "test@example.com",
+          "downloadUrl": "https://dropmail.me/download/mail/gql:1:9c3316a6-69d2-42fd-a2e2-3f3fd72f494a/vb18co6tn6b4pv10hgr7lhaljcnrhvk5",
+        }
+      ]
+    }
+  }
+}
+    </code></pre>
+    </main>
+    </div>
+    </div>
+  </body>
+</html>

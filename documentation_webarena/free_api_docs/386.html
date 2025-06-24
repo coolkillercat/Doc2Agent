@@ -1,0 +1,379 @@
+<!doctype html>
+
+<html lang="en-us">
+  <head>
+    
+    <meta charset="utf-8">
+    <title>
+      GARBAGE WORLD
+      
+    </title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    
+    
+    <link href="stylesheets/screen.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="stylesheets/print.css" rel="stylesheet" type="text/css" media="print" />
+    <link href="feed.xml" rel="alternate" type="application/rss+xml" />
+    
+  </head>
+  <body>
+    
+    
+      <header>
+        <h1><a href="/" title="/root">ð¥ð©</a></h1>
+      </header>
+    
+
+    
+    <main id="main">
+      
+  <article class="post">
+    <h1 class="post__title">
+      The Library Genesis API
+    </h1>
+    <section class="post__meta">
+      
+        Oct 01, 2014
+      
+    </section>
+    <section>
+      <div id="table-of-contents" role="doc-toc">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents" role="doc-toc">
+<ul>
+<li><a href="#first-some-bad-news">1. First, some bad news</a></li>
+<li><a href="#querying-by-id">2. Querying by ID</a></li>
+<li><a href="#searching-by-date">3. Searching by date</a>
+<ul>
+<li><a href="#the-grab-bag-method">3.1. The grab-bag method</a></li>
+<li><a href="#the-newer-method">3.2. The <code>newer</code> method</a></li>
+</ul>
+</li>
+<li><a href="#are-you-sure-there-s-no-search-api">4. Are you sure there's no search API?</a></li>
+</ul>
+</div>
+</div>
+<p>
+<a href="http://libgen.io">Library Genesis</a> has an API, but the only documentation is <a href="http://genofond.org/viewtopic.php?p=39355">a forum thread in
+Russian</a>.  So this is an English-language guide to using the LibGen API.
+</p>
+
+<p>
+(I don't know Russian, and had to read the original thread using <a href="https://translate.google.com/translate?hl=en&amp;sl=auto&amp;tl=en&amp;u=http%3A%2F%2Fgenofond.org%2Fviewtopic.php%3Fp%3D39355">Google
+Translate</a>, so corrections and additions are very welcome!)
+</p>
+
+<div id="outline-container-first-some-bad-news" class="outline-2">
+<h2 id="first-some-bad-news"><span class="section-number-2">1.</span> First, some bad news</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+<span class="underline">This is not a search API.</span>
+</p>
+
+<p>
+The API was apparently written to help LibGen maintainers keep their
+local mirrors up-to-date, which would explain why the API does not
+support the most common use that Library Genesis is put to by the rest
+of us: searching for texts. You can't (as far as I can tell) submit a
+string and get a list of results based on that string.
+</p>
+
+<p>
+There are two <span class="underline">documented</span> ways to use the API to query the LibGen
+database: by text ID, or by date.
+</p>
+</div>
+</div>
+
+<div id="outline-container-querying-by-id" class="outline-2">
+<h2 id="querying-by-id"><span class="section-number-2">2.</span> Querying by ID</h2>
+<div class="outline-text-2" id="text-2">
+<p>
+Here's how to retrieve information about the texts with the coveted IDs
+of <code>1</code> and <code>2</code>:
+</p>
+
+<pre class="example">
+curl 'http://libgen.io/json.php?ids=1,2&amp;fields=Title,Author,MD5'
+</pre>
+
+<p>
+(The API is available at <code>http://gen.lib.rus.ec/json.php</code> as well.)
+</p>
+
+<p>
+The above `curl` request will return an array of JSON objects:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-json">[
+  {
+    <span class="org-keyword">"title"</span>:<span class="org-string">"Handbook of Clinical Drug Data"</span>,
+    <span class="org-keyword">"author"</span>:<span class="org-string">"Philip Anderson"</span>,
+    <span class="org-keyword">"md5"</span>:<span class="org-string">"7B2A4D53FDE834E801C26A2BAB7E0240"</span>
+  },
+  {
+    <span class="org-keyword">"title"</span>:<span class="org-string">"Handbook of Herbs and Spices"</span>,
+    <span class="org-keyword">"author"</span>:<span class="org-string">"K V Peter"</span>,
+    <span class="org-keyword">"md5"</span>:<span class="org-string">"048EA0496DB0444F873139CD705A07AF"</span>
+  }
+]
+</pre>
+</div>
+
+<p>
+I used these three fields &#x2013; <code>title</code>, <code>author</code>, and <code>md5</code> &#x2013; because
+they're all you need in most situations. You can get the page URL by
+appending the MD5 to <code>http://libgen.io/book/index.php?md5=</code> or to one of
+the mirrors:
+</p>
+
+<ul class="org-ul">
+<li><code>http://gen.lib.rus.ec/book/index.php?md5=</code></li>
+<li><code>http://bookzz.org/md5/</code></li>
+<li><code>http://bookfi.org/md5/</code></li>
+</ul>
+
+<p>
+You can create a download URL by appending the MD5 to
+<code>http://libgen.io/get.php?md5=</code>.
+</p>
+
+<p>
+There are other mirrors whose URLs are based on the text's LibGen ID,
+rather than the MD5:
+</p>
+
+<ul class="org-ul">
+<li><code>http://libgen.net/view.php?id=</code></li>
+<li><code>http://www.libgen.net/view.php?id=</code></li>
+<li><code>http://libgen.iofo/view.php?id=</code></li>
+<li><code>http://lib.freescienceengineering.org/view.php?id=</code></li>
+</ul>
+
+<p>
+You can't get a direct download link for these; you have to go to the
+page for the text and download from there.
+</p>
+
+<p>
+But <code>title</code>, <code>author</code>, and <code>md5</code> are far from the only available data
+fields; the full list is below. I haven't figured out what all the
+fields mean, and keep in mind that it's up to the person uploading a
+text to add this metadata, so not all texts are well-annotated.
+</p>
+
+<ul class="org-ul">
+<li><code>id</code> &#x2013; the LibGen ID</li>
+<li><code>title</code> &#x2013; the title of the text</li>
+<li><code>volumeinfo</code> &#x2013; the volume number, if the text is part of a multi-volume series</li>
+<li><code>series</code> &#x2013; the series that the text is part of</li>
+<li><code>periodical</code></li>
+<li><code>author</code> &#x2013; the author of the text</li>
+<li><code>year</code> &#x2013; the publication date of the text</li>
+<li><code>edition</code> &#x2013; the edition of the text</li>
+<li><code>publisher</code> &#x2013; the publisher of the text</li>
+<li><code>city</code> &#x2013; the location of the publisher</li>
+<li><code>pages</code> &#x2013; the number of pages in the text</li>
+<li><code>language</code> &#x2013; the language of the text</li>
+<li><code>topic</code> &#x2013; A number corresponding to the topic of the text; for example, <code>130</code> is "Mathematics/Logic"</li>
+<li><code>library</code></li>
+<li><code>issue</code></li>
+<li><code>identifier</code> &#x2013; the text's short and long <a href="https://www.isbn-international.org/content/what-isbn">International Standard Book Numbers</a> (not necessarily in that order)</li>
+<li><code>issn</code> &#x2013; the text's <a href="http://www.issn.org/understanding-the-issn/what-is-an-issn/">International Standard Serial Number</a></li>
+<li><code>asin</code> &#x2013; the text's <a href="http://www.amazon.com/gp/seller/asin-upc-isbn-info.html">Amazon Standard Identification Number</a></li>
+<li><code>udc</code> &#x2013; the text's <a href="https://en.wikipedia.org/wiki/Universal_Decimal_Classification">Universal Decimal Classification</a> number</li>
+<li><code>lbc</code></li>
+<li><code>ddc</code> &#x2013; the text's <a href="https://en.wikipedia.org/wiki/Dewey_Decimal_Classification">Dewey Decimal Classification</a> number</li>
+<li><code>lcc</code> &#x2013; the text's <a href="https://en.wikipedia.org/wiki/Library_of_Congress_Classification">Library of Congress Classification</a> number</li>
+<li><code>doi</code> &#x2013; the file's <a href="https://en.wikipedia.org/wiki/Digital_object_identifier">Digital Object Identifier</a></li>
+<li><code>googlebookid</code> &#x2013; the text's <a href="https://developers.google.com/books/docs/v1/using#ids">Google Books ID</a></li>
+<li><code>openlibraryid</code> &#x2013; the text's <a href="https://openlibrary.org/dev/docs/api/books">Open Library ID</a></li>
+<li><code>commentary</code></li>
+<li><code>dpi</code></li>
+<li><code>color</code></li>
+<li><code>cleaned</code></li>
+<li><code>orientation</code></li>
+<li><code>paginated</code> &#x2013; the text is paginated (<code>1</code>) or not (<code>0</code>)</li>
+<li><code>scanned</code> &#x2013; the text is scanned from a physical copy (<code>1</code>) or not (<code>0</code>)</li>
+<li><code>bookmarked</code> &#x2013; the text has bookmarks (<code>1</code>) or not (<code>0</code>)</li>
+<li><code>searchable</code> &#x2013; the text is searchable (<code>1</code>) or not (<code>0</code>)</li>
+<li><code>filesize</code> &#x2013; the size of the file in bytes</li>
+<li><code>extension</code> &#x2013; the extension of the file (<code>.pdf</code>, <code>.epub</code>, <code>.mobi</code>, etc.)</li>
+<li><code>md5</code> &#x2013; the [MD5](<a href="http://www.md5.net">http://www.md5.net</a>) hash of the file</li>
+<li><code>crc32</code> &#x2013; the file's <a href="http://www.riccibitti.com/crcguide.htm">CRC32</a> checksum</li>
+<li><code>edonkey</code> &#x2013; the file's <a href="https://en.wikipedia.org/wiki/Ed2k_URI_scheme">eDonkey hash</a></li>
+<li><code>aich</code> &#x2013; the text's <a href="http://www.emule-project.net/home/perl/help.cgi?l=1&amp;rm=show_topic&amp;topic_id=589">eMule file hash</a></li>
+<li><code>sha1</code> &#x2013; the file's <a href="https://en.wikipedia.org/wiki/SHA-1">SHA-1</a> hash</li>
+<li><code>tth</code> &#x2013; the file's <a href="https://en.wikipedia.org/wiki/Merkle_tree#Tiger_tree_hash">Tiger tree hash</a></li>
+<li><code>generic</code></li>
+<li><code>filename</code> &#x2013; the name of the file in the LibGen database, in the
+form <code>directory/md5</code>. The directory name is the text's LibGen ID
+rounded to the nearest thousand, and the MD5 hash is in lowercase.
+(The directory that each file is located in is <a href="https://github.com/lgsoft-developers/libgen/blob/c45f441c7aaa56ae690a6a6503295995a044a76b/util.php#L6">also included in the file name</a>.)</li>
+<li><code>visible</code></li>
+<li><code>locator</code> &#x2013; <a href="https://github.com/lgsoft-developers/libgen/blob/c45f441c7aaa56ae690a6a6503295995a044a76b/librarian/form.php#L187">As far as I can tell</a>, this is the file path of the original file on the machine of whoever uploaded it.</li>
+<li><code>local</code></li>
+<li><code>timeadded</code> &#x2013; the date/time when the text was added to the database, formatted as <code>YYYY-MM-DD HH:MM:SS</code></li>
+<li><code>timelastmodified</code> &#x2013; the date/time when the text's entry in the database was edited, formatted as <code>YYYY-MM-DD HH:MM:SS</code></li>
+<li><code>coverurl</code> &#x2013; the path to the cover image for the text: the <code>filename</code> followed by a lowercase letter (there's <a href="https://github.com/lgsoft-developers/libgen/blob/c45f441c7aaa56ae690a6a6503295995a044a76b/book/util.php#L30">a function</a> to determine the letter for each cover, but I don't know enough PHP to understand it).</li>
+</ul>
+
+<p>
+If you want to get all fields for a text, use <code>fields=*</code>.
+</p>
+</div>
+</div>
+
+<div id="outline-container-searching-by-date" class="outline-2">
+<h2 id="searching-by-date"><span class="section-number-2">3.</span> Searching by date</h2>
+<div class="outline-text-2" id="text-3">
+<p>
+Querying by ID is pretty useless except for internal tasks, so it's the
+ability to search by date that makes the API at all interesting. When
+searching by date, you don't send the <code>id</code> parameter to the API, but
+instead use some of the parameters below (along with any of the data
+fields from above):
+</p>
+
+<ul class="org-ul">
+<li><code>mode</code> &#x2013; set to <code>last</code>, <code>modified</code>, or <code>newer</code></li>
+<li><code>timefirst</code> &#x2013; a date formatted as <code>YYYY-MM-DD</code></li>
+<li><code>timelast</code> &#x2013; a date formatted as <code>YYYY-MM-DD</code></li>
+<li><code>timenewer</code> &#x2013; a time formatted as <code>YYYY-MM-DD%20HH:MM:SS</code></li>
+<li><code>idnewer</code> &#x2013; a LibGen ID</li>
+<li><code>limit1</code> &#x2013; an integer</li>
+<li><code>limit2</code> &#x2013; an integer</li>
+</ul>
+
+<p>
+Using these parameters allows you to do two things:
+</p>
+
+<ul class="org-ul">
+<li><del>retrieve information about a random set of texts from within a
+specified date range,</del> (see below) or</li>
+
+<li>retrieve information about texts modified after a certain time.</li>
+</ul>
+</div>
+
+<div id="outline-container-the-grab-bag-method" class="outline-3">
+<h3 id="the-grab-bag-method"><span class="section-number-3">3.1.</span> The grab-bag method</h3>
+<div class="outline-text-3" id="text-3-1">
+<p>
+<del>The obvious use case for this method is to display a random text or
+set of texts (perhaps for a Twitter bot).</del> <b>I obviously didn't test
+the API enough,</b> because this method is <span class="underline">not</span> random. I'll look into it
+more when I have the time.
+</p>
+
+<p>
+The following parameters and values are allowed here:
+</p>
+
+<ul class="org-ul">
+<li><code>mode</code> &#x2013; either <code>last</code> or <code>modified</code>. If you use <code>last</code>, the API
+will match the dates you specify against text's <code>timeadded</code>; if you
+use <code>modified</code>, it will look at <code>timelastmodified</code>.</li>
+
+<li><code>timefirst</code> &#x2013; the API will not return texts before this date
+(checked against either <code>timeadded</code> or <code>timelastmodified</code> depending
+on what the <code>mode</code> is set to). The first books have a <code>TimeAdded</code>
+value of <code>2009-07-20</code>, and setting <code>timefirst</code> to an earlier date
+will return an SQL error from the API.</li>
+
+<li><code>timelast</code> (optional) &#x2013; the API will not return texts after this
+date.</li>
+
+<li><code>limit1</code> and <code>limit2</code> (both optional) &#x2013; if both of these parameters
+are set, the number of results returned will be the value of
+<code>limit2</code>, and the set of results will be offset by the value of
+<code>limit1</code> (not very important here, where the results are random). If
+only <code>limit1</code> is set, its value is the number of results returned.</li>
+</ul>
+
+<p>
+Here's an example. This query returns 10 <del>random</del> MD5 hashes for texts
+added between 1 May 2013 and 1 January 2014:
+</p>
+
+<pre class="example">
+curl 'http://libgen.io/json.php?fields=MD5&amp;limit1=10&amp;mode=last&amp;timefirst=2013-05-01&amp;timelast=2014-01-01'
+</pre>
+</div>
+</div>
+
+<div id="outline-container-the-newer-method" class="outline-3">
+<h3 id="the-newer-method"><span class="section-number-3">3.2.</span> The <code>newer</code> method</h3>
+<div class="outline-text-3" id="text-3-2">
+<p>
+This method, which is literally <span class="underline">newer</span> &#x2013; it was added at the beginning
+of 2014 &#x2013; finally allows the API to effectively serve its intended
+purpose: incremental updates from one of the main servers to a local
+mirror.
+</p>
+
+<ul class="org-ul">
+<li><code>mode</code> &#x2013; must be set to <code>newer</code></li>
+
+<li><code>timenewer</code> &#x2013; the API will return information on texts <b>modified</b>
+(not added) after this time, starting with the text closest to the
+specified time.</li>
+
+<li><code>idnewer</code> &#x2013; the API will not return information on texts with an ID
+lower than the value of <code>idnewer</code>, even if it was modified after
+<code>timenewer</code>. (If you don't care about this parameter you can set it
+to <code>1</code>, but it is required.)</li>
+
+<li><code>limit1</code> and <code>limit2</code> (optional) &#x2013; these parameters behave the same
+as they do with the grab-bag method.</li>
+</ul>
+
+<p>
+You could use this method to display new books, but the grab-bag method
+can do that well enough for most purposes. I can't think of many uses
+for <code>newer</code> beyond its original intended one &#x2013; mirroring the main
+database.
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-are-you-sure-there-s-no-search-api" class="outline-2">
+<h2 id="are-you-sure-there-s-no-search-api"><span class="section-number-2">4.</span> Are you sure there's no search API?</h2>
+<div class="outline-text-2" id="text-4">
+<p>
+Pretty sure, yeah. (There appears to be <a href="http://genofond.org/viewtopic.php?p=22423&amp;sid=a2cc032762a2b853b4354d287e4697e6&amp;usg=ALkJrhjEraSeb6V9MMjk1_OCbXy2Ml_B4Q#p22423">a search API for Bookfi</a>, but you need to
+request an API key from the author.)
+</p>
+
+<p>
+But the lack of a search API hasn't stopped people from writing scripts
+to search for and download texts from Library Genesis:
+</p>
+
+<ul class="org-ul">
+<li>A <a href="https://www.npmjs.org/package/libgen">Node.js module</a> by me</li>
+
+<li>A <a href="https://github.com/anomico/libgen.py">Python script</a> by "anomico"</li>
+
+<li>An <a href="https://github.com/smargh/alfred_libgen">Alfred workflow</a> by [Stephen Margheim](<a href="http://hackademic.postach.io">http://hackademic.postach.io</a>)</li>
+
+<li>A <a href="https://github.com/toddpress/Looky_Booky">Chrome extension</a> by "toddpress"</li>
+</ul>
+
+<p>
+<a href="https://twitter.com/dunndunndunn">Let me know</a> if you write your own!
+</p>
+</div>
+</div>
+
+    </section>
+  </article>
+
+    </main>
+  </body>
+</html>

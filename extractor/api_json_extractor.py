@@ -62,7 +62,7 @@ class Extractor():
         )
 
     def extract_api_json(self, file_path, file_parser=html_file_parser):
-        # Gets the text content from the HTML file
+        # Gets the text content from the documentation file
         text_content = file_parser(file_path)
         # Limit the number of tokens for llm
         tokens = text_content.split()
@@ -72,7 +72,7 @@ class Extractor():
 
         # Query GPT to extract API JSON
         template = '''
-        You will be provided with a long text. It is extracted from one or several HTML files. Your target is to extract the well-structured API JSON form from the given text.
+        You will be provided with a long text extracted from API documentation files (HTML, Markdown, or other formats). Your target is to extract the well-structured API JSON form from the given text.
         The API JSON form should include the endpoints with name, description, method, url, headers, and required_parameters/optional_parameters with descriptions and types.
         Required parameters, optional parameters, and url must be inside a list. If you cannot find API url or there are just endpoints without base url, please only put a 'missing' string in the url field.
         Additionally, if a parameter has an example value mentioned in the text, include it as the example. If not, generate a sensible example value based on the parameter description.

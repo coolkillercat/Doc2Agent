@@ -9,9 +9,13 @@ specifically designed for API documentation with embedded JavaScript/CSS.
 import os
 import re
 import argparse
+import sys
 from pathlib import Path
 from bs4 import BeautifulSoup
 from markdownify import markdownify as md
+
+# Set up stdout to handle Unicode properly
+sys.stdout.reconfigure(encoding='utf-8')
 
 
 def convert_html_to_markdown(html_file: str, output_file: str = None) -> str:
@@ -126,15 +130,15 @@ def convert_html_to_markdown(html_file: str, output_file: str = None) -> str:
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write(cleaned_markdown)
         
-        print(f"  ✓ Converted to: {output_file}")
-        print(f"  ✓ Original HTML: {len(html_content):,} characters")
-        print(f"  ✓ Final Markdown: {len(cleaned_markdown):,} characters")
-        print(f"  ✓ Removed {scripts_removed} script/style elements")
+        print(f"  [OK] Converted to: {output_file}")
+        print(f"  [OK] Original HTML: {len(html_content):,} characters")
+        print(f"  [OK] Final Markdown: {len(cleaned_markdown):,} characters")
+        print(f"  [OK] Removed {scripts_removed} script/style elements")
         
         return str(output_file)
         
     except Exception as e:
-        print(f"  ✗ Error converting {html_file}: {e}")
+        print(f"  [ERROR] Error converting {html_file}: {e}")
         return None
 
 
@@ -231,9 +235,9 @@ Examples:
         # Convert single file
         result = convert_html_to_markdown(args.file, args.output)
         if result:
-            print(f"\n✓ Successfully converted to: {result}")
+            print(f"\n[OK] Successfully converted to: {result}")
         else:
-            print(f"\n✗ Failed to convert: {args.file}")
+            print(f"\n[ERROR] Failed to convert: {args.file}")
             exit(1)
     
     elif args.directory:

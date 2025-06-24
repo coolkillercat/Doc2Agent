@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>epic_links API Documentation</title>
+</head>
+<body>
+<hr />
+<p>stage: Plan
+group: Product Planning
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments</p>
+<hr />
+<h1>Epic Links API</h1>
+<p>DETAILS:
+<strong>Tier:</strong> Ultimate
+<strong>Offering:</strong> GitLab.com, Self-managed, GitLab Dedicated</p>
+<p>Manages parent-child <a href="../user/group/epics/manage_epics.md#multi-level-child-epics">epic relationships</a>.</p>
+<p>Every API call to <code>epic_links</code> must be authenticated.</p>
+<p>If a user is not a member of a private group, a <code>GET</code> request on that
+group results in a <code>404</code> status code.</p>
+<p>Multi-level Epics are available only in <a href="https://about.gitlab.com/pricing/">GitLab Ultimate</a>.
+If the Multi-level Epics feature is not available, a <code>403</code> status code is returned.</p>
+<h2>List epics related to a given epic</h2>
+<p>Gets all child epics of an epic.</p>
+<p><code>plaintext
+GET /groups/:id/epics/:epic_iid/epics</code></p>
+<p>| Attribute  | Type           | Required | Description                                                                                                   |
+| ---------- | -------------- | -------- | ------------------------------------------------------------------------------------------------------------- |
+| <code>id</code>       | integer/string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the group</a> owned by the authenticated user |
+| <code>epic_iid</code> | integer        | yes      | The internal ID of the epic.                                                                                  |</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/groups/1/epics/5/epics/"</code></p>
+<p>Example response:</p>
+<p><code>json
+[
+  {
+    "id": 29,
+    "iid": 6,
+    "group_id": 1,
+    "parent_id": 5,
+    "title": "Accusamus iste et ullam ratione voluptatem omnis debitis dolor est.",
+    "description": "Molestias dolorem eos vitae expedita impedit necessitatibus quo voluptatum.",
+    "author": {
+      "id": 10,
+      "name": "Lu Mayer",
+      "username": "kam",
+      "state": "active",
+      "avatar_url": "http://www.gravatar.com/avatar/018729e129a6f31c80a6327a30196823?s=80&amp;d=identicon",
+      "web_url": "http://localhost:3001/kam"
+    },
+    "start_date": null,
+    "start_date_is_fixed": false,
+    "start_date_fixed": null,
+    "start_date_from_milestones": null,       //deprecated in favor of start_date_from_inherited_source
+    "start_date_from_inherited_source": null,
+    "end_date": "2018-07-31",                 //deprecated in favor of due_date
+    "due_date": "2018-07-31",
+    "due_date_is_fixed": false,
+    "due_date_fixed": null,
+    "due_date_from_milestones": "2018-07-31", //deprecated in favor of start_date_from_inherited_source
+    "due_date_from_inherited_source": "2018-07-31",
+    "created_at": "2018-07-17T13:36:22.770Z",
+    "updated_at": "2018-07-18T12:22:05.239Z",
+    "labels": []
+  }
+]</code></p>
+<h2>Assign a child epic</h2>
+<p>Creates an association between two epics, designating one as the parent epic and the other as the child epic. A parent epic can have multiple child epics. If the new child epic already belonged to another epic, it is unassigned from that previous parent.</p>
+<p><code>plaintext
+POST /groups/:id/epics/:epic_iid/epics/:child_epic_id</code></p>
+<p>| Attribute       | Type           | Required | Description                                                                                                        |
+| --------------- | -------------- | -------- | ------------------------------------------------------------------------------------------------------------------ |
+| <code>id</code>            | integer/string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the group</a> owned by the authenticated user      |
+| <code>epic_iid</code>      | integer        | yes      | The internal ID of the epic.                                                                                       |
+| <code>child_epic_id</code> | integer        | yes      | The global ID of the child epic. Internal ID can't be used because they can conflict with epics from other groups. |</p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/groups/1/epics/5/epics/6"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "id": 6,
+  "iid": 38,
+  "group_id": 1,
+  "parent_id": 5,
+  "title": "Accusamus iste et ullam ratione voluptatem omnis debitis dolor est.",
+  "description": "Molestias dolorem eos vitae expedita impedit necessitatibus quo voluptatum.",
+  "author": {
+    "id": 10,
+    "name": "Lu Mayer",
+    "username": "kam",
+    "state": "active",
+    "avatar_url": "http://www.gravatar.com/avatar/018729e129a6f31c80a6327a30196823?s=80&amp;d=identicon",
+    "web_url": "http://localhost:3001/kam"
+  },
+  "start_date": null,
+  "start_date_is_fixed": false,
+  "start_date_fixed": null,
+  "start_date_from_milestones": null,       //deprecated in favor of start_date_from_inherited_source
+  "start_date_from_inherited_source": null,
+  "end_date": "2018-07-31",                 //deprecated in favor of due_date
+  "due_date": "2018-07-31",
+  "due_date_is_fixed": false,
+  "due_date_fixed": null,
+  "due_date_from_milestones": "2018-07-31", //deprecated in favor of start_date_from_inherited_source
+  "due_date_from_inherited_source": "2018-07-31",
+  "created_at": "2018-07-17T13:36:22.770Z",
+  "updated_at": "2018-07-18T12:22:05.239Z",
+  "labels": []
+}</code></p>
+<h2>Create and assign a child epic</h2>
+<p>Creates a new epic and associates it with provided parent epic. The response is LinkedEpic object.</p>
+<p><code>plaintext
+POST /groups/:id/epics/:epic_iid/epics</code></p>
+<p>| Attribute       | Type           | Required | Description                                                                                                        |
+| --------------- | -------------- | -------- | ------------------------------------------------------------------------------------------------------------------ |
+| <code>id</code>            | integer/string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the group</a> owned by the authenticated user      |
+| <code>epic_iid</code>      | integer        | yes      | The internal ID of the (future parent) epic.                                                                       |
+| <code>title</code>         | string         | yes      | The title of a newly created epic.                                                                                 |
+| <code>confidential</code>  | boolean        | no       | Whether the epic should be confidential. Parameter is ignored if <code>confidential_epics</code> feature flag is disabled. Defaults to the confidentiality state of the parent epic.  |</p>
+<p><code>shell
+curl --request POST --header  "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/groups/1/epics/5/epics?title=Newpic"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "id": 24,
+  "iid": 2,
+  "title": "child epic",
+  "group_id": 49,
+  "parent_id": 23,
+  "has_children": false,
+  "has_issues": false,
+  "reference":  "&amp;2",
+  "url": "http://localhost/groups/group16/-/epics/2",
+  "relation_url": "http://localhost/groups/group16/-/epics/1/links/24"
+}</code></p>
+<h2>Re-order a child epic</h2>
+<p><code>plaintext
+PUT /groups/:id/epics/:epic_iid/epics/:child_epic_id</code></p>
+<p>| Attribute        | Type           | Required | Description                                                                                                        |
+| ---------------- | -------------- | -------- | ------------------------------------------------------------------------------------------------------------------ |
+| <code>id</code>             | integer/string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the group</a> owned by the authenticated user.     |
+| <code>epic_iid</code>       | integer        | yes      | The internal ID of the epic.                                                                                       |
+| <code>child_epic_id</code>  | integer        | yes      | The global ID of the child epic. Internal ID can't be used because they can conflict with epics from other groups. |
+| <code>move_before_id</code> | integer        | no       | The global ID of a sibling epic that should be placed before the child epic.                                       |
+| <code>move_after_id</code>  | integer        | no       | The global ID of a sibling epic that should be placed after the child epic.                                        |</p>
+<p><code>shell
+curl --request PUT --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/groups/1/epics/4/epics/5"</code></p>
+<p>Example response:</p>
+<p><code>json
+[
+  {
+    "id": 29,
+    "iid": 6,
+    "group_id": 1,
+    "parent_id": 5,
+    "title": "Accusamus iste et ullam ratione voluptatem omnis debitis dolor est.",
+    "description": "Molestias dolorem eos vitae expedita impedit necessitatibus quo voluptatum.",
+    "author": {
+      "id": 10,
+      "name": "Lu Mayer",
+      "username": "kam",
+      "state": "active",
+      "avatar_url": "http://www.gravatar.com/avatar/018729e129a6f31c80a6327a30196823?s=80&amp;d=identicon",
+      "web_url": "http://localhost:3001/kam"
+    },
+    "start_date": null,
+    "start_date_is_fixed": false,
+    "start_date_fixed": null,
+    "start_date_from_milestones": null,       //deprecated in favor of start_date_from_inherited_source
+    "start_date_from_inherited_source": null,
+    "end_date": "2018-07-31",                 //deprecated in favor of due_date
+    "due_date": "2018-07-31",
+    "due_date_is_fixed": false,
+    "due_date_fixed": null,
+    "due_date_from_milestones": "2018-07-31", //deprecated in favor of start_date_from_inherited_source
+    "due_date_from_inherited_source": "2018-07-31",
+    "created_at": "2018-07-17T13:36:22.770Z",
+    "updated_at": "2018-07-18T12:22:05.239Z",
+    "labels": []
+  }
+]</code></p>
+<h2>Unassign a child epic</h2>
+<p>Unassigns a child epic from a parent epic.</p>
+<p><code>plaintext
+DELETE /groups/:id/epics/:epic_iid/epics/:child_epic_id</code></p>
+<p>| Attribute       | Type           | Required | Description                                                                                                        |
+| --------------- | -------------- | -------- | ------------------------------------------------------------------------------------------------------------------ |
+| <code>id</code>            | integer/string | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the group</a> owned by the authenticated user.     |
+| <code>epic_iid</code>      | integer        | yes      | The internal ID of the epic.                                                                                       |
+| <code>child_epic_id</code> | integer        | yes      | The global ID of the child epic. Internal ID can't be used because they can conflict with epics from other groups. |</p>
+<p><code>shell
+curl --request DELETE --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/groups/1/epics/4/epics/5"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "id": 5,
+  "iid": 38,
+  "group_id": 1,
+  "parent_id": null,
+  "title": "Accusamus iste et ullam ratione voluptatem omnis debitis dolor est.",
+  "description": "Molestias dolorem eos vitae expedita impedit necessitatibus quo voluptatum.",
+  "author": {
+    "id": 10,
+    "name": "Lu Mayer",
+    "username": "kam",
+    "state": "active",
+    "avatar_url": "http://www.gravatar.com/avatar/018729e129a6f31c80a6327a30196823?s=80&amp;d=identicon",
+    "web_url": "http://localhost:3001/kam"
+  },
+  "start_date": null,
+  "start_date_is_fixed": false,
+  "start_date_fixed": null,
+  "start_date_from_milestones": null,       //deprecated in favor of start_date_from_inherited_source
+  "start_date_from_inherited_source": null,
+  "end_date": "2018-07-31",                 //deprecated in favor of due_date
+  "due_date": "2018-07-31",
+  "due_date_is_fixed": false,
+  "due_date_fixed": null,
+  "due_date_from_milestones": "2018-07-31", //deprecated in favor of start_date_from_inherited_source
+  "due_date_from_inherited_source": "2018-07-31",
+  "created_at": "2018-07-17T13:36:22.770Z",
+  "updated_at": "2018-07-18T12:22:05.239Z",
+  "labels": []
+}</code></p>
+</body>
+</html>

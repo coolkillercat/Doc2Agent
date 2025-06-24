@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>member_roles API Documentation</title>
+</head>
+<body>
+<hr />
+<p>stage: Govern
+group: Authentication
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments</p>
+<hr />
+<h1>Member roles API</h1>
+<p>DETAILS:
+<strong>Tier:</strong> Ultimate
+<strong>Offering:</strong> GitLab.com</p>
+<blockquote>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/96996">Introduced</a> in GitLab 15.4. <a href="../administration/feature_flags.md">Deployed behind the <code>customizable_roles</code> flag</a>, disabled by default.</li>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/110810">Enabled by default</a> in GitLab 15.9.</li>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/114734">Read vulnerability added</a> in GitLab 16.0.</li>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/121534">Admin vulnerability added</a> in GitLab 16.1.</li>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/126247">Read dependency added</a> in GitLab 16.3.</li>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/126423">Name and description fields added</a> in GitLab 16.3.</li>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/128302">Admin merge request introduced</a> in GitLab 16.4 <a href="../administration/feature_flags.md">with a flag</a> named <code>admin_merge_request</code>. Disabled by default.</li>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/132578">Feature flag <code>admin_merge_request</code> removed</a> in GitLab 16.5.</li>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/131914">Admin group members introduced</a> in GitLab 16.5 <a href="../administration/feature_flags.md">with a flag</a> named <code>admin_group_member</code>. Disabled by default. The feature flag has been removed in GitLab 16.6.</li>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/132342">Manage project access tokens introduced</a> in GitLab 16.5 in <a href="../administration/feature_flags.md">with a flag</a> named <code>manage_project_access_tokens</code>. Disabled by default.</li>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/134998">Archive project introduced</a> in GitLab 16.7.</li>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/139696">Delete project introduced</a> in GitLab 16.8.</li>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/140115">Manage group access tokens introduced</a> in GitLab 16.8.</li>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/140759">Admin terraform state introduced</a> in GitLab 16.8.</li>
+</ul>
+</blockquote>
+<h2>List all member roles of a group</h2>
+<p>Gets a list of group member roles viewable by the authenticated user.</p>
+<p><code>plaintext
+GET /groups/:id/member_roles</code></p>
+<p>| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| <code>id</code>      | integer/string | yes | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the group</a> owned by the authenticated user |</p>
+<p>If successful, returns <a href="rest/index.md#status-codes"><code>200</code></a> and the following response attributes:</p>
+<p>| Attribute                          | Type    | Description           |
+|:-----------------------------------|:--------|:----------------------|
+| <code>[].id</code>                            | integer | The ID of the member role. |
+| <code>[].name</code>                          | string  | The name of the member role. |
+| <code>[].description</code>                   | string  | The description of the member role. |
+| <code>[].group_id</code>                      | integer | The ID of the group that the member role belongs to. |
+| <code>[].base_access_level</code>             | integer | Base access level for member role. Valid values are 10 (Guest), 20 (Reporter), 30 (Developer), 40 (Maintainer), or 50 (Owner).|
+| <code>[].admin_merge_request</code>           | boolean | Permission to admin project merge requests and enables the ability to <code>download_code</code>. |
+| <code>[].admin_terraform_state</code>         | boolean | Permission to admin project terraform state. |
+| <code>[].admin_vulnerability</code>           | boolean | Permission to admin project vulnerabilities. |
+| <code>[].read_code</code>                     | boolean | Permission to read project code. |
+| <code>[].read_dependency</code>               | boolean | Permission to read project dependencies. |
+| <code>[].read_vulnerability</code>            | boolean | Permission to read project vulnerabilities. |
+| <code>[].admin_group_member</code>            | boolean | Permission to admin members of a group. |
+| <code>[].manage_project_access_tokens</code>  | boolean | Permission to manage project access tokens. |
+| <code>[].archive_project</code>               | boolean | Permission to archive projects. |
+| <code>[].remove_project</code>                | boolean | Permission to delete projects. |
+| <code>[].manage_group_access_tokens</code>    | boolean | Permission to manage group access tokens. |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --header "Authorization: Bearer &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/groups/84/member_roles"</code></p>
+<p>Example response:</p>
+<p><code>json
+[
+  {
+    "id": 2,
+    "name": "Custom + code",
+    "description": "Custom guest that can read code",
+    "group_id": 84,
+    "base_access_level": 10,
+    "admin_merge_request": false,
+    "admin_terraform_state": false,
+    "admin_vulnerability": false,
+    "read_code": true,
+    "read_dependency": false,
+    "read_vulnerability": false,
+    "manage_group_access_tokens": false,
+    "manage_project_access_tokens": false,
+    "archive_project": false,
+    "remove_project": false
+  },
+  {
+    "id": 3,
+    "name": "Guest + security",
+    "description": "Custom guest that read and admin security entities",
+    "group_id": 84,
+    "base_access_level": 10,
+    "admin_vulnerability": true,
+    "admin_merge_request": false,
+    "admin_terraform_state": false,
+    "read_code": false,
+    "read_dependency": true,
+    "read_vulnerability": true,
+    "manage_group_access_tokens": false,
+    "manage_project_access_tokens": false,
+    "archive_project": false,
+    "remove_project": false
+  }
+]</code></p>
+<h2>Add a member role to a group</h2>
+<blockquote>
+<ul>
+<li>Ability to add a name and description when creating a custom role <a href="https://gitlab.com/gitlab-org/gitlab/-/merge_requests/126423">introduced</a> in GitLab 16.3.</li>
+</ul>
+</blockquote>
+<p>Adds a member role to a group.</p>
+<p><code>plaintext
+POST /groups/:id/member_roles</code></p>
+<p>To add a member role to a group, the group must be at root-level (have no parent group).</p>
+<p>| Attribute | Type                | Required | Description |
+| --------- | ------------------- | -------- | ----------- |
+| <code>id</code>      | integer/string      | yes      | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the group</a> owned by the authenticated user. |
+| <code>name</code>         | string         | yes      | The name of the member role. |
+| <code>description</code>  | string         | no       | The description of the member role. |
+| <code>base_access_level</code> | integer   | yes      | Base access level for configured role. Valid values are 10 (Guest), 20 (Reporter), 30 (Developer), 40 (Maintainer), or 50 (Owner).|
+| <code>admin_merge_request</code> | boolean | no       | Permission to admin project merge requests. |
+| <code>admin_terraform_state</code> | boolean | no       | Permission to admin project terraform state. |
+| <code>admin_vulnerability</code> | boolean | no       | Permission to admin project vulnerabilities. |
+| <code>read_code</code>           | boolean | no       | Permission to read project code. |
+| <code>read_dependency</code>     | boolean | no       | Permission to read project dependencies. |
+| <code>read_vulnerability</code>  | boolean | no       | Permission to read project vulnerabilities. |</p>
+<p>If successful, returns <a href="rest/index.md#status-codes"><code>201</code></a> and the following attributes:</p>
+<p>| Attribute                | Type     | Description           |
+|:-------------------------|:---------|:----------------------|
+| <code>id</code>                     | integer | The ID of the member role. |
+| <code>name</code>                   | string  | The name of the member role. |
+| <code>description</code>            | string  | The description of the member role. |
+| <code>group_id</code>               | integer | The ID of the group that the member role belongs to. |
+| <code>base_access_level</code>      | integer | Base access level for member role. |
+| <code>admin_merge_request</code>    | boolean | Permission to admin project merge requests. |
+| <code>admin_terraform_state</code>    | boolean | Permission to admin project terraform state. |
+| <code>admin_vulnerability</code>    | boolean | Permission to admin project vulnerabilities. |
+| <code>read_code</code>              | boolean | Permission to read project code. |
+| <code>read_dependency</code>        | boolean | Permission to read project dependencies. |
+| <code>read_vulnerability</code>     | boolean | Permission to read project vulnerabilities. |</p>
+<p>Example request:</p>
+<p><code>shell
+ curl --request POST --header "Content-Type: application/json" --header "Authorization: Bearer &lt;your_access_token&gt;" --data '{"name" : "Custom guest", "base_access_level" : 10, "read_code" : true}' "https://gitlab.example.com/api/v4/groups/84/member_roles"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+  "id": 3,
+  "name": "Custom guest",
+  "description": null,
+  "group_id": 84,
+  "base_access_level": 10,
+  "admin_merge_requests": false,
+  "admin_vulnerability": false,
+  "read_code": true,
+  "read_dependency": false,
+  "read_vulnerability": false
+}</code></p>
+<p>In GitLab 16.3 and later, you can use the API to:</p>
+<ul>
+<li>Add a name (required) and description (optional) when you
+  <a href="../user/custom_roles.md#create-a-custom-role">create a new custom role</a>.</li>
+<li>Update an existing custom role's name and description.</li>
+</ul>
+<h3>Remove member role of a group</h3>
+<p>Deletes a member role of a group.</p>
+<p><code>plaintext
+DELETE /groups/:id/member_roles/:member_role_id</code></p>
+<p>| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| <code>id</code>      | integer/string | yes | The ID or <a href="rest/index.md#namespaced-path-encoding">URL-encoded path of the group</a> owned by the authenticated user. |
+| <code>member_role_id</code> | integer | yes   | The ID of the member role. |</p>
+<p>If successful, returns <a href="rest/index.md#status-codes"><code>204</code></a> and an empty response.</p>
+<p>Example request:</p>
+<p><code>shell
+curl --request DELETE --header "Content-Type: application/json" --header "Authorization: Bearer &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/groups/84/member_roles/1"</code></p>
+</body>
+</html>

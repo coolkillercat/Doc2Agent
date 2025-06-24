@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>applications API Documentation</title>
+</head>
+<body>
+<hr />
+<p>stage: Govern
+group: Authentication
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments</p>
+<hr />
+<h1>Applications API</h1>
+<p>DETAILS:
+<strong>Tier:</strong> Free, Premium, Ultimate
+<strong>Offering:</strong> GitLab.com, Self-managed, GitLab Dedicated</p>
+<p>The Applications API operates on instance-wide OAuth applications for:</p>
+<ul>
+<li><a href="../integration/oauth_provider.md">Using GitLab as an authentication provider</a>.</li>
+<li><a href="oauth2.md">Allowing access to GitLab resources on a user's behalf</a>.</li>
+</ul>
+<p>The Applications API cannot be used to manage group applications or applications of individual users.</p>
+<p>NOTE:
+Only administrator users can use the Applications API.</p>
+<h2>Create an application</h2>
+<p>Create an application by posting a JSON payload.</p>
+<p>Returns <code>200</code> if the request succeeds.</p>
+<p><code>plaintext
+POST /applications</code></p>
+<p>Supported attributes:</p>
+<p>| Attribute      | Type    | Required | Description                      |
+|:---------------|:--------|:---------|:---------------------------------|
+| <code>name</code>         | string  | yes      | Name of the application.         |
+| <code>redirect_uri</code> | string  | yes      | Redirect URI of the application. |
+| <code>scopes</code>       | string  | yes      | Scopes of the application. You can specify multiple scopes by separating each scope using a space. |
+| <code>confidential</code> | boolean | no       | The application is used where the client secret can be kept confidential. Native mobile apps and Single Page Apps are considered non-confidential. Defaults to <code>true</code> if not supplied |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" \
+     --data "name=MyApplication&amp;redirect_uri=http://redirect.uri&amp;scopes=api read_user email" \
+     "https://gitlab.example.com/api/v4/applications"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+    "id":1,
+    "application_id": "5832fc6e14300a0d962240a8144466eef4ee93ef0d218477e55f11cf12fc3737",
+    "application_name": "MyApplication",
+    "secret": "ee1dd64b6adc89cf7e2c23099301ccc2c61b441064e9324d963c46902a85ec34",
+    "callback_url": "http://redirect.uri",
+    "confidential": true
+}</code></p>
+<h2>List all applications</h2>
+<p>List all registered applications.</p>
+<p><code>plaintext
+GET /applications</code></p>
+<p>Example request:</p>
+<p><code>shell
+curl --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/applications"</code></p>
+<p>Example response:</p>
+<p><code>json
+[
+    {
+        "id":1,
+        "application_id": "5832fc6e14300a0d962240a8144466eef4ee93ef0d218477e55f11cf12fc3737",
+        "application_name": "MyApplication",
+        "callback_url": "http://redirect.uri",
+        "confidential": true
+    }
+]</code></p>
+<p>NOTE:
+The <code>secret</code> value is not exposed by this API.</p>
+<h2>Delete an application</h2>
+<p>Delete a specific application.</p>
+<p>Returns <code>204</code> if the request succeeds.</p>
+<p><code>plaintext
+DELETE /applications/:id</code></p>
+<p>Supported attributes:</p>
+<p>| Attribute | Type    | Required | Description                                         |
+|:----------|:--------|:---------|:----------------------------------------------------|
+| <code>id</code>      | integer | yes      | The ID of the application (not the <code>application_id</code>). |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --request DELETE --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/applications/:id"</code></p>
+<h2>Renew an application secret</h2>
+<blockquote>
+<ul>
+<li><a href="https://gitlab.com/gitlab-org/gitlab/-/issues/422420">Introduced</a> in GitLab 16.11.</li>
+</ul>
+</blockquote>
+<p>Renews an application secret. Returns <code>200</code> if the request succeeds.</p>
+<p><code>plaintext
+POST /applications/:id/renew-secret</code></p>
+<p>Supported attributes:</p>
+<p>| Attribute | Type    | Required | Description                                         |
+|:----------|:--------|:---------|:----------------------------------------------------|
+| <code>id</code>      | integer | yes      | The ID of the application (not the <code>application_id</code>). |</p>
+<p>Example request:</p>
+<p><code>shell
+curl --request POST --header "PRIVATE-TOKEN: &lt;your_access_token&gt;" "https://gitlab.example.com/api/v4/applications/:id/renew-secret"</code></p>
+<p>Example response:</p>
+<p><code>json
+{
+    "id":1,
+    "application_id": "5832fc6e14300a0d962240a8144466eef4ee93ef0d218477e55f11cf12fc3737",
+    "application_name": "MyApplication",
+    "secret": "ee1dd64b6adc89cf7e2c23099301ccc2c61b441064e9324d963c46902a85ec34",
+    "callback_url": "http://redirect.uri",
+    "confidential": true
+}</code></p>
+</body>
+</html>

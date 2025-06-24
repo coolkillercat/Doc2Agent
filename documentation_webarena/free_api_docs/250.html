@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Minor Planet Center API - Asterank</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.4/angular.min.js"></script>
+<link href="/static/css/bootstrap.css" rel="stylesheet" />
+<link href="/static/css/main.css" rel="stylesheet" />
+<link href="/static/css/bootstrap-responsive.css" rel="stylesheet" />
+
+<!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js">
+      </script>
+    <![endif]-->
+</head>
+<body>
+<div class="navbar navbar-fixed-top navbar-inverse">
+<div class="navbar-inner">
+<div class="container-fluid">
+<a class="brand" href="/">
+<strong>
+Asterank
+</strong>
+</a>
+<ul class="nav">
+<li>
+<a href="/">
+Home
+</a>
+</li>
+<li>
+<a href="/about">
+About
+</a>
+</li>
+<li>
+<a href="/3d">
+Full 3D View
+</a>
+</li>
+<li>
+<a href="/discover">
+Discover <sup style="color:red">beta</sup>
+</a>
+</li>
+<li>
+<a href="/exoplanets">
+Exoplanets
+</a>
+</li>
+<li>
+<a href="/galaxies">
+Dark Matter
+</a>
+</li>
+<li class="dropdown">
+<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+APIs
+<b class="caret"></b>
+</a>
+<ul class="dropdown-menu">
+<li>
+<a href="/api">
+Asterank API
+</a>
+</li>
+<li>
+<a href="/mpc">
+MPC API
+</a>
+</li>
+<li>
+<a href="/kepler">
+Kepler API
+</a>
+</li>
+<li>
+<a href="/skymorph">
+Skymorph API
+</a>
+</li>
+</ul>
+</li>
+</ul>
+<ul class="nav pull-right">
+<div class="share-buttons">
+<div style="margin:0" class="fb-like" data-href="http://www.asterank.com" data-send="false" data-layout="button_count" data-show-faces="false"></div>
+<a class="twitter-share-button" style="font-size:10px;" href="https://twitter.com/share" data-url="http://www.asterank.com" data-counturl="http://www.asterank.com" class="twitter-share-button" data-lang="en">Tweet</a>
+<g:plusone size="small" style="margin-left:0"></g:plusone>
+</div>
+</ul>
+</div>
+</div>
+</div>
+<script>
+function email() {
+  return 'i' + String.fromCharCode(97) + 'n.webster+asterank' + '@gm' + String.fromCharCode(97) + 'il.com';
+}
+</script>
+<div class="row-fluid basic-content">
+<h1>Minor Planet Center API</h1>
+<h3>Overview</h3>
+<p>
+Asterank offers a database API for the Minor Planet Center's MPCORB.DAT data files. This API is a simple way to quickly apply constraints to a set of over 600,000 asteroids. Users can construct queries with specific constraints across all data attributes recorded by the MPC. Information is updated nightly from the MPC's MPCORB.dat dataset.
+</p>
+<p>
+The database queries are based on mongodb's json-formatted 'find' operation. See below for an example of a complex query.
+</p>
+<h3>Format</h3>
+<p>
+Requests are of the form:
+<div>
+<code>
+http://asterank.com/api/mpc?query={query}&amp;limit={limit}
+</code>
+</div>
+</p>
+<p>
+MPC results are parsed per the orbit format specified <a href="http://www.minorplanetcenter.net/iau/info/MPOrbitFormat.html">here</a>. In some cases, a field may not be present in the results if it was not present in MPCORB.dat.
+</p>
+<h3>Sample Requests</h3>
+<h4>List all asteroids</h4>
+<p>
+This sample request lists all asteroids. The <code>query</code> and <code>limit</code> parameters are optional:
+</p>
+<p><strong><a href="/api/mpc">http://asterank.com/api/mpc</a></strong></p>
+<p>
+Results:
+<div>
+<pre style="background-color: #eee; width: 500px">
+[
+   {
+      "rms":0.6,
+      "epoch":"K134I",
+      "readable_des":"(1) Ceres",
+      "H":3.34,
+      "num_obs":6342,
+      "ref":"MPO247369",
+      "G":0.12,
+      "last_obs":"20121203",
+      "comp":"MPCLINUX  ",
+      "M":327.85412,
+      "U":" ",
+      "e":0.0761669,
+      "a":2.767993,
+      "om":80.33008,
+      "pert_p":"30h",
+      "d":0.2140211,
+      "i":10.59423,
+      "des":"00001",
+      "flags":"0000",
+      "num_opp":100,
+      "w":72.16707,
+      "pert_c":"M-v"
+   },
+   ...
+]
+  </pre>
+</div>
+</p>
+<h4>A more complicated query</h4>
+<p>
+</p>
+<p>
+<code>query</code> takes a JSON object that uses the MongoDB query language. Specifically, it can be treated like a <a href="http://docs.mongodb.org/manual/reference/method/db.collection.find/">find()</a> operation.
+</p>
+<p>
+For example, let's build a request that returns 10 asteroids with roughly circular orbits, low inclination, and semi-major axis less than 1.5 AU.
+</p>
+<p>
+We construct the following query:
+<div>
+<pre style="background-color: #eee; width: 500px">
+{
+   "e":{
+      "$lt":0.1
+   },
+   "i":{
+      "$lt":4
+   },
+   "a":{
+      "$lt":1.5
+   }
+}
+  </pre>
+</div>
+</p>
+<p>
+In plain English, we filter objects by the following conditions:<br>
+<ul>
+<li><code>e</code>, representing eccentricity, is less than ("$lt") 0.1.</li>
+<li><code>i</code>, representing inclination, is less than 4.</li>
+<li><code>a</code>, representing the semi-major axis, is less than 1.5.</li>
+</ul>
+</p>
+<p>
+Finally, put it in our API request:
+</p>
+<p><strong><a href="/api/mpc?query={&quot;e&quot;:{&quot;$lt&quot;:0.1},&quot;i&quot;:{&quot;$lt&quot;:4},&quot;a&quot;:{&quot;$lt&quot;:1.5}}&limit=10">http://asterank.com/api/mpc?query={"e":{"$lt":0.1},"i":{"$lt":4},"a":{"$lt":1.5}}&limit=10</a></strong></p>
+</p>
+<p>
+Results:
+<div>
+<pre style="background-color: #eee; width: 500px">
+[
+   {
+      "rms":0.52,
+      "epoch":"K134I",
+      "readable_des":"(138911) 2001 AE2",
+      "H":19.1,
+      "num_obs":366,
+      "ref":"MPO229693",
+      "G":0.15,
+      "last_obs":"20120417",
+      "comp":"MPCLINUX  ",
+      "M":199.38482,
+      "U":" ",
+      "e":0.0816832,
+      "a":1.3496897,
+      "om":171.48693,
+      "pert_p":"38h",
+      "d":0.62856933,
+      "i":1.66115,
+      "des":"D8911",
+      "flags":"0804",
+      "num_opp":8,
+      "w":43.09756,
+      "pert_c":"M-v"
+   },
+   {
+      "rms":0.5,
+      "epoch":"K134I",
+      "readable_des":"(163000) 2001 SW169",
+      "H":19.0,
+      "num_obs":429,
+      "ref":"MPO232154",
+      "G":0.15,
+      "last_obs":"20120506",
+      "comp":"MPCLINUX  ",
+      "M":157.71014,
+      "U":" ",
+      "e":0.0515752,
+      "a":1.2484544,
+      "om":8.4609,
+      "pert_p":"38h",
+      "d":0.70655345,
+      "i":3.55425,
+      "des":"G3000",
+      "flags":"0804",
+      "num_opp":5,
+      "w":284.78542,
+      "pert_c":"M-v"
+   },
+   ...
+]
+  </pre>
+</div>
+</p>
+</div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+
+<script src="static/js/lib/bootstrap-dropdown.js"></script>
+<script src="static/js/lib/bootstrap-tooltip.js"></script>
+<script type="text/javascript">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-32180949-1', 'auto');
+  ga('send', 'pageview');
+</script>
+<script type="text/javascript">
+  if (~document.location.href.indexOf('localhost')) {
+    window.mixpanel = {track:function(){}};
+  } else {
+    (function(c,a){window.mixpanel=a;var b,d,h,e;b=c.createElement("script");
+    b.type="text/javascript";b.async=!0;b.src=("https:"===c.location.protocol?"https:":"http:")+
+    '//cdn.mxpnl.com/libs/mixpanel-2.2.min.js';d=c.getElementsByTagName("script")[0];
+    d.parentNode.insertBefore(b,d);a._i=[];a.init=function(b,c,f){function d(a,b){
+    var c=b.split(".");2==c.length&&(a=a[c[0]],b=c[1]);a[b]=function(){a.push([b].concat(
+    Array.prototype.slice.call(arguments,0)))}}var g=a;"undefined"!==typeof f?g=a[f]=[]:
+    f="mixpanel";g.people=g.people||[];h=['disable','track','track_pageview','track_links',
+    'track_forms','register','register_once','unregister','identify','alias','name_tag',
+    'set_config','people.set','people.increment','people.track_charge','people.append'];
+    for(e=0;e<h.length;e++)d(g,h[e]);a._i.push([b,c,f])};a.__SV=1.2;})(document,window.mixpanel||[]);
+    mixpanel.init("6b34941ba1e8a39264cee7fccab432f2");
+  }
+</script>
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=230286373664292";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="https://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+<script type="text/javascript" src="https://apis.google.com/js/plusone.js"></script>
+</body>
+</html>

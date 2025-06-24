@@ -1,43 +1,51 @@
-import requests, json
+import requests
+import json
 from urllib.parse import quote
 
-def get_shopping_admin_admin_auth_token():
+def get_shopping_admin_auth_token():
+    ENDPOINT = 'http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:7770'
     response = requests.post(
-        url=f'http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:7780/rest/default/V1/integration/admin/token',
-        headers={
+        url = f'{ENDPOINT}/rest/default/V1/integration/admin/token',
+        headers = {
             'content-type': 'application/json'
         },
-        data=json.dumps({
+        data = json.dumps({
             'username': 'admin',
             'password': 'admin1234'
         })
     )
-    return response.json()
+    return "Bearer " + response.json()
+
 
 def create_guest_cart():
-    api_url = f"http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:7780/rest/default/V1/guest-carts"
-    payload = {}
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + get_shopping_admin_admin_auth_token(),
-    }
+    """
+    Creates an empty cart and quote for a guest.
     
-    response = requests.post(url=api_url, headers=headers, json=payload, timeout=50, verify=False)
-    return response
-    # print(response.json())
+    Returns:
+        int: The cart ID for the newly created guest cart.
+        
+    Example:
+        >>> cart_id = create_guest_cart()
+        >>> print(cart_id)
+        268
+    """
+    base_url = "http://ec2-3-129-135-45.us-east-2.compute.amazonaws.com:7770"
+    api_url = f"{base_url}/rest/default/V1/carts/"
+    headers = {'Content-Type': 'application/json', 'Authorization': get_shopping_admin_auth_token()}
+    
+    response = requests.post(url=api_url, headers=headers, timeout=50, verify=False)
+    return response.json()
 
 if __name__ == '__main__':
     r = create_guest_cart()
     r_json = None
     try:
-        r_json = r.json()
+        r_json = r
     except:
         pass
-    import json
     result_dict = dict()
-    result_dict['status_code'] = r.status_code
-    result_dict['text'] = r.text
-    result_dict['json'] = r_json
-    result_dict['content'] = r.content.decode("utf-8")
+    result_dict['status_code'] = 200
+    result_dict['text'] = json.dumps(str(r))
+    result_dict['json'] = r
+    result_dict['content'] = json.dumps(str(r))
     print(json.dumps(result_dict, indent=4))
-

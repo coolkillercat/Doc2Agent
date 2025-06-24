@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+      <title>REST API Documentation · Scryfall Magic The Gathering Search</title>
+    
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<link rel="preconnect" href="https://cards.scryfall.io" crossorigin="true" />
+<link rel="dns-prefetch" href="https://cards.scryfall.io" />
+
+<meta name="description" content="Scryfall provides a REST-like API for ingesting our card data programatically. Find out how to use it." />
+
+
+
+
+<link rel="alternate" type="application/atom+xml" title="ATOM" href="https://scryfall.com/blog/feed" />
+
+<link rel="search" type="application/opensearchdescription+xml" title="Scryfall" href="https://scryfall.com/opensearch.xml" />
+
+<meta property="og:site_name" content="Scryfall Magic The Gathering Search" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="REST API Documentation" />
+<meta property="og:description" content="Scryfall provides a REST-like API for ingesting our card data programatically. Find out how to use it." />
+<meta property="og:url" content="https://scryfall.com/docs/api" />
+<meta property="og:image" content="https://scryfall.com/icon.png?v=0c4b07e6cea3" />
+
+<meta name="twitter:creator" content="@scryfall" />
+<meta name="twitter:site" content="@scryfall" />
+<meta name="twitter:domain" content="https://scryfall.com/" />
+<meta name="twitter:card" content="summary" />
+
+
+<meta name="twitter:title" content="REST API Documentation" />
+<meta name="twitter:description" content="Scryfall provides a REST-like API for ingesting our card data programatically. Find out how to use it." />
+
+
+
+
+
+
+
+
+
+
+<link rel="icon" type="image/x-icon" href="https://scryfall.com/favicon.ico?v=0c4b07e6cea3" />
+
+<meta name="apple-mobile-web-app-title" content="Scryfall" />
+<link rel="manifest" href="https://scryfall.com/manifest.webmanifest?v=0c4b07e6cea3" />
+<link rel="apple-touch-icon" href="https://scryfall.com/apple-touch-icon.png?v=0c4b07e6cea3" />
+<link rel="icon" sizes="196x196" href="https://scryfall.com/icon-196.png?v=0c4b07e6cea3" />
+<link rel="icon" sizes="512x512" href="https://scryfall.com/icon-512.png?v=0c4b07e6cea3" />
+
+<meta name="impact-site-verification" value="281e0b67-6b5a-4f31-b430-c7c0cc421775" />
+
+<script type="application/ld+json">{"@context":"http://schema.org","@type":"Organization","url":"https://scryfall.com","logo":"https://scryfall.com/icon.png?v=0c4b07e6cea3"}</script>
+
+<script type="application/ld+json">{"@context":"http://schema.org","@type":"WebSite","url":"https://scryfall.com","potentialAction":{"@type":"SearchAction","target":"https://scryfall.com/search?q={terms}&utm_source=google","query-input":"required name=terms"}}</script>
+
+
+
+    <link rel="stylesheet" href="https://scryfall.com/assets/scryfall-81aabdc139426a53cdf7506060cd10e0598f16f8f125f05ce71d3bc6b4b51b05.css" media="all" />
+  </head>
+  <body>
+    <div class="skip-links">
+  <ul>
+    <li><a href="#main">Skip to main content</a></li>
+    <li><a href="#footer">Skip to footer</a></li>
+  </ul>
+</div>
+
+    
+    <div id="header" class="header" data-component="header" role="nav">
+
+  <div class="header-control-row">
+
+    <a class="header-logo" title="Back to homepage" href="/">
+      <span class="vh">Scryfall</span>
+      <svg focusable="false"  aria-hidden="true"  width="460" height="460" viewBox="0 0 460 460" xmlns="http://www.w3.org/2000/svg"><g transform="translate(-60 -58)" fill="none" fill-rule="evenodd"><circle fill="#000" opacity=".09" cx="290" cy="288" r="230"/><path fill="#BC979D" d="M279.508 112.547l-.028 361.84 43.137 6.808 56.715-13.23 28.54-72.547-28.044-178.926-31.887-113.004"/><path fill="#AE7F9C" d="M281.57 100.633l-2.457 383.13-67.972-21.888 13.9-355.852"/><path d="M207.05 113.316v344.032S87.364 394.5 93.388 283.043C99.41 171.586 207.05 113.316 207.05 113.316z" fill="#786076"/><path d="M237.375 107.21l-30.603 4.35s-20.682 10.42-37.922 25.5c-75.19 167.948 108.332 115.1-12.725 286.69 50.647 47.86 72.293 41.137 72.293 41.137l8.957-357.676z" fill="#947A92"/><path d="M343.058 89.985c-109.36-29.303-221.77 35.597-251.073 144.957-29.303 109.36 35.597 221.77 144.957 251.073 109.36 29.303 221.77-35.597 251.073-144.957 29.303-109.36-35.597-221.77-144.957-251.073zM256.342 451.95l.276.71c1.172 3.187 3.562 5.776 6.644 7.2 3.082 1.422 6.603 1.562 9.788.387l48.355-17.774c3.184-1.175 6.706-1.035 9.787.388 3.082 1.424 5.472 4.013 6.644 7.2l.19.56c2.105 5.852-.304 12.37-5.71 15.448-93.23 22.17-187.912-30.724-217.912-121.736s14.67-189.84 102.81-227.453c5.144.502 9.544 3.91 11.32 8.762 2.578 6.977 10.317 10.55 17.3 7.99l15.73-5.803c3.186-1.176 6.707-1.036 9.79.387 3.08 1.423 5.47 4.012 6.643 7.198l.19.56c1.174 3.185 1.034 6.706-.39 9.788-1.422 3.082-4.01 5.472-7.197 6.644l-109.46 40.366c-3.187 1.172-5.777 3.562-7.2 6.644-1.422 3.082-1.562 6.603-.388 9.788l.19.56c1.172 3.186 3.562 5.775 6.643 7.198 3.082 1.423 6.603 1.563 9.788.388l80.06-29.483c3.184-1.174 6.705-1.034 9.787.388 3.082 1.423 5.472 4.013 6.644 7.2l.19.56c1.173 3.184 1.034 6.705-.39 9.787-1.422 3.08-4.01 5.47-7.197 6.643l-127.814 47.08c-3.186 1.17-5.776 3.56-7.2 6.643-1.42 3.082-1.56 6.603-.387 9.788l.19.56c1.172 3.186 3.562 5.775 6.643 7.198 3.08 1.423 6.602 1.563 9.787.388L297.72 226.4c3.184-1.175 6.705-1.036 9.787.387 3.082 1.423 5.472 4.012 6.644 7.198l.467 1.27c1.174 3.186 1.035 6.707-.388 9.79-1.424 3.08-4.014 5.47-7.2 6.643l-113 41.54c-3.187 1.172-5.777 3.562-7.2 6.644-1.422 3.08-1.562 6.603-.387 9.787l.19.56c1.17 3.185 3.56 5.775 6.643 7.198 3.08 1.423 6.603 1.562 9.787.388l51.798-19.06c3.186-1.174 6.707-1.034 9.79.39 3.08 1.422 5.47 4.01 6.643 7.197l.19.56c1.174 3.185 1.034 6.706-.39 9.788-1.422 3.083-4.01 5.473-7.197 6.644l-89.085 32.754c-3.185 1.17-5.774 3.56-7.197 6.643-1.423 3.083-1.562 6.604-.388 9.79l.19.56c1.17 3.185 3.56 5.775 6.643 7.197 3.082 1.423 6.603 1.563 9.788.388L304.563 336.3c3.185-1.173 6.706-1.034 9.788.39 3.083 1.422 5.473 4.01 6.644 7.197l.19.56c1.174 3.185 1.035 6.706-.388 9.788s-4.013 5.472-7.198 6.644l-74.954 27.54c-3.186 1.17-5.776 3.56-7.2 6.643-1.422 3.082-1.56 6.603-.387 9.788l.19.56c1.172 3.187 3.562 5.777 6.643 7.2 3.082 1.422 6.603 1.562 9.788.387l94.147-34.537c3.185-1.175 6.706-1.035 9.788.388s5.472 4.012 6.644 7.198c2.428 6.58-.893 13.887-7.447 16.384l-86.903 33.168c-3.18 1.18-5.764 3.574-7.18 6.658-1.414 3.083-1.547 6.603-.367 9.784l-.018-.09z" fill="#FFF"/></g></svg>
+
+</a>
+    <form class="header-search" action="/search" accept-charset="UTF-8" method="get">
+
+      <label class="vh" for="header-search-field">Search for Magic cards</label>
+      <input type="text" name="q" id="header-search-field" class="header-search-field" ref="searchField" v-on:keydown.esc="blurSearchField" placeholder="Search for Magic cards…" autocomplete="on" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="1024" />
+
+
+
+
+
+      <button type="submit" class="vh">
+        Find Cards
+</button>
+</form>
+    <div class="header-links">
+
+      <div class="header-link-divider"></div>
+
+      <a class="header-link double-pad-left" href="/advanced">
+        <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><path d="M10 6h-4v2h4v-2zm14 0h-12v2h12v-2zm-22-4v26h26v-26h-26zm24 24h-22v-14h22v14zm0-16h-22v-6h22v6z"/></svg>
+
+        <span>Advanced</span>
+</a>
+      <a class="header-link" href="/docs/syntax">
+        <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><path d="M15 0c-8.284 0-15 6.716-15 15s6.716 15 15 15 15-6.716 15-15-6.716-15-15-15zm0 28c-7.18 0-13-5.82-13-13s5.82-13 13-13 13 5.82 13 13-5.82 13-13 13zm-1-4h2v-4h-2v4zm1-18c-2.958 0-5.2 1.834-5.2 5h2c0-2.041 1.389-3 3.2-3 1.598 0 3 .935 3 2 0 3.281-4 2.656-4 8h2c-.146-4.063 4-3.646 4-8 0-2.209-2.238-4-5-4z"/></svg>
+
+        <span>Syntax</span>
+</a>
+      <a class="header-link" href="/sets">
+        <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><path d="M15 2c-3.296 5.789-5.713 13.983-15 6l4 12v8h22v-8l4-12c-9.287 7.983-11.704-.211-15-6zm-9 24v-4h18v4h-18zm18-6.324v.324h-18v-.324l-2.32-6.962c5.055 1.849 8.383-.683 11.32-6.475 2.938 5.792 6.266 8.323 11.32 6.475l-2.32 6.962z"/></svg>
+
+        <span>Sets</span>
+</a>
+      <a class="header-link double-pad-right" href="/random">
+        <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><path d="M20.594 18.406l3.594 3.594h-6.188l-.341-.034c-.229.655-.569 1.256-.997 1.786.421.151.867.248 1.338.248h6.188l-3.594 3.594 1.406 1.406 6-6-6-6-1.406 1.406zm3.594-10.406l-3.594 3.594 1.406 1.406 6-6-6-6-1.406 1.406 3.594 3.594h-6.188c-2.2 0-4 1.8-4 4v10c0 1.103-.897 2-2 2h-10v2h10c2.2 0 4-1.8 4-4v-10c0-1.103.896-2 2-2h6.188zm-11.848.034c.229-.654.565-1.258.993-1.787-.419-.15-.864-.247-1.333-.247h-10v2h10l.34.034z"/></svg>
+
+        <span>Random</span>
+</a>
+      <div class="header-link-divider"></div>
+
+      <a title="Your decks" class="header-link icon-only" href="/account/decks">
+        <svg focusable="false"  aria-hidden="true"  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M320 64h-16V48c0-26.47-21.53-48-48-48h-64c-26.47 0-48 21.53-48 48v16h-16C57.31 64 0 121.31 0 192v256c0 35.35 28.65 64 64 64h320c35.35 0 64-28.65 64-64V192c0-70.69-57.31-128-128-128zM176 48c0-8.83 7.19-16 16-16h64c8.81 0 16 7.17 16 16v16h-96V48zm160 432H112v-96h224v96zm0-128H112v-32c0-17.67 14.33-32 32-32h160c17.67 0 32 14.33 32 32v32zm80 96c0 17.64-14.36 32-32 32h-16V320c0-35.29-28.71-64-64-64H144c-35.29 0-64 28.71-64 64v160H64c-17.64 0-32-14.36-32-32V192c0-52.94 43.06-96 96-96h192c52.94 0 96 43.06 96 96v256zM312 160H136c-4.42 0-8 3.58-8 8v16c0 4.42 3.58 8 8 8h176c4.42 0 8-3.58 8-8v-16c0-4.42-3.58-8-8-8z"/></svg>
+
+        <span class="vh">Your decks</span>
+</a>
+      <a title="Your account" class="header-link icon-only" href="/settings">
+        <svg focusable="false"  aria-hidden="true"  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M256 8C119.033 8 8 119.033 8 256s111.033 248 248 248 248-111.033 248-248S392.967 8 256 8zm0 32c118.663 0 216 96.055 216 216 0 45.887-14.373 88.578-38.928 123.692-11.413-36.912-44.537-64.38-84.385-67.413C371.483 288.374 384 257.149 384 224c0-70.741-57.249-128-128-128-70.74 0-128 57.249-128 128 0 33.149 12.517 64.374 35.313 88.279-39.861 3.033-72.994 30.519-84.396 67.45C54.424 344.761 40 302.154 40 256c0-118.663 96.055-216 216-216zm-96 184c0-53.019 42.981-96 96-96s96 42.981 96 96-42.981 96-96 96-96-42.981-96-96zm-53.333 188.058c0-43.808 31.782-68.058 64-68.058h40.622c28.662 10.663 60.712 10.68 89.422 0h40.622c32.717 0 64 24.665 64 68.073-83.416 79.913-215.066 79.926-298.666-.015z"/></svg>
+
+        <span class="vh">Sign In</span>
+</a>
+    </div>
+
+    <button type="button" class="header-menu-button-container" v-on:click="toggleMobileNav()">
+      <span class="button-n inverted header-menu-button">
+        <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><path d="M2 4v2h26v-2h-26zm0 12h26v-2h-26v2zm0 10h26v-2h-26v2z"/></svg>
+
+        <b class="header-menu-button-label">Menu</b>
+      </span>
+    </button>
+
+  </div>
+
+  <div class="mobile-nav" v-cloak v-if="mobileNavOpen">
+
+    <a class="button-n inverted align-left" href="/advanced">
+      <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><path d="M10 6h-4v2h4v-2zm14 0h-12v2h12v-2zm-22-4v26h26v-26h-26zm24 24h-22v-14h22v14zm0-16h-22v-6h22v6z"/></svg>
+
+      <b>Advanced Search</b>
+</a>
+    <a class="button-n inverted align-left" href="/docs/syntax">
+      <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><path d="M15 0c-8.284 0-15 6.716-15 15s6.716 15 15 15 15-6.716 15-15-6.716-15-15-15zm0 28c-7.18 0-13-5.82-13-13s5.82-13 13-13 13 5.82 13 13-5.82 13-13 13zm-1-4h2v-4h-2v4zm1-18c-2.958 0-5.2 1.834-5.2 5h2c0-2.041 1.389-3 3.2-3 1.598 0 3 .935 3 2 0 3.281-4 2.656-4 8h2c-.146-4.063 4-3.646 4-8 0-2.209-2.238-4-5-4z"/></svg>
+
+      <b>Syntax Guide</b>
+</a>
+    <a class="button-n inverted align-left" href="/sets">
+      <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><path d="M15 2c-3.296 5.789-5.713 13.983-15 6l4 12v8h22v-8l4-12c-9.287 7.983-11.704-.211-15-6zm-9 24v-4h18v4h-18zm18-6.324v.324h-18v-.324l-2.32-6.962c5.055 1.849 8.383-.683 11.32-6.475 2.938 5.792 6.266 8.323 11.32 6.475l-2.32 6.962z"/></svg>
+
+      <b>All Sets</b>
+</a>
+    <a class="button-n inverted align-left" href="/random">
+      <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><path d="M20.594 18.406l3.594 3.594h-6.188l-.341-.034c-.229.655-.569 1.256-.997 1.786.421.151.867.248 1.338.248h6.188l-3.594 3.594 1.406 1.406 6-6-6-6-1.406 1.406zm3.594-10.406l-3.594 3.594 1.406 1.406 6-6-6-6-1.406 1.406 3.594 3.594h-6.188c-2.2 0-4 1.8-4 4v10c0 1.103-.897 2-2 2h-10v2h10c2.2 0 4-1.8 4-4v-10c0-1.103.896-2 2-2h6.188zm-11.848.034c.229-.654.565-1.258.993-1.787-.419-.15-.864-.247-1.333-.247h-10v2h10l.34.034z"/></svg>
+
+      <b>Random Card</b>
+</a>
+    <a class="button-n inverted align-left" v-if="Scryfall.accountIsNotSignedIn()" href="/account/decks">
+      <svg focusable="false"  aria-hidden="true"  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M256 8C119.033 8 8 119.033 8 256s111.033 248 248 248 248-111.033 248-248S392.967 8 256 8zm0 32c118.663 0 216 96.055 216 216 0 45.887-14.373 88.578-38.928 123.692-11.413-36.912-44.537-64.38-84.385-67.413C371.483 288.374 384 257.149 384 224c0-70.741-57.249-128-128-128-70.74 0-128 57.249-128 128 0 33.149 12.517 64.374 35.313 88.279-39.861 3.033-72.994 30.519-84.396 67.45C54.424 344.761 40 302.154 40 256c0-118.663 96.055-216 216-216zm-96 184c0-53.019 42.981-96 96-96s96 42.981 96 96-42.981 96-96 96-96-42.981-96-96zm-53.333 188.058c0-43.808 31.782-68.058 64-68.058h40.622c28.662 10.663 60.712 10.68 89.422 0h40.622c32.717 0 64 24.665 64 68.073-83.416 79.913-215.066 79.926-298.666-.015z"/></svg>
+
+      <b>Your Account</b>
+</a>
+    <a class="button-n inverted align-left" v-if="Scryfall.accountIsSignedIn()" href="/account/decks">
+      <svg focusable="false"  aria-hidden="true"  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M320 64h-16V48c0-26.47-21.53-48-48-48h-64c-26.47 0-48 21.53-48 48v16h-16C57.31 64 0 121.31 0 192v256c0 35.35 28.65 64 64 64h320c35.35 0 64-28.65 64-64V192c0-70.69-57.31-128-128-128zM176 48c0-8.83 7.19-16 16-16h64c8.81 0 16 7.17 16 16v16h-96V48zm160 432H112v-96h224v96zm0-128H112v-32c0-17.67 14.33-32 32-32h160c17.67 0 32 14.33 32 32v32zm80 96c0 17.64-14.36 32-32 32h-16V320c0-35.29-28.71-64-64-64H144c-35.29 0-64 28.71-64 64v160H64c-17.64 0-32-14.36-32-32V192c0-52.94 43.06-96 96-96h192c52.94 0 96 43.06 96 96v256zM312 160H136c-4.42 0-8 3.58-8 8v16c0 4.42 3.58 8 8 8h176c4.42 0 8-3.58 8-8v-16c0-4.42-3.58-8-8-8z"/></svg>
+
+      <b>Your Decks</b>
+</a>
+    <a class="button-n inverted align-left" v-if="Scryfall.accountIsSignedIn()" href="/account/decks/new">
+      <svg focusable="false"  aria-hidden="true"  xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30"><path fill="#5822AC" d="M15 0c-8.284 0-15 6.716-15 15s6.716 15 15 15 15-6.716 15-15-6.716-15-15-15zm0 28c-7.18 0-13-5.82-13-13s5.82-13 13-13 13 5.82 13 13-5.82 13-13 13zm1-22h-2v8h-8v2h8v8h2v-8h8v-2h-8v-8z"/></svg>
+
+      <b>New Deck</b>
+</a>
+    <button type="button" class="button-n align-left" v-bind:class="{&#39;inverted&#39;:!accountSectionOpen, &#39;inverted-white&#39;:accountSectionOpen}" v-if="Scryfall.accountIsSignedIn()" v-on:click="toggleAccountSection()">
+      <svg focusable="false"  aria-hidden="true"  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M256 8C119.033 8 8 119.033 8 256s111.033 248 248 248 248-111.033 248-248S392.967 8 256 8zm0 32c118.663 0 216 96.055 216 216 0 45.887-14.373 88.578-38.928 123.692-11.413-36.912-44.537-64.38-84.385-67.413C371.483 288.374 384 257.149 384 224c0-70.741-57.249-128-128-128-70.74 0-128 57.249-128 128 0 33.149 12.517 64.374 35.313 88.279-39.861 3.033-72.994 30.519-84.396 67.45C54.424 344.761 40 302.154 40 256c0-118.663 96.055-216 216-216zm-96 184c0-53.019 42.981-96 96-96s96 42.981 96 96-42.981 96-96 96-96-42.981-96-96zm-53.333 188.058c0-43.808 31.782-68.058 64-68.058h40.622c28.662 10.663 60.712 10.68 89.422 0h40.622c32.717 0 64 24.665 64 68.073-83.416 79.913-215.066 79.926-298.666-.015z"/></svg>
+
+      <b>Your Account…</b>
+</button>
+    <a class="button-n inverted align-left" v-if="Scryfall.accountIsSignedIn()" href="/signout">
+      <svg focusable="false"  aria-hidden="true"  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M160 217.1c0-8.8 7.2-16 16-16h144v-93.9c0-7.1 8.6-10.7 13.6-5.7l141.6 143.1c6.3 6.3 6.3 16.4 0 22.7L333.6 410.4c-5 5-13.6 1.5-13.6-5.7v-93.9H176c-8.8 0-16-7.2-16-16v-77.7m-32 0v77.7c0 26.5 21.5 48 48 48h112v61.9c0 35.5 43 53.5 68.2 28.3l141.7-143c18.8-18.8 18.8-49.2 0-68L356.2 78.9c-25.1-25.1-68.2-7.3-68.2 28.3v61.9H176c-26.5 0-48 21.6-48 48zM0 112v288c0 26.5 21.5 48 48 48h132c6.6 0 12-5.4 12-12v-8c0-6.6-5.4-12-12-12H48c-8.8 0-16-7.2-16-16V112c0-8.8 7.2-16 16-16h132c6.6 0 12-5.4 12-12v-8c0-6.6-5.4-12-12-12H48C21.5 64 0 85.5 0 112z"/></svg>
+      <b>Sign Out</b>
+</a>
+    <hr class="mobile-nav-section-spacer" v-if="accountSectionOpen" />
+
+    <a class="button-n inverted align-left" v-if="accountSectionOpen" href="/settings/preferences">
+      <svg focusable="false"  aria-hidden="true"  xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30"><path d="M14 30h2v-2.051c1.642-.125 3.193-.557 4.608-1.234l1.025 1.775 1.731-1-1.021-1.768c1.323-.908 2.47-2.055 3.378-3.377l1.768 1.02.999-1.731-1.775-1.024c.679-1.415 1.11-2.968 1.235-4.609h2.052v-2h-2.051c-.125-1.642-.557-3.193-1.235-4.608l1.776-1.025-1-1.732-1.768 1.021c-.908-1.322-2.055-2.469-3.377-3.377l1.021-1.768-1.732-1-1.025 1.775c-1.416-.68-2.967-1.111-4.609-1.236v-2.051h-2v2.051c-1.642.125-3.193.557-4.608 1.234l-1.026-1.775-1.732 1 1.021 1.768c-1.323.908-2.469 2.054-3.378 3.376l-1.767-1.02-1.001 1.731 1.777 1.026c-.679 1.416-1.11 2.967-1.235 4.609h-2.051v2h2.051c.125 1.642.557 3.193 1.235 4.608l-1.776 1.026 1 1.732 1.768-1.021c.908 1.322 2.055 2.469 3.377 3.377l-1.021 1.768 1.732 1 1.025-1.775c1.415.678 2.967 1.109 4.608 1.234v2.051zm1-4c-1.647 0-3.204-.372-4.606-1.021l3.544-6.139c.34.094.692.16 1.062.16 1.861 0 3.412-1.277 3.858-3h7.091c-.506 5.605-5.212 10-10.949 10zm0-13c1.104 0 2 .896 2 2s-.896 2-2 2-2-.896-2-2 .896-2 2-2zm10.949 1h-7.091c-.446-1.723-1.997-3-3.858-3-.37 0-.722.066-1.063.16l-3.544-6.139c1.403-.649 2.96-1.021 4.607-1.021 5.737 0 10.443 4.395 10.949 10zm-21.949 1c0-3.712 1.844-6.988 4.66-8.98l3.539 6.129c-.739.726-1.199 1.734-1.199 2.851s.46 2.125 1.199 2.852l-3.539 6.128c-2.816-1.992-4.66-5.268-4.66-8.98z"/></svg>
+
+      <b>Search Settings</b>
+</a>
+    <a class="button-n inverted align-left" v-if="accountSectionOpen" href="/settings/profile">
+      <svg focusable="false"  aria-hidden="true"  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M256 8C119.033 8 8 119.033 8 256s111.033 248 248 248 248-111.033 248-248S392.967 8 256 8zm0 32c118.663 0 216 96.055 216 216 0 45.887-14.373 88.578-38.928 123.692-11.413-36.912-44.537-64.38-84.385-67.413C371.483 288.374 384 257.149 384 224c0-70.741-57.249-128-128-128-70.74 0-128 57.249-128 128 0 33.149 12.517 64.374 35.313 88.279-39.861 3.033-72.994 30.519-84.396 67.45C54.424 344.761 40 302.154 40 256c0-118.663 96.055-216 216-216zm-96 184c0-53.019 42.981-96 96-96s96 42.981 96 96-42.981 96-96 96-96-42.981-96-96zm-53.333 188.058c0-43.808 31.782-68.058 64-68.058h40.622c28.662 10.663 60.712 10.68 89.422 0h40.622c32.717 0 64 24.665 64 68.073-83.416 79.913-215.066 79.926-298.666-.015z"/></svg>
+
+      <b>Your Profile</b>
+</a>
+    <a class="button-n inverted align-left" v-if="accountSectionOpen" href="/settings/security">
+      <svg focusable="false"  aria-hidden="true"  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M224 420c-11 0-20-9-20-20v-64c0-11 9-20 20-20s20 9 20 20v64c0 11-9 20-20 20zm224-148v192c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V272c0-26.5 21.5-48 48-48h16v-64C64 71.6 136-.3 224.5 0 312.9.3 384 73.1 384 161.5V224h16c26.5 0 48 21.5 48 48zM96 224h256v-64c0-70.6-57.4-128-128-128S96 89.4 96 160v64zm320 240V272c0-8.8-7.2-16-16-16H48c-8.8 0-16 7.2-16 16v192c0 8.8 7.2 16 16 16h352c8.8 0 16-7.2 16-16z"/></svg>
+      <b>Email &amp; Security</b>
+</a>
+    <a class="button-n inverted align-left" v-if="accountSectionOpen" href="/settings/safety">
+      <svg focusable="false"  aria-hidden="true"  width="66" height="78" viewBox="0 0 66 78" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><title>Shape</title><desc>Created with Sketch.</desc><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><path d="M31.895,0.262 C24.27,4.9808 12.543,7.7893 3.141,4.1097 C1.9808,3.66048 0.5121,4.58626 0.4222,5.8285 C-1.6247,36.1445 4.055,52.5085 11.5472,62.1175 C19.0394,71.7269 28.2702,74.6605 31.5472,77.5355 C32.28939,78.18003 33.5238,78.14878 34.2347,77.473 C41.2816,72.6527 49.1487,68.1918 54.0467,62.149 C61.7029,52.5474 67.6517,36.157 65.5777,5.829 C65.487856,4.5868 64.0191,3.6571 62.8589,4.1102 C53.5151,7.7899 41.7569,4.99301 33.9799,0.2625 C33.21818,-0.14766 32.6166,-0.01875 31.8861,0.2625 L31.895,0.262 Z M32.9888,4.1722 C40.9224,8.6995 51.7428,11.4574 61.6798,8.6449 C63.1954,36.6139 57.629,51.2499 50.9298,59.6489 C46.0939,66.2427 38.3318,70.0239 32.8678,73.5979 C28.0709,70.0471 20.9188,67.6096 14.7118,59.6489 C8.1688,51.2583 2.8248,36.6259 4.3368,8.6449 C14.3134,11.4535 25.1688,8.715213 32.9968,4.1722 L32.9888,4.1722 Z M31.9263,12.2699 C26.9107,15.3637 19.1213,17.1879 13.0203,14.8011 C11.8445,14.32454 10.3367,15.28157 10.2703,16.5511 C8.8758,37.1331 12.7625,48.3671 17.9578,55.0161 C23.1531,61.6645 29.5948,63.7856 31.5828,65.5241 C32.32889,66.18426 33.5867,66.15691 34.3016,65.4616 C39.0985,62.2311 44.4386,59.1413 47.7706,55.0476 C53.0792,48.4109 57.1183,37.1456 55.7081,16.5516 C55.633881,15.2977 54.1612,14.3485 52.9893,14.8016 C46.9229,17.1844 39.1413,15.37582 34.0203,12.2704 C33.11796,11.82899 32.7586,11.94228 31.9265,12.2704 L31.9263,12.2699 Z M34.9888,17.1801 C39.9263,19.434 45.9658,20.5512 51.7388,19.1801 C52.07864,26.3676 51.715363,32.2111 50.89505,37.0041 L34.98905,37.0041 L34.9888,17.1801 Z M15.8638,41.0081 L30.9888,41.0081 L30.9888,60.3671 C27.9341,58.5351 24.3482,56.6874 21.1138,52.5507 C19.0357,49.8945 17.1568,46.203 15.8638,41.0117 L15.8638,41.0081 Z" id="Shape" fill="#000" fill-rule="nonzero"/></g></svg>
+
+      <b>Safety Zone</b>
+</a>
+  </div>
+
+</div>
+
+    
+    <div id="main" class="main" role="main">
+      
+  <div class="reference-doc">
+    <button class="reference-doc-menu-expander" data-component="reference-doc-menu-expander">
+  <span>Reference Pages <svg focusable="false"  aria-hidden="true"  width="30" height="30" viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg"><path fill="#5822AC" d="M27 9.375l-12 12.625-12-12.562 1.406-1.438 10.594 11.094 10.563-11.094z"/></svg>
+</span>
+</button>
+
+<div class="reference-doc-menu collapsed">
+
+  <h6>Core Docs</h6>
+
+  <ul>
+    <li><a class="current" href="/docs/api"><svg focusable="false"  aria-hidden="true"  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 34.1 32.4"><path d="M20.8 11.6L17 0l-3.8 11.6c-.1.5-.6.8-1.1.8H0l9.9 7.2c.4.3.6.8.4 1.3L6.5 32.4l9.9-7.2c.4-.3.9-.3 1.3 0l9.9 7.2-3.8-11.6c-.2-.5 0-1 .4-1.3l9.9-7.2H21.9c-.5.1-.9-.2-1.1-.7z"/></svg> Overview &amp; Rules</a></li>
+    <li><a href="/docs/api/request-formats"><svg focusable="false"  aria-hidden="true"  xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30"><path d="M14 30h2v-2.051c1.642-.125 3.193-.557 4.608-1.234l1.025 1.775 1.731-1-1.021-1.768c1.323-.908 2.47-2.055 3.378-3.377l1.768 1.02.999-1.731-1.775-1.024c.679-1.415 1.11-2.968 1.235-4.609h2.052v-2h-2.051c-.125-1.642-.557-3.193-1.235-4.608l1.776-1.025-1-1.732-1.768 1.021c-.908-1.322-2.055-2.469-3.377-3.377l1.021-1.768-1.732-1-1.025 1.775c-1.416-.68-2.967-1.111-4.609-1.236v-2.051h-2v2.051c-1.642.125-3.193.557-4.608 1.234l-1.026-1.775-1.732 1 1.021 1.768c-1.323.908-2.469 2.054-3.378 3.376l-1.767-1.02-1.001 1.731 1.777 1.026c-.679 1.416-1.11 2.967-1.235 4.609h-2.051v2h2.051c.125 1.642.557 3.193 1.235 4.608l-1.776 1.026 1 1.732 1.768-1.021c.908 1.322 2.055 2.469 3.377 3.377l-1.021 1.768 1.732 1 1.025-1.775c1.415.678 2.967 1.109 4.608 1.234v2.051zm1-4c-1.647 0-3.204-.372-4.606-1.021l3.544-6.139c.34.094.692.16 1.062.16 1.861 0 3.412-1.277 3.858-3h7.091c-.506 5.605-5.212 10-10.949 10zm0-13c1.104 0 2 .896 2 2s-.896 2-2 2-2-.896-2-2 .896-2 2-2zm10.949 1h-7.091c-.446-1.723-1.997-3-3.858-3-.37 0-.722.066-1.063.16l-3.544-6.139c1.403-.649 2.96-1.021 4.607-1.021 5.737 0 10.443 4.395 10.949 10zm-21.949 1c0-3.712 1.844-6.988 4.66-8.98l3.539 6.129c-.739.726-1.199 1.734-1.199 2.851s.46 2.125 1.199 2.852l-3.539 6.128c-2.816-1.992-4.66-5.268-4.66-8.98z"/></svg> Request Formats</a></li>
+    
+    <li><a href="/docs/api/colors"><svg focusable="false"  aria-hidden="true"  width="95" height="88" viewBox="0 0 95 88" xmlns="http://www.w3.org/2000/svg"><g fill="#000" fill-rule="evenodd"><path d="M47 30c8.284 0 15-6.716 15-15 0-8.284-6.716-15-15-15-8.284 0-15 6.716-15 15 0 8.284 6.716 15 15 15zm0-7c4.418 0 8-3.582 8-8s-3.582-8-8-8-8 3.582-8 8 3.582 8 8 8zM80 53c8.284 0 15-6.716 15-15 0-8.284-6.716-15-15-15-8.284 0-15 6.716-15 15 0 8.284 6.716 15 15 15zm0-7c4.418 0 8-3.582 8-8s-3.582-8-8-8-8 3.582-8 8 3.582 8 8 8zM65 88c8.284 0 15-6.716 15-15 0-8.284-6.716-15-15-15-8.284 0-15 6.716-15 15 0 8.284 6.716 15 15 15zm0-7c4.418 0 8-3.582 8-8s-3.582-8-8-8-8 3.582-8 8 3.582 8 8 8zM28 88c8.284 0 15-6.716 15-15 0-8.284-6.716-15-15-15-8.284 0-15 6.716-15 15 0 8.284 6.716 15 15 15zm0-7c4.418 0 8-3.582 8-8s-3.582-8-8-8-8 3.582-8 8 3.582 8 8 8zM15 54c8.284 0 15-6.716 15-15 0-8.284-6.716-15-15-15-8.284 0-15 6.716-15 15 0 8.284 6.716 15 15 15zm0-7c4.418 0 8-3.582 8-8s-3.582-8-8-8-8 3.582-8 8 3.582 8 8 8z"/></g></svg> Colors and Costs</a></li>
+    <li><a href="/docs/api/images"><svg focusable="false"  aria-hidden="true"  xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30"><path d="M1 4v22h28v-22h-28zm26 20h-24v-18h24v18zm-9-14l-5 6-2-2-6 8h20l-7-12zm-6.784 7.045l1.918 1.918 4.576-5.491 3.808 6.528h-12.518l2.216-2.955zm-4.216-5.045c1.104 0 2-.896 2-2s-.896-2-2-2-2 .896-2 2 .896 2 2 2z"/></svg> Card Imagery</a></li>
+    <li><a href="/docs/api/layouts"><svg focusable="false"  aria-hidden="true"  width="12" height="15" viewBox="0 0 12 15" xmlns="http://www.w3.org/2000/svg"><path d="M7.5 14V8.75H1V13c0 .552.448 1 1 1h5.5zm1 0H9c.552 0 1-.448 1-1V2c0-.552-.448-1-1-1h-.5v6.25H10v1.5H8.5V14zm-1-13H2c-.552 0-1 .448-1 1v5.25h6.5V1zM0 14V1c0-.552.448-1 1-1h10c.552 0 1 .448 1 1v13c0 .552-.448 1-1 1H1c-.552 0-1-.448-1-1zm11.5-6c0-.552-.224-1-.5-1s-.5.448-.5 1 .224 1 .5 1 .5-.448.5-1z" fill="#000" fill-rule="evenodd"/></svg>
+ Layouts and Faces</a></li>
+    <li><a href="/docs/api/frames"><svg focusable="false"  aria-hidden="true"  width="12" height="15" viewBox="0 0 12 15" xmlns="http://www.w3.org/2000/svg"><path d="M8 13h1.718c.446 0 .607-.046.77-.134.163-.087.29-.215.378-.378.088-.163.134-.324.134-.77V2.282c0-.446-.046-.607-.134-.77-.087-.163-.215-.29-.378-.378-.163-.088-.324-.134-.77-.134H2.282c-.446 0-.607.046-.77.134-.163.087-.29.215-.378.378-.088.163-.134.324-.134.77v9.436c0 .446.046.607.134.77.087.163.215.29.378.378.163.088.324.134.77.134H4c0-.552.895-1 2-1s2 .448 2 1zM1 0h10c.552 0 1 .448 1 1v13c0 .552-.448 1-1 1H1c-.552 0-1-.448-1-1V1c0-.552.448-1 1-1zm5 13.5c.552 0 1-.224 1-.5s-.448-.5-1-.5-1 .224-1 .5.448.5 1 .5z" fill="#000" fill-rule="evenodd"/></svg>
+ Frames</a></li>
+    <li><a href="/docs/api/languages"><svg focusable="false"  aria-hidden="true"  viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12.87 15.07l-2.54-2.51.03-.03A17.52 17.52 0 0 0 14.07 6H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/></svg>
+ Languages</a></li>
+    <li><a href="/docs/api/http-concerns"><svg width="16" height="15" viewBox="0 0 16 15" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><path d="M1.302 11.786h2.569v1.071c0 .179-.024.349-.061.515l-.035.127-.13.356-.035.073h-1.352l-.159-.02c-.591-.076-1.041-.643-1.041-1.319 0-.295.084-.575.244-.804zm3.506-9.313c0-.773.553-1.401 1.228-1.401h2.261c.161.316.261.679.261 1.071 0 1.184-.844 2.143-1.875 2.143h5.625v8.241c0 .774-.553 1.401-1.228 1.401h-6.432c.103-.334.159-.696.159-1.071v-10.383zm9.375-.33c0 .59-.422 1.071-.938 1.071h-3.91c.103-.335.159-.696.159-1.071s-.056-.736-.159-1.071h3.91c.516 0 .938.481.938 1.071zm-12.188 12.83v.027h9.085c1.2 0 2.166-1.108 2.166-2.473v-8.241c1.031 0 1.875-.959 1.875-2.143 0-1.183-.844-2.143-1.875-2.143h-7.21c-1.2 0-2.166 1.108-2.166 2.473v8.241h-2.953c-.488.438-.797 1.111-.797 1.875 0 1.239.825 2.249 1.875 2.384z"/></svg>
+ CORS and CSP</a></li>
+  </ul>
+
+  <h6>Types &amp; Methods</h6>
+
+  <ul>
+
+    <li>
+      <a href="/docs/api/errors"><svg focusable="false"  aria-hidden="true"  width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M27.96 19.78c-.85.56-1.84 1.22-1.84 1.22l-1.24 3.09a9.92 9.92 0 0 1-2.21 3.36l-1.38 1.38c-.75.75-1.77 1.17-2.83 1.17h-6.34c-5.52 0-10-4.48-10-10V8c0-1.1.9-2 2-2s2 .9 2 2v8l1-2V4c0-1.1.9-2 2-2s2 .9 2 2v12l1-2V4c0-1.1.9-2 2-2s2 .9 2 2v10l1 2V6c0-1.1.9-2 2-2s2 .9 2 2v15l3.22-4.84c.49-.72 1.3-1.16 2.17-1.16 1.44 0 2.61 1.17 2.61 2.61 0 .87-.44 1.68-1.16 2.17M26.51 13a4.6 4.6 0 0 0-3.39 1.49V6c0-2.21-1.79-4-4-4-.49 0-.97.09-1.4.25A4.01 4.01 0 0 0 14.12 0c-.95 0-1.81.33-2.5.88A3.999 3.999 0 0 0 5.12 4v.13c-.32-.09-.65-.13-1-.13-2.21 0-4 1.79-4 4v12c0 6.62 5.38 12 12 12h6.34c1.61 0 3.11-.62 4.25-1.76l1.37-1.37c1.16-1.16 2.05-2.52 2.66-4.03l1.01-2.52 1.32-.88a4.612 4.612 0 0 0 2.05-3.83c0-2.54-2.07-4.61-4.61-4.61" fill-rule="evenodd"/></svg> Errors</a>
+    </li>
+
+    <li>
+      <a href="/docs/api/lists"><svg focusable="false"  aria-hidden="true"  width="33" height="32" viewBox="0 0 33 32" xmlns="http://www.w3.org/2000/svg"><path d="M6.66 4.77l-.85.66.34 1.01.15.42-.26-.2-.92-.7-.92.7-.26.2.15-.42.34-1.01-.85-.66-.29-.22h1.44l.35-1.02.04-.12.04.12.35 1.02h1.44l-.29.22zm2.86-1.72H6.58L5.68.42A.587.587 0 0 0 5.12 0c-.23 0-.47.14-.56.42l-.9 2.63H.72c-.58 0-.82.77-.35 1.13l2.3 1.78-1.09 3.2c-.16.44.18.84.56.84.12 0 .24-.04.36-.12l2.62-2.03 2.63 2.03c.11.08.23.12.35.12.38 0 .72-.4.56-.84l-1.09-3.2 2.3-1.78c.47-.36.23-1.13-.35-1.13zm-5.86 12.5h1.07l.35-1.02.04-.12.04.12.35 1.02h1.44l-.29.22-.85.66.34 1.01.15.42-.26-.2-.92-.7-.92.7-.26.2.15-.42.34-1.01-.85-.66-.29-.22h.37zm-3.29-.37l2.3 1.78-1.09 3.2c-.16.44.18.84.56.84.12 0 .24-.04.36-.12l2.62-2.03 2.63 2.03c.11.08.23.12.35.12.38 0 .72-.4.56-.84l-1.09-3.2 2.3-1.78c.47-.36.23-1.13-.35-1.13H6.58l-.89-2.63a.598.598 0 0 0-.57-.42c-.23 0-.47.14-.56.42l-.9 2.63H.72c-.58 0-.82.77-.35 1.13zm3.29 11.37h1.07l.35-1.02.04-.12.04.12.35 1.02h1.44l-.29.22-.85.66.34 1.01.15.42-.26-.2-.92-.7-.92.7-.26.2.15-.42.34-1.01-.85-.66-.29-.22h.37zm-3.29-.37l2.3 1.78-1.09 3.2c-.16.44.18.84.56.84.12 0 .24-.04.36-.12l2.62-2.03 2.63 2.03c.11.08.23.12.35.12.38 0 .72-.4.56-.84l-1.09-3.2 2.3-1.78c.47-.36.23-1.13-.35-1.13H6.58l-.9-2.63a.587.587 0 0 0-.56-.42c-.23 0-.47.14-.56.42l-.9 2.63H.72c-.58 0-.82.77-.35 1.13zM12.121 7h20V5h-20v2zm0 11h20v-2h-20v2zm0 11h20v-2h-20v2z" fill-rule="evenodd"/></svg> Lists</a>
+    </li>
+
+    <li>
+      <a href="/docs/api/sets"><svg focusable="false"  aria-hidden="true"  width="30" height="30" viewBox="0 0 30 30"><path d="M15 2C11.704 7.789 9.287 15.983 0 8l4 12v8h22v-8l4-12c-9.287 7.983-11.704-.211-15-6zM6 26v-4h18v4H6zm18-6.324V20H6v-.324l-2.32-6.962c5.055 1.849 8.383-.683 11.32-6.475 2.938 5.792 6.266 8.323 11.32 6.475L24 19.676z"/></svg> Sets</a>
+    </li>
+
+    <li>
+      <a href="/docs/api/cards"><svg focusable="false"  aria-hidden="true"  width="12" height="15" viewBox="0 0 12 15" xmlns="http://www.w3.org/2000/svg"><path d="M11 9H1v2.718c0 .446.046.607.134.77.087.163.215.29.378.378.163.088.324.134.77.134H4c0-.552.895-1 2-1s2 .448 2 1h1.718c.446 0 .607-.046.77-.134.163-.087.29-.215.378-.378.088-.163.134-.324.134-.77V9zm0-1V2.282c0-.446-.046-.607-.134-.77-.087-.163-.215-.29-.378-.378-.163-.088-.324-.134-.77-.134H2.282c-.446 0-.607.046-.77.134-.163.087-.29.215-.378.378-.088.163-.134.324-.134.77V8h10zM1 0h10c.552 0 1 .448 1 1v13c0 .552-.448 1-1 1H1c-.552 0-1-.448-1-1V1c0-.552.448-1 1-1zm5 13.5c.552 0 1-.224 1-.5s-.448-.5-1-.5-1 .224-1 .5.448.5 1 .5z" fill="#000" fill-rule="evenodd"/></svg>
+ Cards</a>
+    </li>
+
+    <li>
+      <a href="/docs/api/rulings"><svg focusable="false"  aria-hidden="true"  xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30"><path d="M21 4V3h-3c0-1.657-1.344-3-3-3s-3 1.343-3 3H9v1H2v26h26V4h-7zM11 5h3V3c0-.553.447-1 1-1s1 .447 1 1v2h3v4h-8V5zm10 6v-1h1v14H8V10h1v1h12zm5 17H4V6h5v2H6v18h18V8h-3V6h5v22zM12 12h-2v2h2v-2zm8 0h-6v2h6v-2zm-8 4h-2v2h2v-2zm8 0h-6v2h6v-2zm-8 4h-2v2h2v-2zm8 0h-6v2h6v-2z"/></svg>
+ Rulings</a>
+    </li>
+
+    <li>
+      <a href="/docs/api/card-symbols"><svg focusable="false"  aria-hidden="true"  xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 100'><path d='M76.142 0c-36.768 1.68 4.253 32.994-16.484 49.5l-.005.004-.007-.01-.293.129c-14.524 5.879-30.695-17.715-31.166 7.076 7.67-11.506 11.167-.273 23.775-.977-6.123 8.09-3.121 21.664-13.33 23.873-18.65 4.033-32.297-18.639-31.16-32.869 2.525-31.602 27.29-45.969 51.881-44.488-32.55-6.518-60.143 20.309-59.335 48.137.928 31.91 17.857 47.527 43.841 49.625 36.768-1.678-4.253-32.996 16.484-49.5l.005-.004.007.01.294-.129c14.523-5.879 30.696 17.715 31.165-7.076-7.669 11.506-11.167.273-23.775.977 6.123-8.09 3.123-21.664 13.331-23.871 18.651-4.033 32.296 18.637 31.159 32.867-2.523 31.604-27.289 45.969-51.88 44.488 32.55 6.518 60.143-20.309 59.334-48.139-.927-31.908-17.858-47.523-43.841-49.623z' fill='#000'/></svg>
+ Card Symbols</a>
+    </li>
+
+    <li>
+      <a href="/docs/api/catalogs"><svg focusable="false"  aria-hidden="true"  width="33" height="25" viewBox="0 0 33 25" xmlns="http://www.w3.org/2000/svg"><path d="M25.788 18H8.561l-1.996-6-.665-2-1-3h1.555l1 3 .666 2 1 3h17.222l.998 3h-1.553zm-.447 5.001H6.561L2.89 12h1.564l2.666 8h17.223l.998 3.001zM27.788 13H10.561l-.333-1-.668-2-1.001-3-.667-2-1.001-3h18.79l3.67 11h-1.563zM4.121 0l1.667 5H2.121l1.667 5H.121l5 15h23l-1.666-5h3.666l-1.666-5h3.666l-5-15h-23z" fill-rule="evenodd"/></svg> Catalogs</a>
+    </li>
+
+    <li>
+      <a href="/docs/api/bulk-data"><svg focusable="false"  aria-hidden="true"  viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg"><path d="M25 1H5L1 13v16h28V13L25 1zm-9 2h7.559l3.333 10H16V3zM6.441 3H14v10H3.108L6.441 3zM27 27H3V15h24v12zm-16-4H5v2h6v-2zm0-4H5v2h6v-2z"/></svg>
+ Bulk Data</a>
+    </li>
+
+    <li>
+      <a href="/docs/api/migrations"><svg focusable="false"  aria-hidden="true"  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 257.6 257.8" xml:space="preserve"><path d="M151.2 9c-12.8-12-32.8-12-45.6 0l-96 96.8c-12.8 12.8-12.8 32.8 0 45.6l96.8 96.8c12.8 12.8 32.8 12.8 45.6 0l96-96.8c12.8-12.8 12.8-32.8 0-45.6L151.2 9zm85.6 131.2-96.8 96c-6.4 6.4-16 6.4-22.4 0l-96.8-96c-6.4-6.4-6.4-16 0-22.4l96.8-97.2c6.4-6.4 16-6.4 22.4 0l96.8 96.8c6.4 6 6.4 16.8 0 22.8z"/><path d="m131.2 85.8 18.4 18.4H96.8v72h16v-56h36.8l-18.4 18.4 11.2 11.6 37.6-38-37.6-37.6z"/></svg>
+ Card Migrations <span class="pill orange">Beta</span></a>
+    </li>
+
+
+  </ul>
+
+  <h6>Changelog</h6>
+
+  <ul>
+    <li><a href="/blog/category/api"><svg focusable="false"  aria-hidden="true"  xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30"><path d="M25 4c0-1.656-1.343-3-3-3s-3 1.344-3 3h-8c0-1.656-1.343-3-3-3s-3 1.344-3 3h-4v25h28v-25h-4zm-4 0c0-.551.448-1 1-1s1 .449 1 1v2c0 .551-.448 1-1 1s-1-.449-1-1v-2zm-14 0c0-.551.448-1 1-1s1 .449 1 1v2c0 .551-.448 1-1 1s-1-.449-1-1v-2zm20 23h-24v-14h24v14zm0-16h-24v-5h2c0 1.656 1.343 3 3 3s3-1.344 3-3h8c0 1.656 1.343 3 3 3s3-1.344 3-3h2v5zm-3 4h-14v4h-4v6h18v-10zm-14 8h-2v-2h2v2zm4 0h-2v-2h2v2zm0-4h-2v-2h2v2zm4 4h-2v-2h2v2zm0-4h-2v-2h2v2zm4 4h-2v-2h2v2zm0-4h-2v-2h2v2z"/></svg> API Changelog</a></li>
+    <li><a href="/blog/feed"><svg focusable="false"  aria-hidden="true"  xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30"><path d="M2 18v2c4.419 0 8 3.582 8 8h2c0-5.522-4.477-10-10-10zm0-16v2c13.256 0 24 10.745 24 24h2c0-14.359-11.641-26-26-26zm0 8v2c8.837 0 16 7.163 16 16h2c0-9.94-8.059-18-18-18z"/></svg> Changelog Feed</a></li>
+  </ul>
+
+</div>
+
+    <div class="reference-doc-content">
+      <div class="prose">
+        
+<h1>API Documentation</h1>
+
+<p>Scryfall provides a REST-like API for ingesting our card data programatically.
+The API exposes information available on the regular site
+in easy-to-consume formats.</p>
+
+<h2 id="endpoint-details">Endpoint Details</h2>
+
+<p>The API is available at <code>https://api.scryfall.com</code></p>
+
+<p>API requests are only served over HTTPS, using TLS 1.2 or better.
+Requests will not be honored over plaintext HTTP.</p>
+
+<p>The API uses UTF-8 character encoding for all responses.
+Many fields will include characters that are not in the ASCII range.</p>
+
+<h2 id="rate-limits-and-good-citizenship">Rate Limits and Good Citizenship</h2>
+
+<p>We kindly ask that you insert 50 – 100 milliseconds of delay
+between the requests you send to the server at <code>api.scryfall.com</code>.
+(i.e., 10 requests per second on average).</p>
+
+<p>Submitting excessive requests to the server may result in a
+<code>HTTP 429 Too Many Requests</code> status code.
+Continuing to overload the API after this point may
+result in a temporary or permanent ban of your IP address.</p>
+
+<p>The file origins used by the API, located at <code>*.scryfall.io</code>
+<strong>do not</strong> have these rate limits.</p>
+
+<p>We encourage you to cache the data you download from Scryfall or process it
+locally in your own database, at least for 24 hours.
+Scryfall provides our entire database compressed for download in
+daily <a href="/docs/api/bulk-data" rel="nofollow noreferrer">bulk data files</a>.</p>
+
+<p>While we make incremental updates to card data daily,
+take note that:</p>
+
+<ul>
+<li>We only update prices for cards once per day. Fetching card data
+more frequently than 24 hours will not yield new prices.</li>
+<li>Updates to gameplay data (such as card names, Oracle text, mana costs, etc)
+are much less frequent. If you only need gameplay information,
+downloading card data once per week or right after set releases would
+most likely be sufficient.</li>
+</ul>
+
+<h2 id="use-of-scryfall-data-and-images">Use of Scryfall Data and Images</h2>
+
+<p>As part of the <a href="https://company.wizards.com/fancontentpolicy" rel="nofollow noreferrer">Wizards of the Coast Fan Content Policy</a>,
+Scryfall provides our card data and image database free of charge for the primary
+purpose of creating additional <em>Magic</em> software, performing research,
+or creating community content (such as videos, streams, podcasts, etc.)
+about <em>Magic</em> and related products.</p>
+
+<p>When using Scryfall data, you must adhere to the following guidelines:</p>
+
+<ul>
+<li>You may not use Scryfall logos or use the Scryfall name in a way
+that implies Scryfall has endorsed you, your work, or your product.</li>
+<li>You may not require anyone to make payments, take surveys, agree to subscriptions,
+rate your content, or create accounts in exchange for access to Scryfall data.</li>
+<li>You may not use Scryfall data to create new games, or
+to imply the information and images are from any other game besides <em>Magic: The Gathering</em>.</li>
+</ul>
+
+<p>When using images from Scryfall, you must adhere to the following guidelines:</p>
+
+<ul>
+<li><strong>Do not</strong> cover, crop, or clip off the copyright or artist name on card images.</li>
+<li><strong>Do not</strong> distort, skew, or stretch card images.</li>
+<li><strong>Do not</strong> blur, sharpen, desaturate, or color-shift card images.</li>
+<li><strong>Do not</strong> add your own watermarks, stamps, or logos to card images.</li>
+<li><strong>Do not</strong> place card images in a way that implies someone other than Wizards of the
+Coast created the card or that it is from another game besides <em>Magic: The Gathering</em>.</li>
+<li>When using the <code>art_crop</code>,
+list the artist name and copyright elsewhere in the same interface presenting
+the art crop, or use the full card image elsewhere in the same interface.
+Users should be able to identify the artist and source of the image somehow.</li>
+</ul>
+
+<p>Repeated mishandling or misreprensation of data or images in your project
+may result in Scryfall restricting or blocking your API access.</p>
+
+
+      </div>
+    </div>
+  </div>
+
+    </div>
+    
+<footer id="footer" class="footer">
+  <div class="inner-flex">
+
+    <div class="footer-column">
+      <h6>Cards</h6>
+      <ul>
+        <li><a class="footer-link" href="/advanced">Advanced Search</a></li>
+        <li><a class="footer-link" href="/docs/syntax">Syntax Guide</a></li>
+        <li><a class="footer-link" href="/sets">All Sets</a></li>
+        <li><a id="account-decks-footer-link" class="footer-link vh" href="/account/decks">Your Decks</a></li>
+        <li><a class="footer-link" href="/random">Random Card</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-column">
+      <h6>Scryfall</h6>
+      <ul>
+        <li><a class="footer-link" href="/bots">Slack &amp; Discord Bots</a></li>
+        <li><a class="footer-link" href="/docs/faqs">Site FAQs &amp; Help</a></li>
+        <li><a class="footer-link" href="/blog">Scryfall Blog</a></li>
+        <li><a class="footer-link" href="https://tagger.scryfall.com">Scryfall Tagger</a></li>
+        <li><a class="footer-link" href="https://artgame.scryfall.com">Art Game</a></li>
+        <li><a class="footer-link" href="https://bolas.scryfall.com">Bolas Game</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-column">
+      <h6>Account</h6>
+      <ul>
+        <li><a class="footer-link" href="/settings/profile">Your Account</a></li>
+        <li><a class="footer-link" href="/register">Register</a></li>
+        <li><a class="footer-link" href="/docs/terms">Terms of Service</a></li>
+        <li><a class="footer-link" href="/contact">Contact Us</a></li>
+        <li><a class="footer-link" href="/docs/privacy">Privacy &amp; Security</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-column">
+      <h6>Developers</h6>
+      <ul>
+        <li><a class="footer-link" href="/docs/api">API Documentation</a></li>
+        <li><a class="footer-link" href="/docs/api/cards">Card Objects</a></li>
+        <li><a class="footer-link" href="/docs/api/images">Card Imagery</a></li>
+        <li><a class="footer-link" href="/docs/api/bulk-data">Bulk Data</a></li>
+        <li><a class="footer-link" href="/blog/category/api">API Changelog</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-column">
+      <h6>More</h6>
+      <ul>
+        <li><a class="footer-link" href="/donate">Donate to Scryfall</a></li>
+        <li><a class="footer-link" rel="me" href="https://www.patreon.com/scryfall">Patreon</a></li>
+        <li><a class="footer-link" rel="me" href="https://bsky.app/profile/scryfall.com">Bluesky</a></li>
+        <li><a class="footer-link" rel="me" href="https://mastodon.social/@scryfall">Mastodon</a></li>
+        <li><a class="footer-link" rel="me" href="https://github.com/scryfall">GitHub</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-legal">
+      <p>
+        Portions of Scryfall are unofficial Fan Content permitted under
+        the Wizards of the Coast Fan Content Policy.
+        The literal and graphical information presented on this site
+        about Magic: The Gathering, including card images and mana symbols,
+        is copyright Wizards of the Coast, LLC.
+        Scryfall is not produced by or endorsed by Wizards of the Coast.
+      </p>
+      <p>
+        The Slack, Discord, Cash App, PayPal, and Patreon logos
+        are copyright their respective owners.
+        Scryfall is not produced by or endorsed by these services.
+      </p>
+      <p>
+        Card prices and promotional offers represent daily estimates and/or market values
+        provided by our affiliates.
+        Absolutely no guarantee is made for any price information.
+        See stores for final prices and details.
+      </p>
+      <p>
+        All other content © 2024 Scryfall, LLC.
+      </p>
+    </div>
+
+  </div>
+</footer>
+
+
+    <div class="left-tray">
+
+  <div id="x-mount-notification-tray"></div>
+  <div id="x-mount-deck-tray"></div>
+
+</div>
+
+<script type="text/template" id="x-template-notification-tray">
+  <ol v-cloak id="notification-tray" class="notification-tray" data-component="notification-tray">
+    <li class="notification" v-for="notif in _.takeRight(notifications,5)" v-on:mouseenter="suspendNotifcationTimeout(notif.id)" v-on:mouseleave="resumeNotificationTimeout(notif.id)" v-bind:class="[notif.color]">
+      <h6 class="notification-title">
+        <template v-if="notif.icon === 'deck'">
+          <svg focusable="false"  aria-hidden="true"  width="15" height="15" viewBox="0 0 15 15" xmlns="http://www.w3.org/2000/svg"><g fill="#000" fill-rule="evenodd"><path d="M8 13h1.718c.446 0 .607-.046.77-.134.163-.087.29-.215.378-.378.088-.163.134-.324.134-.77V2.282c0-.446-.046-.607-.134-.77-.087-.163-.215-.29-.378-.378-.163-.088-.324-.134-.77-.134H2.282c-.446 0-.607.046-.77.134-.163.087-.29.215-.378.378-.088.163-.134.324-.134.77v9.436c0 .446.046.607.134.77.087.163.215.29.378.378.163.088.324.134.77.134H4c0-.552.895-1 2-1s2 .448 2 1zM1 0h10c.552 0 1 .448 1 1v13c0 .552-.448 1-1 1H1c-.552 0-1-.448-1-1V1c0-.552.448-1 1-1zm5 13.5c.552 0 1-.224 1-.5s-.448-.5-1-.5-1 .224-1 .5.448.5 1 .5zM12 13h.718c.446 0 .607-.046.77-.134.163-.087.29-.215.378-.378.088-.163.134-.324.134-.77V2.282c0-.446-.046-.607-.134-.77-.087-.163-.215-.29-.378-.378-.163-.088-.324-.134-.77-.134H12V0h2c.552 0 1 .448 1 1v13c0 .552-.448 1-1 1h-2v-2z"/></g></svg>
+
+        </template>
+        <template v-else-if="notif.icon === 'trash'">
+          <svg focusable="false"  aria-hidden="true"  xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30"><path d="M21 5c0-2.2-1.8-4-4-4h-4c-2.2 0-4 1.8-4 4h-7v2h2v22h22v-22h2v-2h-7zm-8-2h4c1.104 0 2 .897 2 2h-8c0-1.103.897-2 2-2zm11 24h-18v-20h18v20zm-8-16h-2v12h2v-12zm4 0h-2v12h2v-12zm-8 0h-2v12h2v-12z"/></svg>
+        </template>
+        <template v-else-if="notif.icon === 'alert'">
+          <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><path d="M28.49 22l-9.49-19.109c-.578-1.188-1.75-2.891-4-2.891s-3.422 1.703-4 2.891l-9.49 19.109c-1.104 2.188-1.51 2.797-1.51 4 0 2.172 1.766 4 4 4h22c2.234 0 4-1.828 4-4 0-1.203-.406-1.812-1.51-4zm-2.49 6h-22c-1.103 0-2-.896-2-2 0-.526.111-.778.885-2.293l9.906-19.927c.867-1.78 1.842-1.78 2.209-1.78s1.342 0 2.202 1.766l9.913 19.941c.774 1.515.885 1.767.885 2.293 0 1.104-.897 2-2 2zm-12-8h2v-12h-2v12zm0 6h2v-4h-2v4z"/></svg>
+
+        </template>
+        <template v-else-if="notif.icon === 'clipboard'">
+          <svg focusable="false"  aria-hidden="true"  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M336 64h-88.6c.4-2.6.6-5.3.6-8 0-30.9-25.1-56-56-56s-56 25.1-56 56c0 2.7.2 5.4.6 8H48C21.5 64 0 85.5 0 112v352c0 26.5 21.5 48 48 48h288c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48zM192 32c13.3 0 24 10.7 24 24s-10.7 24-24 24-24-10.7-24-24 10.7-24 24-24zm160 432c0 8.8-7.2 16-16 16H48c-8.8 0-16-7.2-16-16V112c0-8.8 7.2-16 16-16h48v20c0 6.6 5.4 12 12 12h168c6.6 0 12-5.4 12-12V96h48c8.8 0 16 7.2 16 16v352zm-58.9-236.4c-4.7-4.7-12.3-4.7-17-.1L158.4 344.3 108 293.7c-4.7-4.7-12.3-4.7-17 0l-8.5 8.5c-4.7 4.7-4.7 12.3 0 17l67.4 67.6c4.7 4.7 12.3 4.7 17 0l134.8-133.7c4.7-4.7 4.7-12.3.1-17l-8.7-8.5z"/></svg>
+
+        </template>
+        <template v-else>
+          <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><path d="M28.49 22l-9.49-19.109c-.578-1.188-1.75-2.891-4-2.891s-3.422 1.703-4 2.891l-9.49 19.109c-1.104 2.188-1.51 2.797-1.51 4 0 2.172 1.766 4 4 4h22c2.234 0 4-1.828 4-4 0-1.203-.406-1.812-1.51-4zm-2.49 6h-22c-1.103 0-2-.896-2-2 0-.526.111-.778.885-2.293l9.906-19.927c.867-1.78 1.842-1.78 2.209-1.78s1.342 0 2.202 1.766l9.913 19.941c.774 1.515.885 1.767.885 2.293 0 1.104-.897 2-2 2zm-12-8h2v-12h-2v12zm0 6h2v-4h-2v4z"/></svg>
+
+        </template>
+        <span>{{notif.title}}</span>
+        <button v-on:click="dismissNotification(notif.id)" class="notification-close-button" type="button" title="Dismiss notification">
+          <svg focusable="false"  aria-hidden="true"  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M217.5 256l137.2-137.2c4.7-4.7 4.7-12.3 0-17l-8.5-8.5c-4.7-4.7-12.3-4.7-17 0L192 230.5 54.8 93.4c-4.7-4.7-12.3-4.7-17 0l-8.5 8.5c-4.7 4.7-4.7 12.3 0 17L166.5 256 29.4 393.2c-4.7 4.7-4.7 12.3 0 17l8.5 8.5c4.7 4.7 12.3 4.7 17 0L192 281.5l137.2 137.2c4.7 4.7 12.3 4.7 17 0l8.5-8.5c4.7-4.7 4.7-12.3 0-17L217.5 256z" fill="#FFF" /></svg>
+
+        </button>
+      </h6>
+      <p class="notification-content">
+        {{notif.body}}
+      </p>
+    </li>
+  </ol>
+</script>
+
+<script type="text/template" id="x-template-deck-tray">
+  <div class="deck-tray" v-cloak data-component="deck-tray" v-bind:class="{expanded:expanded}">
+    <ol v-if="expanded" class="deck-tray-options">
+      <li class="deck-tray-option">
+        <a href="#" v-bind:href="activeDeckURI()" class="button-n primary align-left" v-bind:title="activeDeck.name">
+          <svg focusable="false"  aria-hidden="true"  width="15" height="15" viewBox="0 0 15 15" xmlns="http://www.w3.org/2000/svg"><g fill="#000" fill-rule="evenodd"><path d="M8 13h1.718c.446 0 .607-.046.77-.134.163-.087.29-.215.378-.378.088-.163.134-.324.134-.77V2.282c0-.446-.046-.607-.134-.77-.087-.163-.215-.29-.378-.378-.163-.088-.324-.134-.77-.134H2.282c-.446 0-.607.046-.77.134-.163.087-.29.215-.378.378-.088.163-.134.324-.134.77v9.436c0 .446.046.607.134.77.087.163.215.29.378.378.163.088.324.134.77.134H4c0-.552.895-1 2-1s2 .448 2 1zM1 0h10c.552 0 1 .448 1 1v13c0 .552-.448 1-1 1H1c-.552 0-1-.448-1-1V1c0-.552.448-1 1-1zm5 13.5c.552 0 1-.224 1-.5s-.448-.5-1-.5-1 .224-1 .5.448.5 1 .5zM12 13h.718c.446 0 .607-.046.77-.134.163-.087.29-.215.378-.378.088-.163.134-.324.134-.77V2.282c0-.446-.046-.607-.134-.77-.087-.163-.215-.29-.378-.378-.163-.088-.324-.134-.77-.134H12V0h2c.552 0 1 .448 1 1v13c0 .552-.448 1-1 1h-2v-2z"/></g></svg>
+
+          <b>Working on: {{truncatedDeckName(activeDeck.name)}}</b>
+        </a>
+      </li>
+      <li v-for="deck in recentDecks" class="deck-tray-option">
+        <button v-on:click="updateActiveDeck(deck)" type="button" class="button-n align-left" v-bind:title="deck.name">
+          <svg focusable="false"  aria-hidden="true"  width="15" height="15" viewBox="0 0 15 15" xmlns="http://www.w3.org/2000/svg"><g fill="#000" fill-rule="evenodd"><path d="M8 13h1.718c.446 0 .607-.046.77-.134.163-.087.29-.215.378-.378.088-.163.134-.324.134-.77V2.282c0-.446-.046-.607-.134-.77-.087-.163-.215-.29-.378-.378-.163-.088-.324-.134-.77-.134H2.282c-.446 0-.607.046-.77.134-.163.087-.29.215-.378.378-.088.163-.134.324-.134.77v9.436c0 .446.046.607.134.77.087.163.215.29.378.378.163.088.324.134.77.134H4c0-.552.895-1 2-1s2 .448 2 1zM1 0h10c.552 0 1 .448 1 1v13c0 .552-.448 1-1 1H1c-.552 0-1-.448-1-1V1c0-.552.448-1 1-1zm5 13.5c.552 0 1-.224 1-.5s-.448-.5-1-.5-1 .224-1 .5.448.5 1 .5zM12 13h.718c.446 0 .607-.046.77-.134.163-.087.29-.215.378-.378.088-.163.134-.324.134-.77V2.282c0-.446-.046-.607-.134-.77-.087-.163-.215-.29-.378-.378-.163-.088-.324-.134-.77-.134H12V0h2c.552 0 1 .448 1 1v13c0 .552-.448 1-1 1h-2v-2z"/></g></svg>
+
+          <b>Switch to: {{truncatedDeckName(deck.name)}}</b>
+        </button>
+      </li>
+      <li class="deck-tray-option">
+        <button v-on:click="createNewList()" type="button" class="button-n align-left">
+          <svg focusable="false"  aria-hidden="true"  viewBox="0 0 16 15" xmlns="http://www.w3.org/2000/svg"><path d="M14.698 11.786h-2.569v1.071c0 .179.024.349.061.515l.035.127.13.356.035.073h1.352l.159-.02c.591-.076 1.041-.643 1.041-1.319 0-.295-.084-.575-.244-.804v.001zm-3.506-9.313c0-.773-.553-1.401-1.228-1.401H7.703a2.354 2.354 0 0 0-.261 1.071c0 1.184.844 2.143 1.875 2.143H3.692v8.241c0 .774.553 1.401 1.228 1.401h6.432a3.64 3.64 0 0 1-.159-1.071V2.474l-.001-.001zm-9.375-.33c0 .59.422 1.071.938 1.071h3.91a3.646 3.646 0 0 1-.159-1.071c0-.375.056-.736.159-1.071h-3.91c-.516 0-.938.481-.938 1.071zm12.188 12.83V15H4.92c-1.2 0-2.166-1.108-2.166-2.473V4.286c-1.031 0-1.875-.959-1.875-2.143C.879.96 1.723 0 2.754 0h7.21c1.2 0 2.166 1.108 2.166 2.473v8.241h2.953c.488.438.797 1.111.797 1.875 0 1.239-.825 2.249-1.875 2.384z" fill="#000" fill-rule="nonzero"/></svg>
+
+          <b>Start a new quick List</b>
+        </button>
+      </li>
+      <li class="deck-tray-option">
+        <a href="#" v-bind:href="decksURI()" class="button-n align-left">
+          <svg focusable="false"  aria-hidden="true"  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M320 64h-16V48c0-26.47-21.53-48-48-48h-64c-26.47 0-48 21.53-48 48v16h-16C57.31 64 0 121.31 0 192v256c0 35.35 28.65 64 64 64h320c35.35 0 64-28.65 64-64V192c0-70.69-57.31-128-128-128zM176 48c0-8.83 7.19-16 16-16h64c8.81 0 16 7.17 16 16v16h-96V48zm160 432H112v-96h224v96zm0-128H112v-32c0-17.67 14.33-32 32-32h160c17.67 0 32 14.33 32 32v32zm80 96c0 17.64-14.36 32-32 32h-16V320c0-35.29-28.71-64-64-64H144c-35.29 0-64 28.71-64 64v160H64c-17.64 0-32-14.36-32-32V192c0-52.94 43.06-96 96-96h192c52.94 0 96 43.06 96 96v256zM312 160H136c-4.42 0-8 3.58-8 8v16c0 4.42 3.58 8 8 8h176c4.42 0 8-3.58 8-8v-16c0-4.42-3.58-8-8-8z"/></svg>
+
+          <b>View your decks</b>
+        </a>
+      </li>
+      <li class="deck-tray-option">
+        <button v-on:click="clearActiveDeck()" type="button" class="button-n danger align-left">
+          <svg focusable="false"  aria-hidden="true"  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M217.5 256l137.2-137.2c4.7-4.7 4.7-12.3 0-17l-8.5-8.5c-4.7-4.7-12.3-4.7-17 0L192 230.5 54.8 93.4c-4.7-4.7-12.3-4.7-17 0l-8.5 8.5c-4.7 4.7-4.7 12.3 0 17L166.5 256 29.4 393.2c-4.7 4.7-4.7 12.3 0 17l8.5 8.5c4.7 4.7 12.3 4.7 17 0L192 281.5l137.2 137.2c4.7 4.7 12.3 4.7 17 0l8.5-8.5c4.7-4.7 4.7-12.3 0-17L217.5 256z" fill="#FFF" /></svg>
+
+          <b>Dismiss this tray</b>
+        </button>
+      </li>
+    </ol>
+    <div v-if="activeDeck" class="deck-tray-buttons">
+      <button v-on:click="toggleExpansion()" type="button" title="Show deckbuilder tools" class="button-n primary icon-only subdued">
+        <svg focusable="false"  aria-hidden="true"  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M320 64h-16V48c0-26.47-21.53-48-48-48h-64c-26.47 0-48 21.53-48 48v16h-16C57.31 64 0 121.31 0 192v256c0 35.35 28.65 64 64 64h320c35.35 0 64-28.65 64-64V192c0-70.69-57.31-128-128-128zM176 48c0-8.83 7.19-16 16-16h64c8.81 0 16 7.17 16 16v16h-96V48zm160 432H112v-96h224v96zm0-128H112v-32c0-17.67 14.33-32 32-32h160c17.67 0 32 14.33 32 32v32zm80 96c0 17.64-14.36 32-32 32h-16V320c0-35.29-28.71-64-64-64H144c-35.29 0-64 28.71-64 64v160H64c-17.64 0-32-14.36-32-32V192c0-52.94 43.06-96 96-96h192c52.94 0 96 43.06 96 96v256zM312 160H136c-4.42 0-8 3.58-8 8v16c0 4.42 3.58 8 8 8h176c4.42 0 8-3.58 8-8v-16c0-4.42-3.58-8-8-8z"/></svg>
+
+        <span class="vh">Open your active deck</span>
+      </button>
+    </div>
+  </div>
+</script>
+
+    <div id="x-mount-admin-tray"></div>
+<script type="template" id="x-template-admin-tray" aria-hidden="true">
+  <div id="admin-tray" class="admin-tray">
+
+    <template v-if="cardOperationsShown()">
+
+      <a title="Edit Card" class="button-n primary icon-only subdued" rel="nofollow" v-bind:href="uris.cardEditURI">
+        <svg focusable="false"  aria-hidden="true"  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="#676671" d="M491.609 73.625l-53.861-53.839c-26.378-26.379-69.076-26.383-95.46-.001L24.91 335.089.329 484.085c-2.675 16.215 11.368 30.261 27.587 27.587l148.995-24.582 315.326-317.378c26.33-26.331 26.581-68.879-.628-96.087zM120.644 302l170.259-169.155 88.251 88.251L210 391.355V350h-48v-48h-41.356zM82.132 458.132l-28.263-28.263 12.14-73.587L84.409 338H126v48h48v41.59l-18.282 18.401-73.586 12.141zm378.985-319.533l-.051.051-.051.051-48.03 48.344-88.03-88.03 48.344-48.03.05-.05.05-.05c9.147-9.146 23.978-9.259 33.236-.001l53.854 53.854c9.878 9.877 9.939 24.549.628 33.861z"/></svg>
+
+      </a>
+
+      <a title="New Reprint" class="button-n primary icon-only subdued" rel="nofollow" v-bind:href="uris.cardReprintURI" v-show="!optionKeyIsDown">
+        <svg focusable="false"  aria-hidden="true"  viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><path d="M433.941 65.941l-51.882-51.882A48 48 0 0 0 348.118 0H176c-26.51 0-48 21.49-48 48v48H48c-26.51 0-48 21.49-48 48v320c0 26.51 21.49 48 48 48h224c26.51 0 48-21.49 48-48v-48h80c26.51 0 48-21.49 48-48V99.882a48 48 0 0 0-14.059-33.94v-.001zM288 464c0 8.822-7.178 16-16 16H48c-8.822 0-16-7.178-16-16V144c0-8.822 7.178-16 16-16h80v240c0 26.51 21.49 48 48 48h112v48zm128-96c0 8.822-7.178 16-16 16H176c-8.822 0-16-7.178-16-16V48c0-8.822 7.178-16 16-16h144l96 96v240z" fill="#000" fill-rule="nonzero"/></svg>
+
+      </a>
+
+      <a title="New Reprint With Similar Data" class="button-n primary icon-only subdued" rel="nofollow" v-bind:href="uris.cardCloneURI" v-show="optionKeyIsDown" v-on:click="openIgnoringOptionKey">
+        <svg focusable="false"  aria-hidden="true"  viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><g fill="#000" fill-rule="nonzero"><path d="M433.941 65.941l-51.882-51.882A48 48 0 0 0 348.118 0H176c-26.51 0-48 21.49-48 48v48H48c-26.51 0-48 21.49-48 48v320c0 26.51 21.49 48 48 48h224c26.51 0 48-21.49 48-48v-48h80c26.51 0 48-21.49 48-48V99.882a48 48 0 0 0-14.059-33.94v-.001zM288 464c0 8.822-7.178 16-16 16H48c-8.822 0-16-7.178-16-16V144c0-8.822 7.178-16 16-16h80v240c0 26.51 21.49 48 48 48h112v48zm128-96c0 8.822-7.178 16-16 16H176c-8.822 0-16-7.178-16-16V48c0-8.822 7.178-16 16-16h144l96 96v240z"/><path d="M265.613 113.843c2.834 22.841 8.703 45.334 18.639 66.64 3.81 8.173 8.07 15.782 13.184 23.702l-2.238 2.82c-32.684-6.08-64.632-2.198-95.55 6.178l-2.079-8.269a203.538 203.538 0 0 1 39.07-11.467c2.18-.661 3.776-1.05 4.943-1.594 3.21-1.497 3.27-3.657 1.636-7.16-4.49-9.631-25.249-14.52-34.704-16.508-19.337-4.13-45.273 1.212-64.245 10.059-38.82 18.102-66.889 64.593-60.655 105.393l-21.09 2.017c-6.854-49.75 26.646-105.17 73.346-126.946 34.733-16.196 81.446-17.37 117.88 4.373 2.412 1.363 4.28 1.558 5.74.878 2.335-1.09 3.289-4.377 2.531-8.288-2.68-12.608-5.011-27.512-4.95-40.333l8.542-1.495zM279.613 224.843c2.834 22.841 8.703 45.334 18.639 66.64 3.81 8.173 8.07 15.782 13.184 23.702l-2.238 2.82c-32.684-6.08-64.632-2.198-95.55 6.178l-2.079-8.269a203.538 203.538 0 0 1 39.07-11.467c2.18-.661 3.776-1.05 4.943-1.594 3.21-1.497 3.27-3.657 1.636-7.16-4.49-9.631-25.249-14.52-34.704-16.508-19.337-4.13-45.273 1.212-64.245 10.059-38.82 18.102-66.889 64.593-60.655 105.393l-21.09 2.017c-6.854-49.75 26.646-105.17 73.346-126.946 34.733-16.196 81.446-17.37 117.88 4.373 2.412 1.363 4.28 1.558 5.74.878 2.335-1.09 3.289-4.377 2.531-8.288-2.68-12.608-5.011-27.512-4.95-40.333l8.542-1.495z"/></g></svg>
+
+      </a>
+
+      <a title="Inspect Card" class="button-n primary icon-only subdued" rel="nofollow" v-bind:href="uris.cardInspectURI">
+        <svg focusable="false"  aria-hidden="true"  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="#FFF" d="M508.5 468.9L387.1 347.5c-2.3-2.3-5.3-3.5-8.5-3.5h-13.2c31.5-36.5 50.6-84 50.6-136C416 93.1 322.9 0 208 0S0 93.1 0 208s93.1 208 208 208c52 0 99.5-19.1 136-50.6v13.2c0 3.2 1.3 6.2 3.5 8.5l121.4 121.4c4.7 4.7 12.3 4.7 17 0l22.6-22.6c4.7-4.7 4.7-12.3 0-17zM208 368c-88.4 0-160-71.6-160-160S119.6 48 208 48s160 71.6 160 160-71.6 160-160 160z"/></svg>
+
+      </a>
+
+    </template>
+
+    <a title="New Card…" class="button-n primary icon-only subdued" rel="nofollow" href="/admin/cards/new">
+      <svg focusable="false"  aria-hidden="true"  xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30"><path fill="#5822AC" d="M15 0c-8.284 0-15 6.716-15 15s6.716 15 15 15 15-6.716 15-15-6.716-15-15-15zm0 28c-7.18 0-13-5.82-13-13s5.82-13 13-13 13 5.82 13 13-5.82 13-13 13zm1-22h-2v8h-8v2h8v8h2v-8h8v-2h-8v-8z"/></svg>
+
+</a>
+
+
+    <button name="button" type="button" v-bind:title="cacheButtonLabel()" class="button-n primary icon-only subdued" rel="nofollow" v-on:click="clearCaches" v-bind:class="{pop:cacheClearing}">
+      <svg focusable="false"  aria-hidden="true"  viewBox="0 0 91 91" xmlns="http://www.w3.org/2000/svg"><g fill="#000" fill-rule="nonzero"><path d="M84.398 40.398H67.5A5.591 5.591 0 0 0 61.898 46c0 3.101 2.5 5.601 5.602 5.601h16.898C87.5 51.601 90 49.101 90 46c0-3.102-2.5-5.602-5.602-5.602zM28.102 46c0-3.102-2.5-5.602-5.602-5.602H5.602A5.591 5.591 0 0 0 .001 46c0 3.102 2.5 5.602 5.601 5.602H22.5c3.102 0 5.602-2.5 5.602-5.602zM53.398 31.398c2.7 1.602 6.102.602 7.7-2.102l8.398-14.602c1.601-2.699.601-6.101-2.102-7.699-2.7-1.601-6.102-.601-7.7 2.102l-8.398 14.602a5.708 5.708 0 0 0 2.102 7.699zM36.602 60.602c-2.7-1.602-6.102-.602-7.7 2.102l-8.398 14.602c-1.601 2.699-.601 6.101 2.102 7.699 2.7 1.601 6.102.601 7.7-2.102l8.398-14.602a5.708 5.708 0 0 0-2.102-7.699zM30.199 9.102A5.706 5.706 0 0 0 22.499 7c-2.698 1.5-3.6 5-2.1 7.7l8.398 14.602c1.601 2.699 5 3.601 7.699 2.101 2.699-1.601 3.601-5 2.101-7.699L30.2 9.102zM61.102 62.699a5.706 5.706 0 0 0-7.7-2.102 5.706 5.706 0 0 0-2.1 7.7L59.7 82.899c1.601 2.699 5 3.601 7.699 2.101C70.098 83.4 71 80 69.5 77.301l-8.398-14.602zM13.102 30.898l7.3 4.2c1.302.8 3.102.3 3.802-1 .8-1.302.3-3.102-1-3.802L16 26c-1.3-.801-3.101-.301-3.8 1-.899 1.398-.399 3.101.902 3.898zM76.898 61.102l-7.3-4.2c-1.302-.8-3.102-.3-3.802 1-.8 1.302-.3 3.102 1 3.802L74 66c1.301.8 3.102.3 3.801-1 .899-1.399.399-3.102-.902-3.899zM24.301 58c-.8-1.3-2.5-1.8-3.8-1l-7.302 4.2c-1.3.8-1.8 2.5-1 3.8.801 1.3 2.5 1.8 3.801 1l7.301-4.2c1.3-.8 1.8-2.5 1-3.8zM65.699 34c.8 1.3 2.5 1.8 3.8 1l7.302-4.2c1.3-.8 1.8-2.5 1-3.8C77 25.7 75.3 25.2 74 26l-7.301 4.2c-1.3.8-1.8 2.5-1 3.8zM45 69.898c-1.602 0-2.8 1.3-2.8 2.8v8.4c0 1.6 1.3 2.8 2.8 2.8 1.5 0 2.8-1.3 2.8-2.8v-8.4c0-1.5-1.198-2.8-2.8-2.8zM45 8c-1.602 0-2.8 1.3-2.8 2.8v8.4c0 1.6 1.3 2.8 2.8 2.8 1.5 0 2.8-1.3 2.8-2.8v-8.4C47.8 9.3 46.603 8 45 8z"/></g></svg>
+
+</button>
+    <a title="Open Admin" class="button-n primary icon-only subdued" rel="nofollow" href="/admin">
+      <svg focusable="false"  aria-hidden="true"  xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30"><path d="M14 30h2v-2.051c1.642-.125 3.193-.557 4.608-1.234l1.025 1.775 1.731-1-1.021-1.768c1.323-.908 2.47-2.055 3.378-3.377l1.768 1.02.999-1.731-1.775-1.024c.679-1.415 1.11-2.968 1.235-4.609h2.052v-2h-2.051c-.125-1.642-.557-3.193-1.235-4.608l1.776-1.025-1-1.732-1.768 1.021c-.908-1.322-2.055-2.469-3.377-3.377l1.021-1.768-1.732-1-1.025 1.775c-1.416-.68-2.967-1.111-4.609-1.236v-2.051h-2v2.051c-1.642.125-3.193.557-4.608 1.234l-1.026-1.775-1.732 1 1.021 1.768c-1.323.908-2.469 2.054-3.378 3.376l-1.767-1.02-1.001 1.731 1.777 1.026c-.679 1.416-1.11 2.967-1.235 4.609h-2.051v2h2.051c.125 1.642.557 3.193 1.235 4.608l-1.776 1.026 1 1.732 1.768-1.021c.908 1.322 2.055 2.469 3.377 3.377l-1.021 1.768 1.732 1 1.025-1.775c1.415.678 2.967 1.109 4.608 1.234v2.051zm1-4c-1.647 0-3.204-.372-4.606-1.021l3.544-6.139c.34.094.692.16 1.062.16 1.861 0 3.412-1.277 3.858-3h7.091c-.506 5.605-5.212 10-10.949 10zm0-13c1.104 0 2 .896 2 2s-.896 2-2 2-2-.896-2-2 .896-2 2-2zm10.949 1h-7.091c-.446-1.723-1.997-3-3.858-3-.37 0-.722.066-1.063.16l-3.544-6.139c1.403-.649 2.96-1.021 4.607-1.021 5.737 0 10.443 4.395 10.949 10zm-21.949 1c0-3.712 1.844-6.988 4.66-8.98l3.539 6.129c-.739.726-1.199 1.734-1.199 2.851s.46 2.125 1.199 2.852l-3.539 6.128c-2.816-1.992-4.66-5.268-4.66-8.98z"/></svg>
+</a>
+  </div>
+</script>
+
+    <div id="x-mount-caster-tray"></div>
+<script type="template" id="x-template-caster-tray">
+  <div id="caster-tray" class="caster-tray">
+    <a class="button-n primary-n" href="/settings/preferences">
+      Caster Mode is ON
+</a>  </div>
+</script>
+
+    <div id="card-tooltip" aria-hidden="true"></div>
+    <script src="https://scryfall.com/assets/scryfall-164eea3511908a0f71453c1eb10a22e25c2c933b244519e248336241b97c5aee.js"></script>
+    <script src="https://www.googletagmanager.com/gtag/js?id=G-3P82LCZY01" async="async"></script>
+    <script src="https://static.cloudflareinsights.com/beacon.min.js?token=5d64c17775954f64a21257761c8197d9" defer="defer"></script>
+    
+  </body>
+</html>
