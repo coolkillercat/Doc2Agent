@@ -7,6 +7,10 @@ from os import path
 
 import requests
 
+# Global storage for truncated responses
+_response_storage = {}
+_response_counter = 0
+
 
 def replace_substrings(match):
     return '1234567'
@@ -110,22 +114,21 @@ def get_shopping_html_api_doc(html_page):
     return shopping_html_api_doc
 
 
-def list_tools(site='shopping'):
+def list_tools(site='shopping', subdirectory=None):
     """
     Lists available tools for a specific site by reading the tool_descriptions.json file.
+    For GitLab, can optionally list tools from a specific subdirectory.
 
     Args:
         site (str): The site to list tools for (default: 'shopping')
+        subdirectory (str, optional): For GitLab, the specific subdirectory to list tools from (e.g., 'commits', 'groups')
 
     Returns:
         str: A formatted string listing all available tools and their descriptions
 
     Example:
-        >>> list_tools()
-        Available tools:
-        - search_customers_GET: Searches for customers based on criteria
-        - create_customer_POST: Creates a new customer
-        ...
+        >>> list_tools()  # List all shopping tools
+        >>> list_tools('gitlab', 'commits')  # List GitLab commit tools
     """
     import json
     import os
@@ -134,6 +137,103 @@ def list_tools(site='shopping'):
     print(f"DEBUG: Starting list_tools for site '{site}'", file=sys.stderr)
 
     try:
+        # Special handling for GitLab with subdirectory
+        if site == 'gitlab' and subdirectory:
+            # Look for the tool_description.json file in the specified subdirectory
+            descriptions_paths = [
+                path.join(path.dirname(path.abspath(__file__)), 'api', site, 'tools', subdirectory, 'tool_description.json'),
+                path.join(path.dirname(path.abspath(__file__)), 'workspace', 'api', site, 'tools', subdirectory, 'tool_description.json')
+            ]
+            
+            for descriptions_path in descriptions_paths:
+                print(
+                    f'DEBUG: Looking for GitLab subdirectory tool descriptions at: {descriptions_path}',
+                    file=sys.stderr,
+                )
+                print(f'DEBUG: File exists: {path.exists(descriptions_path)}', file=sys.stderr)
+
+                if path.exists(descriptions_path):
+                    # Read and parse the JSON file
+                    with open(descriptions_path, 'r') as f:
+                        tools = json.load(f)
+                        print(
+                            f'DEBUG: Successfully read tool_description.json for {subdirectory}', 
+                            file=sys.stderr
+                        )
+
+                        # Format the tools into a readable string
+                        result = f'Available tools in GitLab {subdirectory}:\n'
+                        for tool_name, description in tools.items():
+                            result += f'- {tool_name}: {description}\n'
+                        return result.strip()
+            
+            # If no tool_description.json found, list Python files in the subdirectory
+            tools_dirs = [
+                path.join(path.dirname(path.abspath(__file__)), 'api', site, 'tools', subdirectory),
+                path.join(path.dirname(path.abspath(__file__)), 'workspace', 'api', site, 'tools', subdirectory)
+            ]
+            
+            for tools_dir in tools_dirs:
+                print(
+                    f'DEBUG: Checking GitLab subdirectory: {tools_dir}',
+                    file=sys.stderr,
+                )
+
+                if path.exists(tools_dir):
+                    try:
+                        tool_files = [
+                            f
+                            for f in os.listdir(tools_dir)
+                            if f.endswith('.py') and not f.startswith('__')
+                        ]
+                        print(
+                            f'DEBUG: Found {len(tool_files)} tool files in {subdirectory}: {tool_files}',
+                            file=sys.stderr,
+                        )
+                        tool_names = [f[:-3] for f in tool_files]  # Remove .py extension
+                        return f'Available tools in GitLab {subdirectory}:\n' + '\n'.join(
+                            f'- {name}' for name in tool_names
+                        )
+                    except Exception as e:
+                        print(f'ERROR scanning GitLab subdirectory: {str(e)}', file=sys.stderr)
+                        continue
+            
+            return f"No tools found in GitLab subdirectory '{subdirectory}'"
+        
+        # If GitLab but no subdirectory specified, list available subdirectories
+        elif site == 'gitlab' and not subdirectory:
+            tools_dirs = [
+                path.join(path.dirname(path.abspath(__file__)), 'api', site, 'tools'),
+                path.join(path.dirname(path.abspath(__file__)), 'workspace', 'api', site, 'tools')
+            ]
+            
+            for tools_dir in tools_dirs:
+                print(
+                    f'DEBUG: Checking GitLab tools directory: {tools_dir}',
+                    file=sys.stderr,
+                )
+
+                if path.exists(tools_dir):
+                    try:
+                        subdirs = [
+                            d
+                            for d in os.listdir(tools_dir)
+                            if path.isdir(path.join(tools_dir, d)) and not d.startswith('__')
+                        ]
+                        print(
+                            f'DEBUG: Found {len(subdirs)} GitLab tool subdirectories: {subdirs}',
+                            file=sys.stderr,
+                        )
+                        return 'Available GitLab tool categories:\n' + '\n'.join(
+                            f'- {subdir}' for subdir in sorted(subdirs)
+                        )
+                    except Exception as e:
+                        print(f'ERROR scanning GitLab tools directory: {str(e)}', file=sys.stderr)
+                        continue
+            
+            return "No GitLab tool categories found"
+        
+        # Standard handling for other sites
         # Look for the tool_descriptions.json file in both potential locations
         descriptions_paths = [
             path.join(path.dirname(path.abspath(__file__)), 'api', site, 'tool_descriptions.json'),
@@ -198,7 +298,7 @@ def list_tools(site='shopping'):
         return f'Critical error in list_tools: {str(e)}'
 
 
-def get_documentation(tool_name, site='shopping'):
+def get_documentation(tool_name, site='shopping', category=None):
     """
     Returns documentation for a specific tool.
     First tries to retrieve the docstring from the function directly.
@@ -208,6 +308,7 @@ def get_documentation(tool_name, site='shopping'):
     Args:
         tool_name (str): The name of the tool (e.g., 'search_customers_GET')
         site (str): The site to get documentation for (default: 'shopping')
+        category (str, optional): For GitLab, the category/subdirectory the tool belongs to (e.g., 'commits', 'groups')
 
     Returns:
         str: Documentation for the tool including description, parameters, and example
@@ -216,11 +317,18 @@ def get_documentation(tool_name, site='shopping'):
     import re
     import sys
 
-    # Try both potential module paths
-    module_paths = [
-        path.join(path.dirname(path.abspath(__file__)), 'api', site, 'tools', f'{tool_name}.py'),
-        path.join(path.dirname(path.abspath(__file__)), 'workspace', 'api', site, 'tools', f'{tool_name}.py')
-    ]
+    # For GitLab tools, include the category in the path
+    if site == 'gitlab' and category:
+        module_paths = [
+            path.join(path.dirname(path.abspath(__file__)), 'api', site, 'tools', category, f'{tool_name}.py'),
+            path.join(path.dirname(path.abspath(__file__)), 'workspace', 'api', site, 'tools', category, f'{tool_name}.py')
+        ]
+    else:
+        # Try both potential module paths for non-GitLab or GitLab without category
+        module_paths = [
+            path.join(path.dirname(path.abspath(__file__)), 'api', site, 'tools', f'{tool_name}.py'),
+            path.join(path.dirname(path.abspath(__file__)), 'workspace', 'api', site, 'tools', f'{tool_name}.py')
+        ]
     
     module_path = None
     for potential_path in module_paths:
@@ -230,7 +338,7 @@ def get_documentation(tool_name, site='shopping'):
             break
     
     if not module_path:
-        return f"No module found for tool '{tool_name}' in site '{site}'"
+        return f"No module found for tool '{tool_name}'" + (f" in category '{category}'" if category else "") + f" for site '{site}'"
 
     # Extract example from the file if it exists
     example_usage = None
@@ -247,15 +355,51 @@ def get_documentation(tool_name, site='shopping'):
             after_main = file_content[main_match.end() :]
             lines = after_main.split('\n')
 
-            for line in lines:
+            for i, line in enumerate(lines):
                 line = line.strip()
                 if line and not line.startswith('#'):
                     # This is likely a function call - extract it
-                    if '=' in line:
-                        example_usage = line.split('=', 1)[1].strip()
-                    else:
-                        example_usage = line.strip()
-                    break
+                    if '=' in line and '(' in line:
+                        # Start extracting from this line
+                        function_call_lines = [line]
+                        
+                        # Count parentheses to find the complete function call
+                        open_parens = line.count('(') - line.count(')')
+                        j = i + 1
+                        
+                        # Continue collecting lines until parentheses are balanced
+                        while open_parens > 0 and j < len(lines):
+                            next_line = lines[j].strip()
+                            if next_line:  # Skip empty lines
+                                function_call_lines.append(next_line)
+                                open_parens += next_line.count('(') - next_line.count(')')
+                            j += 1
+                        
+                        # Join all lines and extract the function call part
+                        full_call = '\n'.join(function_call_lines)
+                        if '=' in full_call:
+                            example_usage = full_call.split('=', 1)[1].strip()
+                        else:
+                            example_usage = full_call.strip()
+                        break
+                    elif '(' in line:
+                        # Direct function call without assignment
+                        function_call_lines = [line]
+                        
+                        # Count parentheses to find the complete function call
+                        open_parens = line.count('(') - line.count(')')
+                        j = i + 1
+                        
+                        # Continue collecting lines until parentheses are balanced
+                        while open_parens > 0 and j < len(lines):
+                            next_line = lines[j].strip()
+                            if next_line:  # Skip empty lines
+                                function_call_lines.append(next_line)
+                                open_parens += next_line.count('(') - next_line.count(')')
+                            j += 1
+                        
+                        example_usage = '\n'.join(function_call_lines).strip()
+                        break
     except Exception as e:
         print(f'Error extracting example: {str(e)}', file=sys.stderr)
 
@@ -278,14 +422,45 @@ def get_documentation(tool_name, site='shopping'):
         # First try to find a function with the same name as the file (without _GET/_POST suffix)
         target_function = getattr(module, base_name, None)
 
-        # If not found, get the first function defined in the module that's not a built-in
+        # If not found, get the main function defined in the module that's not a helper
         if target_function is None:
+            # Get all callable functions that don't start with underscore
             functions = [
                 f
                 for f in dir(module)
                 if callable(getattr(module, f)) and not f.startswith('_')
             ]
-            if functions:
+            
+            # Filter out auth token functions and imported functions
+            module_functions = []
+            for func_name in functions:
+                func_obj = getattr(module, func_name)
+                # Skip auth token functions
+                if 'auth_token' in func_name.lower():
+                    continue
+                # Skip functions that are clearly imported (like 'quote', 'json', etc.)
+                if func_name in ['quote', 'json', 'requests', 'dumps', 'loads']:
+                    continue
+                # Check if the function is defined in this module (not imported)
+                if hasattr(func_obj, '__module__'):
+                    if func_obj.__module__ == module.__name__ or func_obj.__module__ is None:
+                        module_functions.append(func_name)
+                else:
+                    # If no __module__ attribute, assume it's defined here
+                    module_functions.append(func_name)
+            
+            if module_functions:
+                # Prefer functions that match the base name pattern
+                for func_name in module_functions:
+                    if base_name.lower() in func_name.lower():
+                        target_function = getattr(module, func_name)
+                        break
+                
+                # If no pattern match, take the first module-defined function
+                if target_function is None:
+                    target_function = getattr(module, module_functions[0])
+            elif functions:
+                # Fallback to first function if only imported/auth functions exist
                 target_function = getattr(module, functions[0])
 
         # If we have the function and its docstring
@@ -336,7 +511,7 @@ def get_documentation(tool_name, site='shopping'):
             break
             
     if not doc_path:
-        return f"No documentation found for tool '{tool_name}' in site '{site}'"
+        return f"No documentation found for tool '{tool_name}'" + (f" in category '{category}'" if category else "") + f" in site '{site}'"
 
     try:
         with open(doc_path, 'r') as f:
@@ -378,7 +553,7 @@ def get_documentation(tool_name, site='shopping'):
                         return result
 
             # If we failed to find a match with any approach
-            result = f"No documentation found for tool '{tool_name}' in site '{site}'"
+            result = f"No documentation found for tool '{tool_name}'" + (f" in category '{category}'" if category else "") + f" in site '{site}'"
             if example_usage:
                 result = f'{result} example: {example_usage}'
             return result
@@ -390,13 +565,134 @@ def get_documentation(tool_name, site='shopping'):
         return result
 
 
-def call_function(tool_name, site='shopping', **kwargs):
+def truncate_response(response_data, max_length=500):
+    """
+    Stores all responses and optionally truncates long ones for display.
+    Every response gets an ID regardless of length for consistent agent interaction.
+    
+    Args:
+        response_data: The response data to potentially truncate
+        max_length (int): Maximum length before truncation (default: 500)
+    
+    Returns:
+        tuple: (display_text, response_id) where response_id is always provided
+    """
+    global _response_storage, _response_counter
+    
+    # Convert response to string for length checking
+    if isinstance(response_data, dict):
+        response_str = json.dumps(response_data, indent=2)
+    elif isinstance(response_data, str):
+        response_str = response_data
+    else:
+        response_str = str(response_data)
+    
+    # Always store the response and assign an ID
+    _response_counter += 1
+    response_id = f"response_{_response_counter}"
+    _response_storage[response_id] = {
+        'full_data': response_data,
+        'full_text': response_str,
+        'timestamp': __import__('time').time()
+    }
+    
+    # If response is short enough, return as-is but still with ID
+    if len(response_str) <= max_length:
+        display_text = f"{response_str}\n\n[Response stored as '{response_id}' - use get_response('{response_id}', 'search_term') to search within it]"
+        return display_text, response_id
+    
+    # For long responses, create a truncated version
+    truncated = response_str[:max_length]
+    display_text = f"{truncated}\n\n... [Response truncated - showing first {max_length} of {len(response_str)} total characters]\n[Use get_response('{response_id}') to view the full response or get_response('{response_id}', 'search_term') to search within it]"
+    
+    return display_text, response_id
+
+
+def get_response(response_id, search_term=None, max_results=10):
+    """
+    Retrieves a stored response by ID, optionally searching within it.
+    
+    Args:
+        response_id (str): The ID of the stored response (e.g., 'response_1')
+        search_term (str, optional): Term to search for within the response
+        max_results (int): Maximum number of search results to return (default: 10)
+    
+    Returns:
+        str: The full response or search results
+    
+    Examples:
+        >>> get_response('response_1')  # Get full response
+        >>> get_response('response_1', 'error')  # Search for 'error' in response
+        >>> get_response('response_1', 'product', 5)  # Find first 5 'product' matches
+    """
+    global _response_storage
+    
+    if response_id not in _response_storage:
+        return f"Error: Response ID '{response_id}' not found. Available IDs: {list(_response_storage.keys())}"
+    
+    stored = _response_storage[response_id]
+    full_text = stored['full_text']
+    
+    if search_term is None:
+        # Return full response
+        return f"Full response for {response_id}:\n{full_text}"
+    
+    # Search within the response
+    search_term_lower = search_term.lower()
+    lines = full_text.split('\n')
+    matches = []
+    
+    for i, line in enumerate(lines):
+        if search_term_lower in line.lower():
+            # Include some context around the match
+            start_line = max(0, i - 1)
+            end_line = min(len(lines), i + 2)
+            context = '\n'.join(lines[start_line:end_line])
+            matches.append(f"Line {i+1}: {context}")
+            
+            if len(matches) >= max_results:
+                break
+    
+    if not matches:
+        return f"No matches found for '{search_term}' in {response_id}"
+    
+    result = f"Search results for '{search_term}' in {response_id} ({len(matches)} matches):\n\n"
+    result += '\n\n---\n\n'.join(matches)
+    
+    if len(matches) >= max_results:
+        result += f"\n\n... [Showing first {max_results} matches. Use get_response('{response_id}') for full response]"
+    
+    return result
+
+
+def list_stored_responses():
+    """
+    Lists all currently stored responses.
+    
+    Returns:
+        str: List of stored response IDs with basic info
+    """
+    global _response_storage
+    
+    if not _response_storage:
+        return "No stored responses available."
+    
+    result = "Stored responses:\n"
+    for response_id, data in _response_storage.items():
+        text_preview = data['full_text'][:100].replace('\n', ' ')
+        result += f"- {response_id}: {len(data['full_text'])} chars - {text_preview}...\n"
+    
+    return result
+
+
+def call_function(tool_name, site='shopping', category=None, **kwargs):
     """
     Dynamically imports and calls a tool function.
 
     Args:
         tool_name (str): The name of the tool function to call (e.g., 'search_customers_GET')
         site (str): The site to call the tool for (default: 'shopping')
+        category (str, optional): For GitLab, the category/subdirectory the tool belongs to (e.g., 'commits', 'groups')
         **kwargs: Keyword arguments to pass to the function, matching the parameters from documentation
 
     Returns:
@@ -414,16 +710,31 @@ def call_function(tool_name, site='shopping', **kwargs):
                 'total_count': 1
             }
         }
+        
+        >>> call_function('get_commit', 'gitlab', 'commits',
+                project_id='183',
+                commit_sha='main')
+        {
+            'status_code': 200,
+            'content': {...}
+        }
     """
     import json
     import re
     import sys
 
-    # Try both potential module paths
-    module_paths = [
-        path.join(path.dirname(path.abspath(__file__)), 'api', site, 'tools', f'{tool_name}.py'),
-        path.join(path.dirname(path.abspath(__file__)), 'workspace', 'api', site, 'tools', f'{tool_name}.py')
-    ]
+    # For GitLab tools, include the category in the path
+    if site == 'gitlab' and category:
+        module_paths = [
+            path.join(path.dirname(path.abspath(__file__)), 'api', site, 'tools', category, f'{tool_name}.py'),
+            path.join(path.dirname(path.abspath(__file__)), 'workspace', 'api', site, 'tools', category, f'{tool_name}.py')
+        ]
+    else:
+        # Try both potential module paths for non-GitLab or GitLab without category
+        module_paths = [
+            path.join(path.dirname(path.abspath(__file__)), 'api', site, 'tools', f'{tool_name}.py'),
+            path.join(path.dirname(path.abspath(__file__)), 'workspace', 'api', site, 'tools', f'{tool_name}.py')
+        ]
     
     module_path = None
     for potential_path in module_paths:
@@ -432,7 +743,7 @@ def call_function(tool_name, site='shopping', **kwargs):
             break
             
     if not module_path:
-        return f"Error: Module not found for tool '{tool_name}' in site '{site}'"
+        return f"Error: Module not found for tool '{tool_name}'" + (f" in category '{category}'" if category else "") + f" in site '{site}'"
         
     api_url_value = None
 
@@ -451,12 +762,43 @@ def call_function(tool_name, site='shopping', **kwargs):
 
         target_function = getattr(module, base_name, None)
         if target_function is None:
+            # Get all callable functions that don't start with underscore
             functions = [
                 f
                 for f in dir(module)
                 if callable(getattr(module, f)) and not f.startswith('_')
             ]
-            if functions:
+            
+            # Filter out auth token functions and imported functions
+            module_functions = []
+            for func_name in functions:
+                func_obj = getattr(module, func_name)
+                # Skip auth token functions
+                if 'auth_token' in func_name.lower():
+                    continue
+                # Skip functions that are clearly imported (like 'quote', 'json', etc.)
+                if func_name in ['quote', 'json', 'requests', 'dumps', 'loads']:
+                    continue
+                # Check if the function is defined in this module (not imported)
+                if hasattr(func_obj, '__module__'):
+                    if func_obj.__module__ == module.__name__ or func_obj.__module__ is None:
+                        module_functions.append(func_name)
+                else:
+                    # If no __module__ attribute, assume it's defined here
+                    module_functions.append(func_name)
+            
+            if module_functions:
+                # Prefer functions that match the base name pattern
+                for func_name in module_functions:
+                    if base_name.lower() in func_name.lower():
+                        target_function = getattr(module, func_name)
+                        break
+                
+                # If no pattern match, take the first module-defined function
+                if target_function is None:
+                    target_function = getattr(module, module_functions[0])
+            elif functions:
+                # Fallback to first function if only imported/auth functions exist
                 target_function = getattr(module, functions[0])
 
         # Extract the api_url for logging (not token URLs)
@@ -476,6 +818,8 @@ def call_function(tool_name, site='shopping', **kwargs):
         # Print the tool name, site, and parameters before the call
         print(f'tool: {tool_name}')
         print(f'site: {site}')
+        if category:
+            print(f'category: {category}')
         print(f"parameter: {', '.join([f'{k}={v}' for k, v in kwargs.items()])}")
         if api_url_value:
             print(f'api_url: {api_url_value}')
@@ -486,6 +830,7 @@ def call_function(tool_name, site='shopping', **kwargs):
 
             # Always print the real API call URL after the call
             url_printed = False
+            response_already_handled = False
             try:
                 if isinstance(result, requests.Response):
                     # Only print if not a token endpoint
@@ -494,9 +839,35 @@ def call_function(tool_name, site='shopping', **kwargs):
                         url_printed = True
                         print(f'status_code: {result.status_code}')
                         try:
-                            print(f'content: {result.json()}')
+                            response_content = result.json()
                         except Exception:
-                            print(f'content: {result.text}')
+                            response_content = result.text
+                        
+                        # Use truncation system for response content
+                        display_content, response_id = truncate_response(response_content)
+                        print(f'content: {display_content}')
+                        
+                        # Mark that we've handled the response
+                        response_already_handled = True
+                        
+                        # Create truncated content for the returned dict
+                        if isinstance(response_content, dict):
+                            response_str = json.dumps(response_content, indent=2)
+                        elif isinstance(response_content, str):
+                            response_str = response_content
+                        else:
+                            response_str = str(response_content)
+                        
+                        truncated_content = response_str[:500] if len(response_str) > 500 else response_content
+                        
+                        # Always return a dict with response info and response ID
+                        return {
+                            'status_code': result.status_code,
+                            'content': truncated_content,
+                            'url': result.url,
+                            '_truncated_response_id': response_id,
+                            '_original_response': result
+                        }
                     sys.stdout.flush()
             except Exception:
                 pass
@@ -518,9 +889,12 @@ def call_function(tool_name, site='shopping', **kwargs):
                 f"parameter: {', '.join([f'{k}={v}' for k, v in kwargs.items()])}"
             )
             sys.stdout.flush()
-            # If the result is a dict, print as JSON
-            if isinstance(result, dict):
-                print(f'content: {json.dumps(result)}')
+            # If the result is a dict, print as JSON with truncation (but only if we haven't already handled a Response)
+            if isinstance(result, dict) and not response_already_handled:
+                display_result, response_id = truncate_response(result)
+                print(f'content: {display_result}')
+                # Always add response_id to result since it's always provided now
+                result['_truncated_response_id'] = response_id
             return result
         else:
             return f"Error: Could not find target function in module '{tool_name}'"

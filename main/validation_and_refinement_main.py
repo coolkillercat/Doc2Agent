@@ -6,9 +6,12 @@ import ast
 from pathlib import Path
 import re
 from markdown import markdown
+<<<<<<< HEAD
 from collections import defaultdict
 from sentence_transformers import SentenceTransformer
 import anthropic
+=======
+>>>>>>> 963c487f600a8a356913b965684eb5a41275604c
 
 from typing import List, Set, Optional
 
@@ -35,6 +38,7 @@ from utils.validation_and_refinement.fix_code import (
 from utils.validation_and_refinement.kb_searcher import search_kb
 
 
+<<<<<<< HEAD
 def load_api_config(tool_folder):
     """Load configuration from .config file in API folder
     
@@ -66,6 +70,19 @@ def setup_logging():
     return logging.getLogger(__name__)
 
 
+=======
+def setup_logging():
+    """Set up logging configuration"""
+    import logging
+    logging.basicConfig(
+        filename='validation.log',
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s'
+    )
+    return logging.getLogger(__name__)
+
+
+>>>>>>> 963c487f600a8a356913b965684eb5a41275604c
 def initialize_knowledge_bases(apidocs_dir):
     """Initialize knowledge bases and embedding models"""
     print("Building knowledge bases...")
@@ -101,6 +118,7 @@ def initialize_ai_models():
     return gpt, gpt_prompt, claude
 
 
+<<<<<<< HEAD
 def create_api_json_from_code(apidocs_dir, tool_folder, tools):
     """Create API JSON structure from Python code docstrings when JSON file is missing
     
@@ -164,11 +182,14 @@ def create_api_json_from_code(apidocs_dir, tool_folder, tools):
     }
 
 
+=======
+>>>>>>> 963c487f600a8a356913b965684eb5a41275604c
 def load_api_data(apidocs_dir, tool_folder):
     """Load API data for a specific tool folder"""
     files = os.listdir(os.path.join(apidocs_dir, tool_folder))
     tools = [x for x in files if x.endswith(".py")]
     api_txt = [x for x in files if x.endswith(".txt")]
+<<<<<<< HEAD
     
     # Handle case where API JSON file doesn't exist
     if api_txt:
@@ -193,10 +214,19 @@ def get_short_description_from_api_json(api_json, function_name):
     if not api_json or "endpoints" not in api_json:
         return ""
     
+=======
+    api_json = json.load(open(os.path.join(apidocs_dir, tool_folder, api_txt[0])))
+    return tools, api_json
+
+
+def get_api_description(api_json, function_name):
+    """Get API description for a specific function"""
+>>>>>>> 963c487f600a8a356913b965684eb5a41275604c
     for endpoint in api_json["endpoints"]:
         api_name = endpoint["name"].lower()
         api_name = re.sub(r'\W', '_', api_name)
         if function_name == api_name:
+<<<<<<< HEAD
             return endpoint.get("description", "")
     return ""
 
@@ -303,6 +333,10 @@ def get_api_description(api_json, function_name, tool_folder, code=None):
         short_description = detailed_description
     
     return short_description, detailed_description
+=======
+            return endpoint["description"]
+    return api_json
+>>>>>>> 963c487f600a8a356913b965684eb5a41275604c
 
 
 def validation(apidocs_dir="extractor/apidocs/", use_existing_metadata=True):
@@ -328,6 +362,7 @@ def validation(apidocs_dir="extractor/apidocs/", use_existing_metadata=True):
     
     need_refinement = []
     successful_tools = []
+<<<<<<< HEAD
     request_error_tools = []
     
     # Use shared metadata file with refinement
@@ -359,6 +394,30 @@ def validation(apidocs_dir="extractor/apidocs/", use_existing_metadata=True):
                     elif tool['status'] == 'hard_error':
                         tool_hard_error += 1
                         need_refinement.append(tool['path'])
+=======
+    
+    # Load existing metadata if available and requested
+    metadata_table = {'tools': []}
+    if use_existing_metadata and os.path.exists('tool_validation_metadata.json'):
+        try:
+            with open('tool_validation_metadata.json', 'r') as f:
+                metadata_table = json.load(f)
+            logger.info(f"Loaded existing metadata with {len(metadata_table['tools'])} tools")
+            print(f"Loaded existing metadata with {len(metadata_table['tools'])} tools")
+            
+            # Count existing stats
+            for tool in metadata_table['tools']:
+                if tool['status'] == 'information':
+                    tool_success += 1
+                elif tool['status'] == 'code_error':
+                    tool_code_error += 1
+                    need_refinement.append(tool['path'])
+                elif tool['status'] == 'server_error':
+                    tool_server_error += 1
+                elif tool['status'] == 'hard_error':
+                    tool_hard_error += 1
+                    need_refinement.append(tool['path'])
+>>>>>>> 963c487f600a8a356913b965684eb5a41275604c
         except Exception as e:
             logger.error(f"Error loading metadata: {str(e)}")
             print(f"Error loading metadata: {str(e)}")
@@ -367,7 +426,11 @@ def validation(apidocs_dir="extractor/apidocs/", use_existing_metadata=True):
         print("Starting fresh validation - existing metadata will be overwritten")
     
     SAVE_INTERVAL = 10
+<<<<<<< HEAD
     validated_tools = {tool['path'] for tool in metadata_table['tools'] if tool.get('phase') == 'validation'} if use_existing_metadata else set()
+=======
+    validated_tools = {tool['path'] for tool in metadata_table['tools']} if use_existing_metadata else set()
+>>>>>>> 963c487f600a8a356913b965684eb5a41275604c
     
     print("Validating tools...")
     for tool_folder in os.listdir(apidocs_dir):
@@ -385,6 +448,7 @@ def validation(apidocs_dir="extractor/apidocs/", use_existing_metadata=True):
             logger.info(f"Validating tool: {tool}")
             print(f"Validating tool: {tool}")
 
+<<<<<<< HEAD
             code = open(tool_path, "r", encoding='utf-8').read()
             function_name = extract_function_names(code)
             short_description, detailed_description = get_api_description(api_json, function_name, os.path.join(apidocs_dir, tool_folder), code)
@@ -392,10 +456,19 @@ def validation(apidocs_dir="extractor/apidocs/", use_existing_metadata=True):
             # logger.info(f"API description (detailed): {detailed_description}")
             # print(f"API description (detailed): {detailed_description}")
             # print(f"API description (short for GPT): {short_description}")
+=======
+            code = open(tool_path, "r").read()
+            function_name = extract_function_names(code)
+            api_description = get_api_description(api_json, function_name)
+            
+            logger.info(f"API description: {api_description}")
+            print(f"API description: {api_description}")
+>>>>>>> 963c487f600a8a356913b965684eb5a41275604c
 
             tool_metadata = {
                 'path': tool_path,
                 'function_name': function_name,
+<<<<<<< HEAD
                 'api_description': detailed_description,
                 'phase': 'validation',
                 'status': None,
@@ -404,6 +477,11 @@ def validation(apidocs_dir="extractor/apidocs/", use_existing_metadata=True):
                 'exception': None,
                 'gpt_evaluation': None,
                 'timestamp': None
+=======
+                'api_description': api_description,
+                'status': None,
+                'error_type': None
+>>>>>>> 963c487f600a8a356913b965684eb5a41275604c
             }
 
             try:
@@ -423,7 +501,10 @@ def validation(apidocs_dir="extractor/apidocs/", use_existing_metadata=True):
                         code=code,
                     )
                     tool_metadata['status'] = gpt_answer
+<<<<<<< HEAD
                     tool_metadata['gpt_evaluation'] = gpt_answer
+=======
+>>>>>>> 963c487f600a8a356913b965684eb5a41275604c
                     
                     if gpt_answer == "code_error":
                         tool_code_error += 1
@@ -447,6 +528,7 @@ def validation(apidocs_dir="extractor/apidocs/", use_existing_metadata=True):
                         tool_success += 1
                         output_json = json.loads(output)
                         successful_tools.append(tool_path)
+<<<<<<< HEAD
                         
                         # Extract JSON key hierarchy for documentation
                         try:
@@ -493,6 +575,11 @@ def validation(apidocs_dir="extractor/apidocs/", use_existing_metadata=True):
                         }
                         with open(tool_path[:-3] + '_response.json', "w", encoding='utf-8') as f:
                             json.dump(response_data, f)
+=======
+                        # save in file
+                        with open(tool_path[:-3] + '_response.json', "w") as f:
+                            json.dump(output_json, f)
+>>>>>>> 963c487f600a8a356913b965684eb5a41275604c
                         logger.info(f"Tool {tool_path} executed successfully.")
                         print(f"Tool {tool_path} executed successfully.")
                     else:
@@ -502,10 +589,14 @@ def validation(apidocs_dir="extractor/apidocs/", use_existing_metadata=True):
                 tool_hard_error += 1
                 need_refinement.append(tool_path)
                 tool_metadata['status'] = 'hard_error'
+<<<<<<< HEAD
                 tool_metadata['error_type'] = 'execution_error'
                 tool_metadata['exception'] = str(e)
                 tool_metadata['response'] = e.stderr if e.stderr else ""
                 tool_metadata['timestamp'] = json.dumps({"execution_time": "validation"}, default=str)
+=======
+                tool_metadata['error_type'] = str(e)
+>>>>>>> 963c487f600a8a356913b965684eb5a41275604c
                 logger.error(f"Tool {tool_path} cannot be executed. Error: {str(e)}")
                 print(f"Tool {tool_path} cannot be executed.")
             
@@ -514,13 +605,18 @@ def validation(apidocs_dir="extractor/apidocs/", use_existing_metadata=True):
             
             # Save metadata table periodically
             if len(metadata_table['tools']) % SAVE_INTERVAL == 0:
+<<<<<<< HEAD
                 with open(metadata_file, 'w', encoding='utf-8') as f:
+=======
+                with open('tool_validation_metadata.json', 'w') as f:
+>>>>>>> 963c487f600a8a356913b965684eb5a41275604c
                     json.dump(metadata_table, f, indent=2)
                 logger.info(f"Saved metadata table with {len(metadata_table['tools'])} tools")
             
             logger.info("---------------------------")
             print("---------------------------\n")
 
+<<<<<<< HEAD
     # Update validation summary in metadata
     metadata_table['validation_summary'] = {
         'tool_success': tool_success,
@@ -532,6 +628,15 @@ def validation(apidocs_dir="extractor/apidocs/", use_existing_metadata=True):
         'successful_tools': successful_tools,
         'request_error_tools': request_error_tools
     }
+=======
+    # Save final metadata table
+    with open('tool_validation_metadata.json', 'w') as f:
+        json.dump(metadata_table, f, indent=2)
+    
+    summary = f"Tool success: {tool_success}, Tool code error: {tool_code_error}, Tool server error: {tool_server_error}, Tool hard error: {tool_hard_error}"
+    logger.info(summary)
+    print(summary)
+>>>>>>> 963c487f600a8a356913b965684eb5a41275604c
 
     # Save final metadata table
     with open(metadata_file, 'w', encoding='utf-8') as f:
@@ -549,6 +654,7 @@ def validation(apidocs_dir="extractor/apidocs/", use_existing_metadata=True):
         'tool_success': tool_success,
         'tool_code_error': tool_code_error,
         'tool_server_error': tool_server_error,
+<<<<<<< HEAD
         'tool_request_error': tool_request_error,
         'tool_hard_error': tool_hard_error,
         'need_refinement': need_refinement,
@@ -558,11 +664,21 @@ def validation(apidocs_dir="extractor/apidocs/", use_existing_metadata=True):
 
 
 def refinement(apidocs_dir="extractor/apidocs/", need_refinement=None, use_existing_metadata=True, force_refine=False, round_num=1, use_response_only=False):
+=======
+        'tool_hard_error': tool_hard_error,
+        'need_refinement': need_refinement,
+        'successful_tools': successful_tools
+    }
+
+
+def refinement(apidocs_dir="extractor/apidocs/", need_refinement=None, use_existing_metadata=True):
+>>>>>>> 963c487f600a8a356913b965684eb5a41275604c
     """Refine tools that need improvement
     
     Args:
         apidocs_dir (str): Path to the API docs directory
         need_refinement (list): List of tool paths that need refinement. If None, loads from file.
+<<<<<<< HEAD
         use_existing_metadata (bool): If True, load and continue from existing metadata. Only applies to round 1.
                                     If False, start fresh and overwrite existing metadata.
         force_refine (bool): If True, refine all tools regardless of validation status. Only applies to round 1.
@@ -578,6 +694,13 @@ def refinement(apidocs_dir="extractor/apidocs/", need_refinement=None, use_exist
         print("Using response-only mode for parameter inference")
         logger.info("Using response-only mode for parameter inference")
     
+=======
+        use_existing_metadata (bool): If True, load and continue from existing metadata.
+                                    If False, start fresh and overwrite existing metadata.
+    """
+    logger = setup_logging()
+    
+>>>>>>> 963c487f600a8a356913b965684eb5a41275604c
     # Initialize knowledge bases and models
     kb_data = initialize_knowledge_bases(apidocs_dir)
     gpt, gpt_prompt, claude = initialize_ai_models()
@@ -587,6 +710,7 @@ def refinement(apidocs_dir="extractor/apidocs/", need_refinement=None, use_exist
     response_dict = build_response_dict(apidocs_dir)
     response_keys, response_keys_emb = encode_keys(kb_data['embedding_model'], response_dict)
     
+<<<<<<< HEAD
     # Load need_refinement list if not provided (only for round 1)
     if need_refinement is None and not force_refine and round_num == 1:
         need_refinement = []
@@ -602,10 +726,23 @@ def refinement(apidocs_dir="extractor/apidocs/", need_refinement=None, use_exist
     successful_tools = []
     request_error_tools = []
     still_need_refinement = []
+=======
+    # Load need_refinement list if not provided
+    if need_refinement is None:
+        need_refinement = []
+        if os.path.exists("main/need_refinement.txt"):
+            with open("main/need_refinement.txt", "r") as f:
+                need_refinement = [line.strip() for line in f.readlines()]
+    
+    refine_success = 0
+    refine_fail = 0
+    successful_tools = []
+>>>>>>> 963c487f600a8a356913b965684eb5a41275604c
     
     print("Refining tools...")
     import time
     
+<<<<<<< HEAD
     # Use shared metadata file with validation
     metadata_file = 'tool_validation_refinement_metadata.json'
     metadata_table = {'tools': [], 'validation_summary': {}, 'refinement_rounds': {}}
@@ -676,11 +813,114 @@ def refinement(apidocs_dir="extractor/apidocs/", need_refinement=None, use_exist
         # Load config for this tool folder
         tool_folder_path = os.path.join(apidocs_dir, tool_folder)
         config = load_api_config(tool_folder_path)
+=======
+    # Load existing refinement metadata if available and requested
+    refinement_metadata = {'tools': []}
+    if use_existing_metadata and os.path.exists('tool_refinement_metadata.json'):
+        try:
+            with open('tool_refinement_metadata.json', 'r') as f:
+                refinement_metadata = json.load(f)
+            logger.info(f"Loaded existing refinement metadata with {len(refinement_metadata['tools'])} tools")
+            print(f"Loaded existing refinement metadata with {len(refinement_metadata['tools'])} tools")
+            
+            # Count existing refinement stats
+            for tool in refinement_metadata['tools']:
+                if tool['status'] == 'success':
+                    refine_success += 1
+                elif tool['status'] == 'fail':
+                    refine_fail += 1
+        except Exception as e:
+            logger.error(f"Error loading refinement metadata: {str(e)}")
+            print(f"Error loading refinement metadata: {str(e)}")
+    elif not use_existing_metadata:
+        logger.info("Starting fresh refinement - existing metadata will be overwritten")
+        print("Starting fresh refinement - existing metadata will be overwritten")
+    
+    SAVE_INTERVAL = 10
+    refined_tools = {tool['path'] for tool in refinement_metadata['tools']} if use_existing_metadata else set()
+    
+    for tool_folder in os.listdir(apidocs_dir):
+        tools, api_json = load_api_data(apidocs_dir, tool_folder)
+>>>>>>> 963c487f600a8a356913b965684eb5a41275604c
         
         for tool in tools:
             tool_path = os.path.join(apidocs_dir, tool_folder, tool)
             if not force_refine and tool_path not in need_refinement:
                 continue
+<<<<<<< HEAD
+=======
+                
+            # Skip if already refined and using existing metadata
+            if use_existing_metadata and tool_path in refined_tools:
+                logger.info(f"Skipping already refined tool: {tool}")
+                print(f"Skipping already refined tool: {tool}")
+                continue
+                
+            code = open(tool_path, "r").read()
+            function_name = extract_function_names(code)
+            api_description = get_api_description(api_json, function_name)
+            print(f"API description: {api_description}")
+    
+            tool_refinement_metadata = {
+                'path': tool_path,
+                'function_name': function_name,
+                'api_description': api_description,
+                'status': None,
+                'error_type': None
+            }
+    
+            try:
+                result = subprocess.run(
+                    ["python", tool_path], capture_output=True, text=True, check=True
+                )
+                if result.stdout:
+                    output = result.stdout
+                    error_message = result.stdout.strip() if len(result.stdout) < 500 else result.stdout[:500]
+
+                    # Get the required parameters from the code
+                    params = get_required_param_name(tool_path)
+                    param_examples = {}
+                    for param in params:
+                        example = search_kb(param, kb_data['param_keys'], kb_data['param_keys_emb'], 
+                                          kb_data['parameter_dict'], response_keys, response_keys_emb, 
+                                          response_dict, kb_data['description_keys'], 
+                                          kb_data['description_to_param_dict'], kb_data['description_keys_emb'], 
+                                          kb_data['embedding_model'])
+                        param_examples[param] = example
+                    
+                    print(param_examples)
+
+                    # Fix the code using Claude
+                    for _ in range(3):
+                        try:
+                            new_code = fix_code(claude, code, error_message, api_description, param_examples)
+                            break
+                        except:
+                            time.sleep(60) # prevent overflow
+                            new_code = ''
+                    if not new_code: # failed 3 times
+                        print("skip")
+                        continue
+                    with open(tool_path, "w") as f:
+                        f.write(new_code)
+                    print(f"Refined: {tool}")
+            except subprocess.CalledProcessError as e:
+                error_message = e.stderr.strip() if len(e.stderr) < 500 else e.stderr[:500]
+
+                # Get the required parameters from the code
+                try:
+                    params = get_required_param_name(tool_path)
+                except:
+                    continue
+                param_examples = {}
+                for param in params:
+                    example = search_kb(param, kb_data['param_keys'], kb_data['param_keys_emb'], 
+                                      kb_data['parameter_dict'], response_keys, response_keys_emb, 
+                                      response_dict, kb_data['description_keys'], 
+                                      kb_data['description_to_param_dict'], kb_data['description_keys_emb'], 
+                                      kb_data['embedding_model'])
+                    param_examples[param] = example
+>>>>>>> 963c487f600a8a356913b965684eb5a41275604c
                 
             
             # Get the latest error response and code from metadata instead of running the tool
@@ -758,9 +998,25 @@ def refinement(apidocs_dir="extractor/apidocs/", need_refinement=None, use_exist
             
             print(param_examples)
 
+<<<<<<< HEAD
             # Fix the code using Claude with cached error message
             new_code = None
             for attempt in range(3):
+=======
+                # Fix the code using Claude
+                for _ in range(3):
+                    try:
+                        new_code = fix_code(claude, code, error_message, api_description, param_examples)
+                        break
+                    except:
+                        new_code = ''
+                        time.sleep(60)
+                        continue
+                with open(tool_path, "w", encoding='UTF-8') as f:
+                    f.write(new_code)
+                print(f"Refined: {tool}")
+            finally:
+>>>>>>> 963c487f600a8a356913b965684eb5a41275604c
                 try:
                     new_code = fix_code(claude, code, error_message, detailed_description, param_examples, config)
                     break
@@ -805,6 +1061,7 @@ def refinement(apidocs_dir="extractor/apidocs/", need_refinement=None, use_exist
                         api_response=output,
                         code=new_code,
                     )
+<<<<<<< HEAD
                     tool_refinement_metadata['gpt_evaluation'] = gpt_answer
                     tool_refinement_metadata['status'] = gpt_answer
                     
@@ -862,6 +1119,23 @@ def refinement(apidocs_dir="extractor/apidocs/", need_refinement=None, use_exist
                             print(f"Error updating documentation for {tool_path}: {str(e)}")
                             logger.warning(f"Error updating documentation for {tool_path}: {str(e)}")
                         
+=======
+                    if result.stdout:
+                        output = result.stdout if len(result.stdout) < 500 else result.stdout[:500]
+                        gpt_answer = gpt_evaluate(
+                            gpt,
+                            gpt_prompt,
+                            api_description=api_description,
+                            api_response=output,
+                            code=code,
+                        )
+                    if not gpt_answer:
+                        continue
+                    if gpt_answer == "information":
+                        refine_success += 1
+                        tool_refinement_metadata['status'] = 'success'
+                        successful_tools.append(tool_path)
+>>>>>>> 963c487f600a8a356913b965684eb5a41275604c
                         print(f"Refined tool {tool_path} executed successfully.")
                     elif gpt_answer == "request_error":
                         refine_request_error += 1
@@ -870,6 +1144,7 @@ def refinement(apidocs_dir="extractor/apidocs/", need_refinement=None, use_exist
                         print(f"Refined tool {tool_path} returned a request error.")
                     elif gpt_answer == "code_error":
                         refine_fail += 1
+<<<<<<< HEAD
                         still_need_refinement.append(tool_path)
                         tool_refinement_metadata['status'] = 'fail'
                         tool_refinement_metadata['error_type'] = 'code_error'
@@ -1084,17 +1359,72 @@ def main(use_existing_metadata=True, force_refine=True, tool_types=['success'], 
         max_refinement_rounds (int): Maximum number of refinement rounds to perform. Defaults to 1.
         use_response_only (bool): If True, only use response_dict for parameter inference during refinement.
         build_response_dict_through_metadata (bool): If True, build the response_dict through the metadata.
+=======
+                        tool_refinement_metadata['status'] = 'fail'
+                        tool_refinement_metadata['error_type'] = 'code_error'
+                        print(f"Refined tool {tool_path} returned a code error.")
+                except subprocess.CalledProcessError as e:
+                    refine_fail += 1
+                    tool_refinement_metadata['status'] = 'fail'
+                    tool_refinement_metadata['error_type'] = str(e)
+                    print(f"Refined tool {tool_path} cannot be executed.")
+                finally:
+                    # Add tool refinement metadata to table
+                    refinement_metadata['tools'].append(tool_refinement_metadata)
+                    
+                    # Save refinement metadata periodically
+                    if len(refinement_metadata['tools']) % SAVE_INTERVAL == 0:
+                        with open('tool_refinement_metadata.json', 'w') as f:
+                            json.dump(refinement_metadata, f, indent=2)
+                        logger.info(f"Saved refinement metadata table with {len(refinement_metadata['tools'])} tools")
+                    
+                    print("---------------------------\n")
+
+    # Save final refinement metadata table
+    with open('tool_refinement_metadata.json', 'w') as f:
+        json.dump(refinement_metadata, f, indent=2)
+
+    print(f"Refine success: {refine_success}, Refine fail: {refine_fail}, NumToolsNeedRefinement: {len(need_refinement)}")
+    
+    return {
+        'refine_success': refine_success,
+        'refine_fail': refine_fail,
+        'successful_tools': successful_tools
+    }
+
+
+def copy_successful_tools(successful_tools, output_dir="webarena_tools_toRyan"):
+    """Copy successful tools to output directory"""
+    os.makedirs(output_dir, exist_ok=True)
+    for tool in successful_tools:
+        tool_name = os.path.basename(tool)
+        new_tool_path = os.path.join(output_dir, tool_name)
+        with open(new_tool_path, "w") as f:
+            f.write(open(tool, "r").read())
+
+
+def main(use_existing_metadata=True):
+    """Main function to run validation and refinement pipeline
+    
+    Args:
+        use_existing_metadata (bool): If True, load and continue from existing metadata.
+                                    If False, start fresh and overwrite existing metadata.
+>>>>>>> 963c487f600a8a356913b965684eb5a41275604c
     """
     from dotenv import load_dotenv
     load_dotenv()
     
     # Define the path to the API docs
     apidocs_dir = os.path.join("extractor", "apidocs")
+<<<<<<< HEAD
 
+=======
+>>>>>>> 963c487f600a8a356913b965684eb5a41275604c
     
     # Run validation
     validation_results = validation(apidocs_dir, use_existing_metadata=use_existing_metadata)
     
+<<<<<<< HEAD
     # Collect all refinement results across rounds
     all_refinement_results = {
         'successful_tools': [],
@@ -1197,6 +1527,14 @@ def main(use_existing_metadata=True, force_refine=True, tool_types=['success'], 
     # Save response dictionary as JSON file if requested
     if build_response_dict_through_metadata:
         save_response_dict(apidocs_dir, "response_dict.json")
+=======
+    # Run refinement
+    refinement_results = refinement(apidocs_dir, validation_results['need_refinement'], use_existing_metadata=use_existing_metadata)
+    
+    # Copy all successful tools to output directory
+    all_successful_tools = list(set(validation_results['successful_tools'] + refinement_results['successful_tools']))
+    copy_successful_tools(all_successful_tools)
+>>>>>>> 963c487f600a8a356913b965684eb5a41275604c
 
 
 def get_required_param_name(path: str | Path):
@@ -1212,6 +1550,7 @@ def get_required_param_name(path: str | Path):
         function_name = "unknown"
 
     params = []
+<<<<<<< HEAD
     
     # Find the main function definition and extract its parameters
     for node in ast.walk(tree):
@@ -1238,6 +1577,11 @@ def get_required_param_name(path: str | Path):
                     params.append(formatted_param)
                 except:
                     pass
+=======
+    for _, text in out:
+        param = text.strip().split(" ")[1].strip()
+        params.append(param)
+>>>>>>> 963c487f600a8a356913b965684eb5a41275604c
     
     return params
 
@@ -1271,6 +1615,7 @@ def extract_function_names(code_str):
         return []
     
     # return function_names[1]
+<<<<<<< HEAD
     # print("extracted function names: ", function_names)
     return function_names[-1]
 
@@ -1548,6 +1893,14 @@ def update_function_docstring_with_returns(tool_path, returns_description):
         print(f"Error updating function documentation for {tool_path}: {str(e)}")
         return False
 
+=======
+    return function_names[0]
+>>>>>>> 963c487f600a8a356913b965684eb5a41275604c
+
+def find_api_in_md(md, api_endpoint):
+    chunk = md.split(api_endpoint)
+    if len(chunk) < 2:
+        return md
 
 if __name__ == "__main__":
     # Example usage with new parameters:

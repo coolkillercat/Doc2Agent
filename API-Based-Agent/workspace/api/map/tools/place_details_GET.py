@@ -2,13 +2,9 @@ import requests, json
 from urllib.parse import quote
 
 
-def place_details(osmtype=None, osmid=None, class_param=None, place_id=None, json_callback='_unset_', pretty=None, addressdetails=None, keywords=None, linkedplaces=1, hierarchy=None, group_hierarchy=None, polygon_geojson=None, accept_language=None):
+def place_details(osmtype=None, osmid=None, osm_class=None, place_id=None, json_callback=None, addressdetails=None, keywords=None, linkedplaces=1, hierarchy=None, group_hierarchy=None, polygon_geojson=None, accept_language=None, format='json'):
     """
     Show all details about a single place saved in the database.
-    
-    This API endpoint is meant for visual inspection of the data in the database.
-    The parameters of the endpoint and the output may change occasionally between
-    versions of Nominatim.
     
     Parameters:
     -----------
@@ -16,64 +12,68 @@ def place_details(osmtype=None, osmid=None, class_param=None, place_id=None, jso
         One of node (N), way (W) or relation (R).
     osmid : int
         The OSM ID must be a number.
-    class_param : str
-        Optional parameter to distinguish between entries when the corresponding OSM object has more than one main tag.
+    osm_class : str
+        Allows to distinguish between entries when the corresponding OSM object has more than one main tag.
     place_id : int
         Place ID assigned sequentially during Nominatim data import.
-    json_callback : str, default='_unset_'
+    json_callback : str
         When set, JSON output will be wrapped in a callback function with the given name.
-    pretty : int, default=None
-        Add indentation to the output to make it more human-readable (0 or 1).
-    addressdetails : int, default=None
+    addressdetails : int
         When set to 1, include a breakdown of the address into elements.
-    keywords : int, default=None
+    keywords : int
         When set to 1, include a list of name keywords and address keywords in the result.
-    linkedplaces : int, default=1
+    linkedplaces : int
         Include details of places that are linked with this one.
-    hierarchy : int, default=None
-        Include details of places lower in the address hierarchy.
-    group_hierarchy : int, default=None
+    hierarchy : int
+        Include details of POIs and address that depend on the place.
+    group_hierarchy : int
         When set to 1, the output of the address hierarchy will be grouped by type.
-    polygon_geojson : int, default=None
+    polygon_geojson : int
         Include geometry of result.
-    accept_language : str, default=None
+    accept_language : str
         Preferred language order for showing search results.
-    
+    format : str
+        Output format (json is recommended).
+        
     Examples:
     ---------
-    >>> place_details(osmtype='W', osmid=38210407, class_param='tourism')
-    >>> place_details(place_id=85993608, pretty=1, addressdetails=1)
+    >>> place_details(osmtype='W', osmid=38210407)
+    >>> place_details(place_id=85993608, addressdetails=1, keywords=1)
     """
     api_url = "https://nominatim.openstreetmap.org/details"
     querystring = {
         'osmtype': osmtype, 
         'osmid': osmid, 
-        'class': class_param, 
+        'class': osm_class, 
         'place_id': place_id, 
-        'json_callback': json_callback if json_callback != '_unset_' else None, 
-        'pretty': pretty, 
+        'json_callback': json_callback, 
         'addressdetails': addressdetails, 
         'keywords': keywords, 
         'linkedplaces': linkedplaces, 
         'hierarchy': hierarchy, 
         'group_hierarchy': group_hierarchy, 
-        'polygon_geojson': polygon_geojson, 
-        'accept-language': accept_language
+        'polygon_geojson': polygon_geojson,
+        'format': format
     }
     
-    # Remove None values from querystring
+    if accept_language:
+        querystring['accept-language'] = accept_language
+    
+    # Remove None values
     querystring = {k: v for k, v in querystring.items() if v is not None}
-    
-    # Check required parameters based on the API endpoint being used
+    headers = {
+        'User-Agent': 'Nominatim-API-Client/1.0',
+    }
+    # Check required parameters based on request format
     if place_id is None:
-        assert osmtype is not None, 'Missing required parameter: osmtype'
-        assert osmid is not None, 'Missing required parameter: osmid'
+        if osmtype is None or osmid is None:
+            raise ValueError('Either place_id or both osmtype and osmid must be provided')
     
-    response = requests.get(url=api_url, params=querystring, timeout=50)
+    response = requests.get(url=api_url, params=querystring, headers=headers, timeout=50)
     return response
 
 if __name__ == '__main__':
-    r = place_details(osmtype='W', osmid=38210407, class_param='tourism', place_id=85993608, json_callback='myCallback', pretty=1, addressdetails=1, keywords=1, linkedplaces=1, hierarchy=1, group_hierarchy=1, polygon_geojson=1, accept_language='en-US,fr')
+    r = place_details(osmtype='W', osmid=38210407)
     r_json = None
     try:
         r_json = r.json()
