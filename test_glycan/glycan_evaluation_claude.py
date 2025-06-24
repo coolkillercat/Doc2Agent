@@ -243,7 +243,7 @@ def call_gpt_evaluator(prompt: str, model: str = "gpt-4o") -> str:
     logger.info(f"DEBUG: Estimated tokens: {estimated_tokens}")
     
     client = openai.OpenAI(
-        api_key=os.environ.get('OPENAI_API_KEY', 'OPENAI_KEY_REMOVED')
+        api_key=os.environ.get('OPENAI_API_KEY', '')
     )
     
     try:
